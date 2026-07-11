@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AZIZA — Résultats</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="nav-bar">
+    <div class="nav-inner">
+      <a href="/soumission" class="nav-brand">AZIZA <span class="nav-version">v2.0</span></a>
+      <div class="nav-links">
+        <a href="/soumission" class="nav-link">Évaluation</a>
+        <a href="/progression" class="nav-link">Progression</a>
+      </div>
+      <div class="nav-profil">
+        {% if profil %}
+        <span class="badge-palier badge-{{ r.palier_actuel }}">
+          {{ palier_label }}
+        </span>
+        <span class="nav-nom">{{ profil.nom }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <header class="page-header">
+      <h1>Résultats de l'évaluation</h1>
+      <p class="subtitle">Session #{{ r.session_id }} &middot; {{ r.timestamp[:19]|replace('T', ' ') }}</p>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, msg in messages %}
+    <div class="flash flash-{{ category }}">{{ msg }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div class="result-grid">
+      <section class="card card-score-global">
+        <h2>Score global</h2>
+        <div class="score-ring">
+          <svg viewBox="0 0 120 120" class="ring-svg">
+            <circle cx="60" cy="60" r="52" class="ring-bg"/>
+            <circle cx="60" cy="60" r="52" class="ring-fg"
+                    stroke-dasharray="326.7"
+                    stroke-dashoffset="{{ 326.7 - (326.7 * r.score_global / 10) }}"
+                    stroke="{{ '#2ecc71' if r.score_global >= 7 else '#f39c12' if r.score_global >= 5 else '#e74c3c' }}"/>
+          </svg>
+          <div class="ring-text">
+            <span class="ring-score">{{ r.score_global }}</span>
+            <span class="ring-max">/ 10</span>
+          </div>
+        </div>
+        <div class="score-pct">{{ r.score_global_pct }} %</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:{{ r.score_global_pct }}%;background:{{ '#2ecc71' if r.score_global >= 7 else '#f39c12' if r.score_global >= 5 else '#e74c3c' }}"></div>
+        </div>
+        <div class="score-merite">
+          {% set merite = 'Très mal' if r.score_global <= 1 else 'Mal' if r.score_global <= 3 else 'Médiocre' if r.score_global <= 4 else 'Passable' if r.score_global == 5 else 'Assez bien' if r.score_global == 6 else 'Bien' if r.score_global <= 8 else 'Très bien' if r.score_global == 9 else 'Parfait' %}
+          <span class="merite-label">{{ merite }}</span>
+        </div>
+      </section>
+
+      {% if r.verrou_plagiat %}
+      <div class="card card-verrou verrou-plagiat">
+        <div class="verrou-icon">🔒</div>
+        <div class="verrou-content">
+          <h3>Plagiat détecté</h3>
+          <p>Le taux de similarité textuelle (LCS = {{ '%.3f'|format(r.score_lcs) }}) dépasse le seuil autorisé. La note est automatiquement fixée à <strong>0/10</strong>.</p>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if r.verrou_trop_court %}
+      <div class="card card-verrou verrou-plagiat">
+        <div class="verrou-icon">🔒</div>
+        <div class="verrou-content">
+          <h3>Texte trop court</h3>
+          <p>La contraction ({{ r.nb_mots }} mots) est insuffisante pour une évaluation (minimum 20 mots). La note est automatiquement fixée à <strong>0/10</strong>.</p>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if r.verrou_hors_sujet %}
+      <div class="card card-verrou verrou-hors-sujet">
+        <div class="verrou-icon">🔒</div>
+        <div class="verrou-content">
+          <h3>Hors-sujet</h3>
+          <p>La similarité sémantique ({{ '%.3f'|format(r.score_semantique) }}) est inférieure au seuil minimal (0.85). Le fond est fixé à <strong>0/3</strong> et la forme subit une pénalité de <strong>-1pt</strong>.</p>
+        </div>
+      </div>
+      {% endif %}
+
+      <section class="card card-resultat">
+        <h2>Forme <span class="sous-score">{{ r.score_forme }}/7</span></h2>
+        <div class="sous-scores">
+          <div class="ss-item">
+            <span class="ss-label">Lexical</span>
+            <span class="ss-valeur {% if r.score_lexical < 1.5 %}ss-faible{% elif r.score_lexical < 2.5 %}ss-moyen{% else %}ss-bon{% endif %}">{{ r.score_lexical }}/3</span>
+          </div>
+          <div class="ss-item">
+            <span class="ss-label">Syntaxe</span>
+            <span class="ss-valeur {% if r.score_syntaxe < 0.8 %}ss-faible{% elif r.score_syntaxe < 1.5 %}ss-moyen{% else %}ss-bon{% endif %}">{{ r.score_syntaxe }}/2</span>
+          </div>
+          <div class="ss-item">
+            <span class="ss-label">Orthographe</span>
+            <span class="ss-valeur {% if r.score_orthographe < 0.8 %}ss-faible{% elif r.score_orthographe < 1.5 %}ss-moyen{% else %}ss-bon{% endif %}">{{ r.score_orthographe }}/2</span>
+          </div>
+        </div>
+        <div class="metriques">
+          <div class="metrique">
+            <div class="metrique-label">
+              <span>Mots</span>
+              <span class="metrique-valeur">{{ r.nb_mots }} <small>/ {{ r.quota_cible }}</small></span>
+            </div>
+            <div class="metrique-badge zone-{{ r.zone_quota }}">
+              {{ '%.1f'|format(r.ecart_pct) }}%
+            </div>
+          </div>
+          <div class="metrique">
+            <div class="metrique-label">
+              <span>Plagiat (LCS)</span>
+              <span class="metrique-valeur">{{ '%.3f'|format(r.score_lcs) }}</span>
+            </div>
+            <div class="metrique-badge label-{{ r.label_plagiat }}">
+              {{ {'original':'Original','similaire':'Similaire','plagiat':'Plagiat'}.get(r.label_plagiat, r.label_plagiat) }}
+            </div>
+          </div>
+          <div class="metrique">
+            <div class="metrique-label">
+              <span>Connecteurs</span>
+              <span class="metrique-valeur">{{ r.connecteurs_total }} <small>({{ r.connecteurs_cat }} cat.)</small></span>
+            </div>
+          </div>
+          <div class="metrique">
+            <div class="metrique-label">
+              <span>Fautes</span>
+              <span class="metrique-valeur">{{ r.nb_fautes }}</span>
+            </div>
+          </div>
+          {% if r.fautes_details and r.fautes_details|length > 0 %}
+          <div class="fautes-details">
+            {% for faute in r.fautes_details %}
+            <div class="faute-item">
+              <span class="faute-msg">{{ faute.message }}</span>
+              {% if faute.contexte %}
+              <code class="faute-ctx">{{ faute.contexte }}</code>
+              {% endif %}
+              {% if faute.suggestion %}
+              <span class="faute-sugg">→ {{ faute.suggestion }}</span>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="card card-resultat">
+        <h2>Fond <span class="sous-score">{{ r.score_fond }}/3</span></h2>
+        <div class="sous-scores">
+          <div class="ss-item">
+            <span class="ss-label">Similarité sémantique</span>
+            <span class="ss-valeur {% if r.score_semantique < 0.85 %}ss-faible{% elif r.score_semantique < 0.93 %}ss-moyen{% else %}ss-bon{% endif %}">{{ '%.3f'|format(r.score_semantique) }}</span>
+          </div>
+        </div>
+        {% if r.contresens %}
+        <div class="alert alert-danger">
+          <strong>⛔ Contresens détecté</strong>
+        </div>
+        {% endif %}
+        {% if r.subjectivite_detectee %}
+        <div class="alert alert-warning">
+          <strong>⚠ Subjectivité détectée</strong>
+          {% if r.phrase_subjective %}
+          <p class="alert-detail">« {{ r.phrase_subjective }} »</p>
+          {% endif %}
+          <p class="alert-detail">La contraction de texte doit rester neutre : aucune opinion personnelle n'est autorisée.</p>
+        </div>
+        {% endif %}
+        {% if r.idees_manquantes and r.idees_manquantes|length > 0 %}
+        <div class="alert alert-warning">
+          <strong>⚠ Idées manquantes :</strong>
+          <ul>
+            {% for idee in r.idees_manquantes %}
+            <li>{{ idee }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+        {% if r.score_fond == 0 and not has_api_key %}
+        <div class="alert alert-info">
+          <strong>ℹ Évaluation du fond indisponible.</strong><br>
+          Configurez la variable d'environnement <code>MISTRAL_API_KEY</code> pour activer l'évaluation LLM du fond.
+        </div>
+        {% endif %}
+        {% if r.score_fond > 0 or has_api_key %}
+        <div class="feedback-box feedback-fond">
+          <div class="fb-section">
+            <strong>Diagnostic :</strong> {{ r.feedback_erreur }}
+          </div>
+          {% if r.feedback_mc %}
+          <div class="fb-section">
+            <strong>Micro-cours :</strong> {{ r.feedback_mc }}
+          </div>
+          {% endif %}
+          {% if r.feedback_exemple %}
+          <div class="fb-section fb-exemple">
+            <strong>Exemple :</strong> {{ r.feedback_exemple }}
+          </div>
+          {% endif %}
+          {% if r.raisonnement %}
+          <div class="fb-section">
+            <strong>Raisonnement :</strong> {{ r.raisonnement }}
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </section>
+
+      <section class="card card-palier">
+        <h2>Palier actuel</h2>
+        <div class="palier-display">
+          <span class="badge-palier badge-{{ r.palier_actuel }} badge-lg">{{ palier_label }}</span>
+        </div>
+        {% if r.mp is defined and r.mp > 0 %}
+        <div class="mp-display">
+          <span class="mp-label">Moyenne Pondérée (Mₚ)</span>
+          <span class="mp-valeur">{{ '%.1f'|format(r.mp) }}%</span>
+        </div>
+        {% endif %}
+        {% if r.palier_suivant %}
+        <div class="next-palier">
+          Prochain palier : <strong>{{ {'decouverte':'Découverte','consolidation':'Consolidation','maitrise':'Maîtrise'}.get(r.palier_suivant, r.palier_suivant) }}</strong>
+        </div>
+        {% endif %}
+      </section>
+    </div>
+
+    <div class="actions">
+      <a href="/soumission" class="btn btn-primary">Nouvelle évaluation</a>
+      <a href="/progression" class="btn btn-secondary">Voir la progression</a>
+      <a href="/pdf/{{ r.session_id }}" class="btn btn-secondary">🖨 Fiche note (PDF)</a>
+    </div>
+  </main>
+</body>
+</html>

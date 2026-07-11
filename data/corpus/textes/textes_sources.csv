@@ -1,0 +1,15 @@
+id,titre,theme,auteur_source,serie,annee,nb_mots_officiel,nb_mots_fichier,quota_mots,quota_min,quota_max,ratio_quota,statut_quota
+S001,Problématique des langues nationales,Linguistique/Identité,Maxime da Cruz,non précisée,non précisée,526,512,132,119,145,0.251,donné
+S002,La violence politique en Afrique,Politique/Société,Rapport groupe des sages UA,non précisée,non précisée,600,638,150,135,165,0.250,donné
+S003,Le diplôme et l'insertion professionnelle,Éducation/Société,Marie Duru-Bellat,non précisée,non précisée,705,624,176,158,194,0.250,donné
+S004,Le trafic d'enfants au Bénin,Société/Droits humains,Gilberte Houssounou,non précisée,2004,442,450,120,108,132,0.271,donné
+S005,Dépravation des mœurs et jeunesse,Société/Éducation,Yvette Reine Nzaba,non précisée,2018,638,641,160,144,176,0.251,donné
+S006,Violence et masculinité chez les jeunes hommes,Société/Genre,non identifié,non précisée,non précisée,625,555,125,113,138,0.200,donné
+S007,La nature et la santé mentale,Santé/Environnement,Alexandre Pihen,non précisée,2021,580,537,145,131,160,0.250,donné
+S008,Manifestations de la corruption en Afrique de l'Ouest,Politique/Société,Kassimi Bamba,non précisée,2008,616,626,154,139,169,0.250,calculé
+S009,Colonisation et chosification,Histoire/Postcolonial,Aimé Césaire,non précisée,non précisée,579,545,145,131,160,0.250,donné
+S010,Esclavage racial et esclavage moderne,Histoire/Société,Christiane Taubira,non précisée,2015,441,441,110,99,121,0.250,calculé
+S011,Lecture à l'école : thérapie à impact durable,Éducation/Société,Patrick Creppy,non précisée,2020,557,541,139,125,153,0.250,calculé
+S012,Mauvaise gouvernance et corruption,Politique/Gouvernance,Robert Kikidi,non précisée,2018,625,492,156,140,172,0.250,donné
+S013,Nouvelles technologies et jeunesse africaine,Technologie/Société,Alexandre Konaté,non précisée,2019,590,534,148,133,163,0.250,donné
+S014,Agriculture et sécurité alimentaire,Économie/Environnement,Sébastien Abis & Matthieu Brun,non précisée,2021,510,463,127,114,140,0.249,donné

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AZIZA — Fiche note #{{ r.session_id }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #fff; font-size: 11pt; color: #000; }
+      .container { max-width: 100%; padding: 0; }
+      .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+      .page-break { page-break-before: always; }
+      .fiche-header { text-align: center; margin-bottom: 1.5rem; }
+      .fiche-header h1 { font-size: 18pt; color: #000; margin-bottom: .25rem; }
+      .fiche-header p { font-size: 10pt; color: #555; }
+      .signature-line { border-top: 1px solid #000; margin-top: 2rem; padding-top: .5rem; font-size: 9pt; }
+    }
+    body { background: #fff; }
+    .fiche-header { text-align: center; margin-bottom: 1.5rem; }
+    .fiche-header h1 { font-size: 1.4rem; color: var(--gray-800); }
+    .fiche-info { display: flex; justify-content: space-between; font-size: .85rem; color: var(--gray-600); margin-bottom: 1.5rem; flex-wrap: wrap; gap: .5rem; }
+    .fiche-textes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    @media (max-width: 700px) { .fiche-textes { grid-template-columns: 1fr; } }
+    .fiche-texte-box { font-size: .8rem; line-height: 1.5; background: var(--gray-50); padding: .75rem; border-radius: var(--radius-sm); max-height: 250px; overflow-y: auto; white-space: pre-wrap; }
+    .fiche-texte-box h3 { font-size: .8rem; font-weight: 600; color: var(--gray-600); margin-bottom: .25rem; }
+    .fiche-verrous { margin-bottom: 1rem; }
+    .fiche-verrou { padding: .4rem .6rem; border-radius: var(--radius-sm); font-size: .8rem; margin-bottom: .25rem; border-left: 3px solid var(--danger); background: #fef2f2; }
+    .fiche-verrou.verrou-warn { border-left-color: var(--warning); background: #fffbeb; }
+    .fiche-scores { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .fiche-scores .card { flex: 1; }
+    .fiche-notes { display: flex; gap: 1.5rem; justify-content: center; margin: 1rem 0; }
+    .fiche-note { text-align: center; padding: .75rem 1.5rem; border-radius: var(--radius); background: var(--gray-50); }
+    .fiche-note .note-val { font-size: 2rem; font-weight: 800; }
+    .fiche-note .note-label { font-size: .7rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: .5px; }
+    .note-glob { color: var(--primary); }
+    .note-forme { color: #8e44ad; }
+    .note-fond { color: #e67e22; }
+    .feedback-print { font-size: .8rem; line-height: 1.5; }
+    .feedback-print strong { color: var(--gray-700); }
+  </style>
+</head>
+<body>
+  <div class="no-print" style="text-align:center;padding:1rem;background:var(--gray-100);">
+    <button onclick="window.print()" class="btn btn-primary">🖨 Imprimer / PDF</button>
+    <a href="{{ url_for('resultats', session_id=r.session_id) }}" class="btn btn-secondary">Retour aux résultats</a>
+  </div>
+
+  <main class="container">
+    <div class="fiche-header">
+      <h1>Fiche d'évaluation — Contraction de texte</h1>
+      <p>Session #{{ r.session_id }} &middot; {{ r.timestamp[:19]|replace('T', ' ') }}</p>
+    </div>
+
+    <div class="fiche-info">
+      <span><strong>Élève :</strong> {{ profil.nom if profil else '—' }}</span>
+      <span><strong>Palier :</strong> {{ palier_label }}</span>
+      <span><strong>Mots :</strong> {{ r.nb_mots }} / {{ r.quota_cible }}</span>
+      <span><strong>Écart :</strong> {{ '%.1f'|format(r.ecart_pct) }} %</span>
+    </div>
+
+    {% if r.verrou_plagiat or r.verrou_trop_court or r.verrou_hors_sujet %}
+    <div class="fiche-verrous">
+      {% if r.verrou_plagiat %}
+      <div class="fiche-verrou">🔒 Plagiat détecté (LCS = {{ '%.3f'|format(r.score_lcs) }}) — Note forcée à 0/10</div>
+      {% endif %}
+      {% if r.verrou_trop_court %}
+      <div class="fiche-verrou">🔒 Texte trop court ({{ r.nb_mots }} mots, minimum 20) — Note forcée à 0/10</div>
+      {% endif %}
+      {% if r.verrou_hors_sujet %}
+      <div class="fiche-verrou verrou-warn">🔒 Hors-sujet (similarité {{ '%.3f'|format(r.score_semantique) }}) — Fond 0/3, Forme -1pt</div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="fiche-notes">
+      <div class="fiche-note">
+        <div class="note-val note-glob">{{ r.score_global }}</div>
+        <div class="note-label">Note /10</div>
+      </div>
+      <div class="fiche-note">
+        <div class="note-val note-forme">{{ r.score_forme }}</div>
+        <div class="note-label">Forme /7</div>
+      </div>
+      <div class="fiche-note">
+        <div class="note-val note-fond">{{ r.score_fond }}</div>
+        <div class="note-label">Fond /3</div>
+      </div>
+    </div>
+
+    <div class="fiche-scores">
+      <section class="card" style="flex:2">
+        <h2>Détail Forme</h2>
+        <div class="sous-scores">
+          <div class="ss-item"><span class="ss-label">Lexical</span><span class="ss-valeur">{{ r.score_lexical }}/3</span></div>
+          <div class="ss-item"><span class="ss-label">Syntaxe</span><span class="ss-valeur">{{ r.score_syntaxe }}/2</span></div>
+          <div class="ss-item"><span class="ss-label">Orthographe</span><span class="ss-valeur">{{ r.score_orthographe }}/2</span></div>
+        </div>
+        <div class="metriques">
+          <div class="metrique"><span>Plagiat (LCS)</span><span>{{ '%.3f'|format(r.score_lcs) }}</span></div>
+          <div class="metrique"><span>Pénalité quota</span><span>{{ r.penalite_quota }}</span></div>
+          <div class="metrique"><span>Connecteurs</span><span>{{ r.connecteurs_total }} ({{ r.connecteurs_cat }} cat.)</span></div>
+          <div class="metrique"><span>Fautes</span><span>{{ r.nb_fautes }}</span></div>
+          <div class="metrique"><span>Ratio phrases</span><span>{{ '%.2f'|format(r.ratio_phrases) }}</span></div>
+        </div>
+        {% if r.fautes_details and r.fautes_details|length > 0 %}
+        <div style="margin-top:.5rem;font-size:.8rem;">
+          <strong style="color:var(--gray-600);">Fautes détaillées :</strong>
+          <ul style="margin:.25rem 0 0 1.2rem;">
+            {% for faute in r.fautes_details %}
+            <li>{{ faute.message }}{% if faute.suggestion %} → {{ faute.suggestion }}{% endif %}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      </section>
+
+      <section class="card" style="flex:1">
+        <h2>Détail Fond</h2>
+        <div class="metriques">
+          <div class="metrique"><span>Score brut</span><span>{{ r.score_fond_brut }}</span></div>
+          <div class="metrique"><span>Sim. sémantique</span><span>{{ '%.3f'|format(r.score_semantique) }}</span></div>
+          <div class="metrique"><span>Contresens</span><span>{{ 'Oui' if r.contresens else 'Non' }}</span></div>
+          <div class="metrique"><span>Subjectivité</span><span>{{ 'Oui' if r.subjectivite_detectee else 'Non' }}</span></div>
+        </div>
+        {% if r.phrase_subjective %}
+        <div style="margin-top:.5rem;font-size:.8rem;font-style:italic;color:var(--gray-600);">
+          « {{ r.phrase_subjective }} »
+        </div>
+        {% endif %}
+      </section>
+    </div>
+
+    {% if r.idees_manquantes and r.idees_manquantes|length > 0 %}
+    <section class="card" style="margin-bottom:1rem;">
+      <h2>Idées manquantes</h2>
+      <ul style="margin:.25rem 0 0 1.2rem;font-size:.85rem;">
+        {% for idee in r.idees_manquantes %}
+        <li>{{ idee }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    <section class="card" style="margin-bottom:1rem;">
+      <h2>Feedback pédagogique</h2>
+      <div class="feedback-print">
+        {% if r.feedback_erreur %}
+        <p><strong>Diagnostic :</strong> {{ r.feedback_erreur }}</p>
+        {% endif %}
+        {% if r.feedback_mc %}
+        <p><strong>Micro-cours :</strong> {{ r.feedback_mc }}</p>
+        {% endif %}
+        {% if r.feedback_exemple %}
+        <p><strong>Exemple :</strong> {{ r.feedback_exemple }}</p>
+        {% endif %}
+        {% if r.raisonnement %}
+        <p><strong>Raisonnement :</strong> {{ r.raisonnement }}</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <div class="fiche-textes">
+      <div class="fiche-texte-box">
+        <h3>📄 Texte source</h3>
+        <div>{{ texte_source }}</div>
+      </div>
+      <div class="fiche-texte-box">
+        <h3>✏ Contraction de l'élève</h3>
+        <div>{{ contraction }}</div>
+      </div>
+    </div>
+
+    <div class="signature-line no-print" style="border-top:1px solid var(--gray-300);margin-top:1.5rem;padding-top:.5rem;font-size:.75rem;color:var(--gray-500);text-align:center;">
+      AZIZA v2.0 — Assistant Intelligent pour la Contraction de texte au BAC béninois
+    </div>
+  </main>
+</body>
+</html>

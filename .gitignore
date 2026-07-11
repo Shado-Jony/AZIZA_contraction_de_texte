@@ -1,0 +1,35 @@
+# Environnement
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Flask / Données locales
+demo/data/productions/
+demo/data/historique.json
+demo/__pycache__/
+
+# Notebooks (expérimentations, lecture seule)
+experiments/
+
+# Docker
+.docker/
+docker-compose.override.yml

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AZIZA — Soumission</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="nav-bar">
+    <div class="nav-inner">
+      <a href="/soumission" class="nav-brand">AZIZA <span class="nav-version">v2.0</span></a>
+      <div class="nav-links">
+        <a href="/soumission" class="nav-link active">Évaluation</a>
+        <a href="/progression" class="nav-link">Progression</a>
+      </div>
+      <div class="nav-profil">
+        {% if profil %}
+        <span class="badge-palier badge-{{ profil.palier_actuel if profil.palier_actuel else 'decouverte' }}">
+          {{ {'decouverte':'Découverte','consolidation':'Consolidation','maitrise':'Maîtrise'}.get(profil.palier_actuel, profil.palier_actuel) }}
+        </span>
+        <span class="nav-nom">{{ profil.nom }}</span>
+        <form method="POST" action="/reset" class="inline-form">
+          <button type="submit" class="btn-ghost" title="Réinitialiser">⟳</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <header class="page-header">
+      <h1>Soumettre une contraction</h1>
+      <p class="subtitle">Collez un texte source et la contraction de l'élève pour une évaluation complète.</p>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, msg in messages %}
+    <div class="flash flash-{{ category }}">{{ msg }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    {% if not profil or not profil.nom %}
+    <section class="card card-welcome">
+      <h2>Bienvenue sur AZIZA</h2>
+      <p>Assistant Intelligent pour la Zone d'Apprentissage et l'Excellence Académique.</p>
+      <p>Commencez par entrer votre nom pour initialiser votre session de travail.</p>
+      <form method="POST" action="/demarrer" class="form-welcome">
+        <div class="field-row">
+          <input type="text" name="nom" placeholder="Votre nom" required class="input" autofocus>
+          <button type="submit" class="btn btn-primary">Démarrer</button>
+        </div>
+      </form>
+    </section>
+    {% else %}
+
+    <form method="POST" action="/evaluer" class="form-eval">
+      <div class="form-grid">
+        <section class="card card-source">
+          <h2>Texte source</h2>
+          {% if textes %}
+          <div class="field">
+            <label for="source_select">Charger un texte du corpus</label>
+            <select id="source_select" class="input" onchange="chargerSource(this.value)">
+              <option value="">— Choisir un texte —</option>
+              {% for sid, st in textes.items() %}
+              <option value="{{ sid }}" data-contenu="{{ st.contenu[:500]|e }}">{{ st.titre }} ({{ st.nb_mots }} mots)</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+          <div class="field">
+            <label for="texte_source">Ou collez votre texte source</label>
+            <textarea id="texte_source" name="texte_source" class="input textarea" rows="10" placeholder="Collez ici le texte source à contracter..." oninput="autoQuota(this)"></textarea>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="quota_cible">Quota cible (mots)</label>
+              <input type="number" id="quota_cible" name="quota_cible" class="input input-sm" placeholder="Auto" min="50" max="300">
+              <span class="field-hint">¼ du texte source, calculé automatiquement</span>
+            </div>
+            <div class="field">
+              <label>Mots source</label>
+              <div class="stat-badge" id="source_word_count">0</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card card-contraction">
+          <h2>Contraction de l'élève</h2>
+          <div class="field">
+            <label for="contraction">Texte produit</label>
+            <textarea id="contraction" name="contraction" class="input textarea" rows="10" placeholder="Collez ici la contraction de l'élève..." oninput="compterMotsContraction(this)"></textarea>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Mots contraction</label>
+              <div class="stat-badge" id="contraction_word_count">0</div>
+            </div>
+            <div class="field">
+              <label>État quota</label>
+              <div class="stat-badge stat-neutral" id="quota_status">En attente</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="actions">
+        <div class="api-status">
+          {% if has_api_key %}
+          <span class="status-dot status-ok"></span> Évaluation du fond active
+          {% else %}
+          <span class="status-dot status-warn"></span> Évaluation du fond désactivée
+          <span class="status-hint">(configurer MISTRAL_API_KEY)</span>
+          {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">
+          Évaluer la contraction
+        </button>
+      </div>
+    </form>
+    {% endif %}
+  </main>
+
+  <script>
+    const textes = {{ textes|tojson|safe }};
+
+    function chargerSource(sid) {
+      if (!sid || !textes[sid]) return;
+      const t = textes[sid];
+      document.getElementById('texte_source').value = t.contenu;
+      autoQuota({ target: document.getElementById('texte_source') });
+    }
+
+    function autoQuota(el) {
+      const txt = el.target ? el.target.value : el;
+      const mots = txt.trim() ? txt.trim().split(/\s+/).length : 0;
+      document.getElementById('source_word_count').textContent = mots;
+      const quota = Math.round(mots / 4);
+      document.getElementById('quota_cible').value = quota || '';
+      checkQuota();
+    }
+
+    function compterMotsContraction(el) {
+      const txt = el.target ? el.target.value : el;
+      const mots = txt.trim() ? txt.trim().split(/\s+/).length : 0;
+      document.getElementById('contraction_word_count').textContent = mots;
+      checkQuota();
+    }
+
+    function checkQuota() {
+      const quota = parseInt(document.getElementById('quota_cible').value) || 0;
+      const mots = parseInt(document.getElementById('contraction_word_count').textContent) || 0;
+      const badge = document.getElementById('quota_status');
+      if (!quota) { badge.textContent = 'En attente'; badge.className = 'stat-badge stat-neutral'; return; }
+      const ecart = Math.abs(mots - quota) / quota * 100;
+      if (ecart <= 5) { badge.textContent = '✓ Exact'; badge.className = 'stat-badge stat-ok'; }
+      else if (ecart <= 10) { badge.textContent = '⚠ Toléré'; badge.className = 'stat-badge stat-warn'; }
+      else { badge.textContent = '✗ Hors quota'; badge.className = 'stat-badge stat-err'; }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+{
+  "version": "2.0",
+  "description": "Seuils de détection optimaux AZIZA v2.0 (Exp. 1-6, corpus BAC béninois, 30 contractions annotées). Métrique retenue : LCS normalisée. Double barrière : Smin (hors-sujet) + Smax (plagiat). Notation parabolique continue.",
+  "metrique_retenue": "lcs",
+  "metriques": {
+    "jaccard_bigrams": {
+      "seuil_optimal_f1": 0.107,
+      "seuil_optimal_youden": 0.1,
+      "auc": 0.9876,
+      "f1_max": 0.9231,
+      "label_categories": {
+        "original": "score < 0.107",
+        "similaire": "0.107 <= score < 0.20",
+        "plagiat": "score >= 0.20"
+      }
+    },
+    "cosinus_tfidf": {
+      "seuil_optimal_f1": 0.648,
+      "seuil_optimal_youden": 0.532,
+      "auc": 0.9565,
+      "f1_max": 0.8333
+    },
+    "lcs": {
+      "smin": 0.26,
+      "seuil_similaire": 0.577,
+      "seuil_plagiat": 0.80,
+      "seuil_optimal_f1": 0.577,
+      "seuil_optimal_youden": 0.577,
+      "auc": 1.0,
+      "f1_max": 1.0,
+      "label_categories": {
+        "hors_sujet": "score < 0.26",
+        "original": "0.26 <= score < 0.577",
+        "similaire": "0.577 <= score < 0.80",
+        "plagiat": "score >= 0.80"
+      }
+    },
+    "semantique": {
+      "modele": "mistral-embed",
+      "smin_sem": 0.85,
+      "sfid_sem": 0.90
+    }
+  },
+  "barème_notation": {
+    "forme": {
+      "lexical": "/3",
+      "syntaxe": "/2",
+      "orthographe": "/2",
+      "total": "/7"
+    },
+    "fond": {
+      "total": "/3"
+    },
+    "total_general": "/10",
+    "verrous": {
+      "plagiat": "score_plagiat == 0.0 → note globale = 0/10",
+      "hors_sujet": "score_sem < 0.85 → fond = 0/3, pénalité forme -1pt"
+    }
+  }
+}

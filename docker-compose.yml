@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  aziza:
+    build: .
+    container_name: aziza-app
+    ports:
+      - "5100:5100"
+    env_file:
+      - .env
+    environment:
+      - FLASK_ENV=production
+    volumes:
+      - aziza_data:/app/demo/data
+
+volumes:
+  aziza_data:
