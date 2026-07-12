@@ -30,10 +30,6 @@ demo/__pycache__/
 # Notebooks (expérimentations, lecture seule)
 experiments/
 
-# Docker
-.docker/
-docker-compose.override.yml
-
 # Temp / logs
 *.txt
 *.log

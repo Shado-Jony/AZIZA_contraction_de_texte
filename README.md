@@ -2,6 +2,7 @@
 
 [![GitHub](https://img.shields.io/badge/GitHub-Shado--Jony/AZIZA-181717?logo=github)](https://github.com/Shado-Jony/AZIZA)
 [![Version](https://img.shields.io/badge/version-2.0.0-blue)]()
+[![PythonAnywhere](https://img.shields.io/badge/demo-PythonAnywhere-4479A1?logo=pythonanywhere)](https://Jiovany11.pythonanywhere.com)
 
 **Version 2.0** — Pipeline NLP hybride d'évaluation automatique avec correction forme/fond, verrous pédagogiques, et interface web Flask.
 
@@ -70,20 +71,6 @@ cp .env.example .env
 # 3. Lancer l'application
 python demo/app.py
 # → http://127.0.0.1:5100
-```
-
-### Partager son localhost (démo temporaire)
-
-```bash
-.\ngrok.exe http 5100
-# → https://xxxx-xx-xx-xx-xx.ngrok-free.dev
-```
-
-### Avec Docker (optionnel)
-
-```bash
-docker compose up --build
-# → http://localhost:5100
 ```
 
 ### Documentation API (Swagger)
@@ -164,6 +151,43 @@ Les tests sont automatisés via **GitHub Actions** sur chaque push (`.github/wor
 
 ---
 
+## Déploiement
+
+L'application est déployée sur **PythonAnywhere** (gratuit) :
+
+```bash
+https://Jiovany11.pythonanywhere.com
+```
+
+### Procédure (si vous voulez déployer votre propre instance)
+
+1. Créez un compte sur [pythonanywhere.com](https://www.pythonanywhere.com)
+2. Ouvrez une console Bash et clonez :
+   ```bash
+   git clone https://github.com/Shado-Jony/AZIZA.git
+   ```
+3. Créez le virtualenv :
+   ```bash
+   mkvirtualenv aziza --python=3.12
+   pip install -r AZIZA/requirements.txt
+   ```
+4. **Web → Add a new web app → Manual configuration → Python 3.12**
+5. Configurez :
+   - **WSGI file** : pointez vers `/home/votrepseudo/AZIZA/demo/app:app`
+   - **Virtualenv** : `/home/votrepseudo/.virtualenvs/aziza`
+   - **Static files** : `/static/` → `/home/votrepseudo/AZIZA/demo/static/`
+   - **Environment variables** : `MISTRAL_API_KEY`, `AZIZA_API_KEY`, `FLASK_SECRET_KEY`
+6. **Reload** → votre app est en ligne
+
+### Mise à jour
+
+```bash
+cd ~/AZIZA && git pull
+```
+Puis **Reload** dans l'onglet Web.
+
+---
+
 ## Structure du projet
 
 ```
@@ -193,12 +217,10 @@ AZIZA/
 │       └── productions/             # Textes sources + contractions bruts
 │
 ├── .github/workflows/
-│   └── ci.yml                       # CI : tests unitaires + intégration + Docker
+│   └── ci.yml                       # CI : tests unitaires + intégration
 │
 ├── .env.example                     # Variables d'environnement (template)
 ├── .gitignore
-├── Dockerfile                       # Image Docker production
-├── docker-compose.yml               # Orchestration Docker
 ├── requirements.txt                 # Dépendances Python
 ├── tests.py                         # 117 tests unitaires + intégration + API REST
 └── README.md                        # Ce fichier
@@ -227,31 +249,6 @@ La page `/progression` affiche (via Chart.js) :
 - **Radar des compétences** : Lexical, Syntaxe, Orthographe, Sémantique, Connecteurs
 
 ---
-
-## Déploiement
-
-### Démo rapide (ngrok)
-
-```bash
-.\ngrok.exe http 5100
-# → https://xxxx-xx-xx-xx-xx.ngrok-free.dev
-```
-
-### Render / HuggingFace Spaces
-
-```yaml
-# render.yaml (ou Docker)
-startCommand: python demo/app.py
-envVars:
-  - key: MISTRAL_API_KEY
-    value: votre_clé
-```
-
-### VPS avec Docker
-
-```bash
-docker compose up -d
-```
 
 ---
 
@@ -285,9 +282,8 @@ Rapport de synthèse : `experiments/resultats/forme_et_fond/rapport_synthese.md`
 | **flasgger** | Documentation Swagger/OpenAPI |
 | **flask-limiter** | Rate limiting API REST (60 req/min) |
 | **Chart.js** | Graphiques de progression (CDN) |
-| **Docker** | Conteneurisation (optionnel) |
 | **GitHub Actions** | CI/CD (optionnel) |
-| **ngrok** | Tunnel local temporaire pour démo |
+| **PythonAnywhere** | Hébergement gratuit |
 
 ---
 
