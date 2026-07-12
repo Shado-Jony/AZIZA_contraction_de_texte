@@ -33,3 +33,10 @@ experiments/
 # Docker
 .docker/
 docker-compose.override.yml
+
+# Temp / logs
+*.txt
+*.log
+_test_*.py
+ngrok.exe
+ngrok*

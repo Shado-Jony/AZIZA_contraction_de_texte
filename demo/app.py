@@ -25,16 +25,40 @@ from flasgger import Swagger
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from demo.api import api_bp, limiter  # noqa: E402
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "aziza-dev-key-change-in-production")
 
-app.config["SWAGGER"] = {
+app.register_blueprint(api_bp)
+limiter.init_app(app)
+
+swagger_config = {
     "title": "AZIZA API",
     "version": "2.0.0",
     "description": "API d'évaluation automatique de la Contraction de texte au BAC béninois",
     "openapi": "3.0.3",
+    "specs": [
+        {
+            "endpoint": "apispec",
+            "route": "/apispec_1.json",
+            "rule_filter": lambda rule: True,
+            "model_filter": lambda tag: True,
+        }
+    ],
+    "headers": [],
+    "static_url_path": "/flasgger_static",
+    "swagger_ui": True,
+    "specs_route": "/apidocs/",
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "X-API-Key",
+            "in": "header"
+        }
+    },
 }
-swagger = Swagger(app)
+swagger = Swagger(app, config=swagger_config)
 
 HISTORIQUE_PATH   = Path(__file__).parent / "data" / "historique.json"
 TEXTES_DIR        = PROJECT_ROOT / "data" / "corpus" / "textes"
@@ -277,15 +301,26 @@ def _fallback_result(texte_source, contraction, quota, nb_mots, profil, erreur="
 
 @app.route("/")
 def index():
+    """Redirection vers le formulaire de soumission.
+    ---
+    get:
+      summary: Redirige vers /soumission
+      responses:
+        302:
+          description: Redirection vers le formulaire
+    """
     return redirect(url_for("soumission"))
 
 
 @app.route("/soumission")
 def soumission():
-    """Formulaire de soumission d'une contraction.
+    """Formulaire d'évaluation — interface HTML.
     ---
     get:
-      summary: Affiche le formulaire de soumission
+      summary: Affiche le formulaire d'évaluation
+      description: >
+        Page HTML avec champ texte source, contraction élève, quota cible.
+        Initialise la session si non démarrée.
       responses:
         200:
           description: Page HTML du formulaire
@@ -299,16 +334,20 @@ def soumission():
 
 @app.route("/evaluer", methods=["POST"])
 def evaluer():
-    """Évalue une contraction de texte.
+    """Évalue une contraction de texte — pipeline complet.
     ---
     post:
       summary: Lance le pipeline d'évaluation complet
+      description: >
+        Analyse la contraction sur 10 critères (forme /7 + fond /3).
+        Retourne une redirection vers la page résultats.
       requestBody:
         required: true
         content:
           application/x-www-form-urlencoded:
             schema:
               type: object
+              required: [texte_source, contraction]
               properties:
                 texte_source:
                   type: string
@@ -318,10 +357,12 @@ def evaluer():
                   description: Texte produit par l'élève
                 quota_cible:
                   type: integer
-                  description: Nombre de mots cible (optionnel, auto-calculé)
+                  description: Nombre de mots cible (optionnel, ¼ du source par défaut)
       responses:
         302:
           description: Redirection vers /resultats/<session_id>
+        400:
+          description: Texte source ou contraction manquant
     """
     texte_source = request.form.get("texte_source", "").strip()
     contraction  = request.form.get("contraction", "").strip()
@@ -396,6 +437,26 @@ def evaluer():
 
 @app.route("/resultats/<session_id>")
 def resultats(session_id):
+    """Affiche les résultats détaillés d'une évaluation.
+    ---
+    get:
+      summary: Page de résultats d'une contraction
+      description: >
+        Affiche les scores (forme, fond, global), les verrous,
+        le feedback pédagogique détaillé et la progression.
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Identifiant unique de la session (8 caractères)
+      responses:
+        200:
+          description: Page HTML des résultats
+        404:
+          description: Session introuvable
+    """
     resultat = session.get("last_result")
     if not resultat or resultat.get("session_id") != session_id:
         for entry in lire_historique():
@@ -436,6 +497,17 @@ def fiche_note(session_id):
 
 @app.route("/progression")
 def progression():
+    """Tableau de bord de progression de l'élève.
+    ---
+    get:
+      summary: Affiche l'historique et la progression
+      description: >
+        Graphique d'évolution des scores, statistiques (moyenne, meilleur score),
+        palier actuel et historique complet des évaluations.
+      responses:
+        200:
+          description: Page HTML du tableau de bord
+    """
     historique = lire_historique()
     profil = get_profil()
     labels = {"decouverte": "Decouverte", "consolidation": "Consolidation", "maitrise": "Maitrise"}
@@ -455,6 +527,28 @@ def progression():
 
 @app.route("/demarrer", methods=["POST"])
 def demarrer():
+    """Initialise une session élève.
+    ---
+    post:
+      summary: Crée un nouveau profil élève
+      description: >
+        Initialise la session avec un profil vierge (palier
+        "découverte", historique vide). Redirige vers le formulaire.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                nom:
+                  type: string
+                  description: Nom de l'élève
+                  default: Eleve
+      responses:
+        302:
+          description: Redirection vers /soumission
+    """
     nom = request.form.get("nom", "Eleve").strip() or "Eleve"
     profil = ProfilApprenant(nom=nom)
     save_profil(profil)

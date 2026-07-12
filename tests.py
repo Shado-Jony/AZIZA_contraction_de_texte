@@ -685,6 +685,68 @@ class TestCompletMock(unittest.TestCase):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# API REST
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestApiREST(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ["AZIZA_API_KEY"] = "test-api-key"
+        from demo.app import app
+        cls.app = app
+        cls.client = app.test_client()
+
+    def test_health_no_auth(self):
+        r = self.client.get("/api/v1/health")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.get_json()["status"], "ok")
+
+    def test_evaluer_no_key(self):
+        r = self.client.post("/api/v1/evaluer",
+            json={"texte_source": "Test.", "contraction": "Test."})
+        self.assertEqual(r.status_code, 401)
+        self.assertIn("invalide", r.get_json()["message"])
+
+    def test_evaluer_wrong_key(self):
+        r = self.client.post("/api/v1/evaluer",
+            headers={"X-API-Key": "bad-key"},
+            json={"texte_source": "Test.", "contraction": "Test."})
+        self.assertEqual(r.status_code, 401)
+
+    def test_evaluer_missing_fields(self):
+        r = self.client.post("/api/v1/evaluer",
+            headers={"X-API-Key": "test-api-key"},
+            json={"texte_source": "Test."})
+        self.assertEqual(r.status_code, 400)
+
+    def test_evaluer_invalid_json(self):
+        r = self.client.post("/api/v1/evaluer",
+            headers={"X-API-Key": "test-api-key", "Content-Type": "application/json"},
+            data="pas du json")
+        self.assertEqual(r.status_code, 400)
+
+    def test_evaluer_success(self):
+        r = self.client.post("/api/v1/evaluer",
+            headers={"X-API-Key": "test-api-key"},
+            json={
+                "texte_source": "Le Benin est situe en Afrique de l Ouest.",
+                "contraction": "Le Benin est en Afrique.",
+            })
+        self.assertEqual(r.status_code, 200)
+        data = r.get_json()
+        self.assertTrue(data["succes"])
+        self.assertIn("note_finale", data)
+        self.assertIn("score_forme", data)
+        self.assertIn("score_fond", data)
+        self.assertIn("verrou_plagiat", data)
+
+    def test_evaluer_method_not_allowed(self):
+        r = self.client.get("/api/v1/evaluer")
+        self.assertEqual(r.status_code, 405)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # INTÉGRATION LENTE (API Mistral)
 # ═══════════════════════════════════════════════════════════════════════════════
 

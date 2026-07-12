@@ -245,25 +245,43 @@ def _clean_json_response(raw: str) -> dict:
 
 
 def _mistral_embed(texte: str) -> list[float]:
-    resp = requests.post(
-        "https://api.mistral.ai/v1/embeddings",
-        headers={"Authorization": f"Bearer {MISTRAL_API_KEY}"},
-        json={"model": "mistral-embed", "input": texte},
-        timeout=30
-    )
-    resp.raise_for_status()
-    return resp.json()["data"][0]["embedding"]
+    try:
+        resp = requests.post(
+            "https://api.mistral.ai/v1/embeddings",
+            headers={"Authorization": f"Bearer {MISTRAL_API_KEY}"},
+            json={"model": "mistral-embed", "input": texte},
+            timeout=30
+        )
+        resp.raise_for_status()
+        return resp.json()["data"][0]["embedding"]
+    except Exception as e:
+        print(f"[AZIZA][WARN] _mistral_embed a échoué : {e}")
+        if hasattr(e, 'response') and e.response is not None:
+            try:
+                print(f"[AZIZA][WARN] Réponse Mistral Embed : {e.response.text[:500]}")
+            except Exception:
+                pass
+        raise
 
+
+def _as_text(content: str) -> list:
+    return [{"type": "text", "text": content}]
 
 def _call_llm(texte_source: str, contraction: str) -> dict:
     user_content = (
         f"TEXTE SOURCE :\n\"\"\"\n{texte_source[:1000]}\n\"\"\"\n\n"
         f"CONTRACTION DE L'ÉLÈVE :\n\"\"\"\n{contraction}\n\"\"\""
     )
-    messages = FEW_SHOT_EXAMPLES + [{"role": "user", "content": user_content}]
+    few_shot_formatted = []
+    for msg in FEW_SHOT_EXAMPLES:
+        few_shot_formatted.append({
+            "role": msg["role"],
+            "content": _as_text(msg["content"]),
+        })
+    messages = few_shot_formatted + [{"role": "user", "content": _as_text(user_content)}]
     payload = {
         "model": MODEL,
-        "messages": [{"role": "system", "content": SYSTEM_PROMPT}] + messages,
+        "messages": [{"role": "system", "content": _as_text(SYSTEM_PROMPT)}] + messages,
         "temperature": 0.2,
         "max_tokens": 800,
     }
@@ -278,15 +296,25 @@ def _call_llm(texte_source: str, contraction: str) -> dict:
             )
             resp.raise_for_status()
             data = resp.json()
+            if 'choices' not in data or not data['choices']:
+                print(f"[AZIZA][WARN] Mistral réponse inattendue (tentative {attempt}/3) : {json.dumps(data, ensure_ascii=False)[:500]}")
+                raise ValueError(f"Réponse Mistral invalide : {data.get('message', 'choices manquant')}")
             raw = data['choices'][0]['message']['content'].strip()
             result = _clean_json_response(raw)
             if 'score_fond' not in result:
-                raise ValueError("score_fond manquant")
+                raise ValueError("score_fond manquant dans le JSON")
             return result
         except Exception as e:
+            print(f"[AZIZA][WARN] _call_llm tentative {attempt}/3 a échoué : {e}")
+            if hasattr(e, 'response') and e.response is not None:
+                try:
+                    print(f"[AZIZA][WARN] Réponse Mistral Chat : {e.response.text[:500]}")
+                except Exception:
+                    pass
             if attempt < 3:
                 time.sleep(2)
             else:
+                print(f"[AZIZA][ERREUR] _call_llm abandon après 3 tentatives")
                 raise
 
 
@@ -312,6 +340,7 @@ def evaluer_fond(texte_source: str, contraction: str) -> dict:
         norm = (sum(a*a for a in emb_src) ** 0.5) * (sum(b*b for b in emb_ctr) ** 0.5)
         score_sem = dot / norm if norm > 0 else 0.0
     except Exception:
+        print(f"[AZIZA][WARN] Embedding sémantique échoué, score_sem=0.0")
         score_sem = 0.0
 
     try:
@@ -326,6 +355,7 @@ def evaluer_fond(texte_source: str, contraction: str) -> dict:
         feedback_mc = llm.get("feedback_micro_cours", "")
         feedback_ex = llm.get("feedback_exemple", "")
     except Exception:
+        print(f"[AZIZA][WARN] LLM Fond échoué, fallback score_brut=1.5")
         score_brut = 1.5
         contresens = False
         subjectivite = False

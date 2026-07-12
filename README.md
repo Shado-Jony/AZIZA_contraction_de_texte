@@ -37,7 +37,7 @@ AZIZA (Zone d'Apprentissage et l'Excellence Académique) est un moteur IA conçu
 | Composante | Note | Méthode |
 |------------|------|---------|
 | **Similarité sémantique** | — | `mistral-embed`, seuil hors-sujet < 0.85 |
-| **Raisonnement & contresens** | /3 | `mistral-small-latest`, prompt Few-Shot + CoT + 5 exemples |
+| **Raisonnement & contresens** | /3 | `mistral-small-latest`, prompt Few-Shot + CoT + 5 exemples, format `content` en tableau de parties |
 | **Subjectivité** | −1pt | Détection des pronoms personnels (je, moi, mon…) et expressions d'opinion (à mon avis, selon moi, je pense…) |
 
 ### Verrous pédagogiques
@@ -69,7 +69,14 @@ python demo/app.py
 # → http://127.0.0.1:5100
 ```
 
-### Avec Docker
+### Partager son localhost (démo temporaire)
+
+```bash
+ngrok http 5100
+# → https://xxxx-xx-xx-xx-xx.ngrok-free.dev
+```
+
+### Avec Docker (optionnel)
 
 ```bash
 docker compose up --build
@@ -84,17 +91,69 @@ Une fois l'application lancée :
 http://localhost:5100/apidocs
 ```
 
-Interface Swagger UI interactive pour explorer les endpoints.
+Interface Swagger UI interactive — 8 endpoints documentés :
+
+| Endpoint | Méthode | Auth | Description |
+|----------|---------|------|-------------|
+| `/` | GET | — | Redirection vers le formulaire |
+| `/soumission` | GET | — | Formulaire HTML d'évaluation |
+| `/evaluer` | POST | — | Pipeline complet (formulaire HTML) |
+| `/resultats/<session_id>` | GET | — | Page de résultats détaillés |
+| `/progression` | GET | — | Tableau de bord et historique |
+| `/demarrer` | POST | — | Initialisation session élève |
+| **`/api/v1/health`** | GET | — | Healthcheck public |
+| **`/api/v1/evaluer`** | POST | `X-API-Key` | API REST — évaluation JSON (60 req/min) |
+
+---
+
+## API REST
+
+L'API REST expose les endpoints suivants (avec Swagger sur `/apidocs`) :
+
+### POST /api/v1/evaluer
+
+Évalue une contraction via JSON — nécessite une clé API dans le header `X-API-Key`.
+
+```bash
+curl -X POST http://localhost:5100/api/v1/evaluer \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: aziza-api-key-2026" \
+  -d '{"texte_source": "Texte à contracter.", "contraction": "Texte produit."}'
+```
+
+Sous **Windows PowerShell** utiliser `curl.exe` :
+```powershell
+curl.exe -X POST http://localhost:5100/api/v1/evaluer -H "Content-Type: application/json" -H "X-API-Key: aziza-api-key-2026" -d '{\"texte_source\": \"Texte.\", \"contraction\": \"Ma contraction.\"}'
+```
+
+Ou en Python :
+```bash
+python -c "import requests; r=requests.post('http://localhost:5100/api/v1/evaluer', headers={'X-API-Key': 'aziza-api-key-2026'}, json={'texte_source': 'Texte.', 'contraction': 'Ma contraction.'}); print(r.json())"
+```
+
+**Réponse (200) :**
+```json
+{"succes": true, "note_finale": 4.33, "score_forme": 1.83, "score_fond": 2.5, ...}
+```
+
+**Rate limiting :** 60 requêtes/min. Header `X-API-Key` obligatoire.
+
+### GET /api/v1/health
+
+```bash
+curl http://localhost:5100/api/v1/health
+# → {"status": "ok", "version": "2.0.0"}
+```
 
 ---
 
 ## Tests
 
 ```bash
-# Tests unitaires rapides (110 tests, sans API)
-python tests.py
+# Tests unitaires rapides (117 tests, sans API externe)
+python -m unittest tests.py
 
-# Tests d'intégration (inclut API Mistral)
+# Tests d'intégration (inclut appels réels API Mistral)
 python tests.py all
 ```
 
@@ -117,7 +176,8 @@ AZIZA/
 │   └── machine_etats.py             # Machine à états adaptative (3 paliers)
 │
 ├── demo/                            # Interface web Flask
-│   ├── app.py                       # Routes, session, historique, Swagger
+│   ├── app.py                       # Routes HTML + Swagger + rate limiting
+│   ├── api.py                       # API REST (/api/v1/evaluer, /health) + auth
 │   ├── static/
 │   │   └── style.css                # Styles professionnels
 │   ├── templates/
@@ -137,7 +197,7 @@ AZIZA/
 ├── Dockerfile                       # Image Docker production
 ├── docker-compose.yml               # Orchestration Docker
 ├── requirements.txt                 # Dépendances Python
-├── tests.py                         # 110 tests unitaires + intégration
+├── tests.py                         # 117 tests unitaires + intégration + API REST
 └── README.md                        # Ce fichier
 ```
 
@@ -145,10 +205,11 @@ AZIZA/
 
 ## Configuration
 
-Copier `.env.example` vers `.env` et ajuster :
+Clé API Mistral déjà intégrée dans `aziza/pipeline/fond.py`. Pour la surcharger via l'environnement, copier `.env.example` vers `.env` :
 
 ```ini
-MISTRAL_API_KEY=votre_cle_api_mistral    # Obligatoire pour le Fond /3
+MISTRAL_API_KEY=votre_cle_api_mistral    # Remplace la clé hardcodée
+AZIZA_API_KEY=aziza-api-key-2026         # Clé pour l'API REST /api/v1/evaluer
 FLASK_SECRET_KEY=une_cle_secrete_unique   # Changez en production
 FLASK_ENV=production                      # development / production
 FLASK_PORT=5100                           # Port d'écoute
@@ -165,6 +226,13 @@ La page `/progression` affiche (via Chart.js) :
 ---
 
 ## Déploiement
+
+### Démo rapide (ngrok)
+
+```bash
+ngrok http 5100
+# → https://xxxx-xx-xx-xx-xx.ngrok-free.dev
+```
 
 ### Render / HuggingFace Spaces
 
@@ -211,9 +279,12 @@ Rapport de synthèse : `experiments/resultats/forme_et_fond/rapport_synthese.md`
 | **Mistral AI API** | Embeddings (`mistral-embed`) + LLM (`mistral-small-latest`) |
 | **LanguageTool** | Correction orthographique distante |
 | **scikit-learn** | TF-IDF, similarité cosinus |
+| **flasgger** | Documentation Swagger/OpenAPI |
+| **flask-limiter** | Rate limiting API REST (60 req/min) |
 | **Chart.js** | Graphiques de progression (CDN) |
-| **Docker** | Conteneurisation |
-| **GitHub Actions** | CI/CD |
+| **Docker** | Conteneurisation (optionnel) |
+| **GitHub Actions** | CI/CD (optionnel) |
+| **ngrok** | Tunnel local temporaire pour démo |
 
 ---
 
