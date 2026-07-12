@@ -1,5 +1,8 @@
 # AZIZA — Assistant Intelligent pour la Contraction de Texte au BAC Béninois
 
+[![GitHub](https://img.shields.io/badge/GitHub-Shado--Jony/AZIZA-181717?logo=github)](https://github.com/Shado-Jony/AZIZA)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue)]()
+
 **Version 2.0** — Pipeline NLP hybride d'évaluation automatique avec correction forme/fond, verrous pédagogiques, et interface web Flask.
 
 AZIZA (Zone d'Apprentissage et l'Excellence Académique) est un moteur IA conçu pour noter automatiquement les épreuves de contraction de texte du Baccalauréat béninois. Il combine des métriques lexicales classiques, une analyse linguistique outillée (LanguageTool), et un LLM (Mistral AI) pour une évaluation en deux axes : **Forme (/7)** et **Fond (/3)**, fusionnés en une note finale **/10**.
@@ -72,7 +75,7 @@ python demo/app.py
 ### Partager son localhost (démo temporaire)
 
 ```bash
-ngrok http 5100
+.\ngrok.exe http 5100
 # → https://xxxx-xx-xx-xx-xx.ngrok-free.dev
 ```
 
@@ -230,7 +233,7 @@ La page `/progression` affiche (via Chart.js) :
 ### Démo rapide (ngrok)
 
 ```bash
-ngrok http 5100
+.\ngrok.exe http 5100
 # → https://xxxx-xx-xx-xx-xx.ngrok-free.dev
 ```
 
