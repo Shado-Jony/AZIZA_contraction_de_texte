@@ -1,0 +1,121 @@
+% ============================================================
+% PREAMBULE — Packages et configuration du mémoire AZIZA
+% Compilation : xelatex
+% ============================================================
+
+% --- Encodage et police ---
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\setsansfont{Arial}
+\setmonofont{Consolas}
+
+% --- Tableaux ---
+\usepackage{array,booktabs,multirow,tabularx}
+\usepackage[table]{xcolor}
+\makeatletter
+\providecommand\insert@pcolumn{\insert@column}
+\makeatother
+
+% --- Langue française ---
+\usepackage{polyglossia}
+\setdefaultlanguage{french}
+\usepackage[autostyle]{csquotes}
+
+% --- Géométrie de la page (normes IFRI) ---
+\usepackage[
+  a4paper,
+  left=3cm,
+  right=2.5cm,
+  top=2.5cm,
+  bottom=2.5cm,
+  headheight=15pt,
+]{geometry}
+
+% --- Coupures et typographie ---
+\usepackage{microtype}
+
+% --- Mathématiques ---
+\usepackage{amsmath,amssymb,amsfonts}
+
+% --- Graphiques et images ---
+\usepackage{graphicx}
+\graphicspath{{figures/}{figures/ch4_eda/}{figures/ch4_forme/}
+              {figures/ch4_fond/}{figures/ch4_global/}}
+
+% --- Listes ---
+\usepackage{enumitem}
+\setlist{nosep,leftmargin=2em}
+
+% --- Code source ---
+\usepackage{listings}
+\lstset{
+  language=Python,
+  basicstyle=\small\ttfamily,
+  keywordstyle=\color{blue},
+  stringstyle=\color{red},
+  commentstyle=\color{green!50!black},
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  captionpos=b,
+}
+
+% --- Encadrés, théorèmes ---
+\usepackage{tcolorbox}
+\tcbuselibrary{most}
+
+% --- Hyperliens ---
+\usepackage[
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue,
+  hyperfootnotes=false,
+]{hyperref}
+
+% --- Bibliographie ---
+\usepackage[backend=biber,style=authoryear,sorting=nyt]{biblatex}
+\addbibresource{refs.bib}
+
+% --- En-têtes et pieds de page ---
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\slshape AZIZA — Pipeline NLP hybride}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% --- Style des chapitres ---
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\bfseries\Large}
+  {\chaptername\ \thechapter}
+  {20pt}
+  {\Huge}
+\titlespacing*{\chapter}{0pt}{-20pt}{40pt}
+
+% --- Espacement interligne ---
+\usepackage{setspace}
+\onehalfspacing
+
+% --- Annexes ---
+\usepackage[title,titletoc]{appendix}
+
+% --- Notes de bas de page ---
+\usepackage[bottom]{footmisc}
+
+% --- Citations en épigraphe ---
+\usepackage{epigraph}
+\setlength{\epigraphwidth}{0.7\textwidth}
+
+% --- Commandes personnalisées ---
+\newcommand{\AZIZA}{\textsc{Aziza}}
+\newcommand{\MISTRAL}{\textsc{Mistral}}
+\newcommand{\LLM}{\textsc{LLM}}
+\newcommand{\IA}{\textsc{IA}}
+\newcommand{\TALN}{\textsc{Taln}}
+\newcommand{\AES}{\textsc{Aes}}
+\newcommand{\STI}{\textsc{Sti}}

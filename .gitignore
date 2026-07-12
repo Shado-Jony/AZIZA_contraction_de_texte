@@ -36,3 +36,20 @@ experiments/
 _test_*.py
 ngrok.exe
 ngrok*
+
+# LaTeX build artifacts
+docs/*.pdf
+docs/*.aux
+docs/*.bbl
+docs/*.bcf
+docs/*.blg
+docs/*.fdb_latexmk
+docs/*.fls
+docs/*.lof
+docs/*.lot
+docs/*.out
+docs/*.run.xml
+docs/*.synctex.gz
+docs/*.toc
+docs/pages/*.aux
+docs.zip

@@ -1,0 +1,64 @@
+% ============================================================
+% CONCLUSION ET PERSPECTIVES
+% ============================================================
+\chapter*{Conclusion et perspectives}
+\addcontentsline{toc}{chapter}{Conclusion et perspectives}
+
+\section*{Synthèse des travaux}
+
+Ce mémoire a présenté la conception, l'implémentation et l'évaluation d'\AZIZA, un pipeline NLP hybride pour l'évaluation automatique de la Contraction de texte au Baccalauréat béninois. Les contributions principales sont :
+
+\begin{itemize}
+    \item Une \textbf{architecture hybride originale} séparant strictement le traitement déterministe de la forme (LCS, connecteurs, LanguageTool) et l'analyse sémantique du fond via LLM (Mistral AI en Few-Shot + CoT). Cette séparation garantit l'absence d'hallucination sur les critères quantitatifs, répondant à une limitation majeure des approches purement LLM.
+    \item Une \textbf{expérimentation rigoureuse} sur 30 contractions annotées par un expert, démontrant une corrélation de Pearson de 0.797, un Cohen's Kappa de 0.776 et un F1-score de 0.77 pour la détection des contresens.
+    \item Une \textbf{application fonctionnelle} avec interface web Flask, API REST sécurisée (rate limiting, clé API), documentation Swagger, et déploiement sur PythonAnywhere, accessible pour validation en conditions réelles.
+\end{itemize}
+
+\section*{Limites}
+
+Plusieurs limites doivent être reconnues :
+
+\begin{itemize}
+    \item \textbf{Taille du corpus} : 30 contractions constituent un échantillon modeste. Une validation à plus grande échelle (plusieurs centaines de copies) serait nécessaire pour généraliser les résultats.
+    \item \textbf{Dépendance à Mistral AI} : le pipeline Fond dépend d'une API externe payante, ce qui peut limiter le déploiement à grande échelle. Une alternative open-source (Llama, Mixtral) est envisagée.
+    \item \textbf{Absence de dataset public} : il n'existe pas, à notre connaissance, de corpus public de contractions annotées en français, ce qui limite la reproductibilité et la comparaison avec d'autres approches.
+    \item \textbf{Non prise en compte de certains critères du BAC} : l'évaluation actuelle ne couvre pas la qualité de l'introduction, la progression argumentative, ou la pertinence du titre.
+\end{itemize}
+
+\section*{Perspectives}
+
+\subsection*{AZIZA v2.0 — Application web complète}
+
+À court terme, \AZIZA\ évoluera vers une application web complète avec :
+
+\begin{itemize}
+    \item \textbf{Interface React.js + API Django REST} : expérience utilisateur moderne, responsive design.
+    \item \textbf{Espace enseignant} : tableau de bord de classe, suivi individuel, surcharge manuelle des notes.
+    \item \textbf{Authentification JWT} et gestion de sessions persistantes.
+    \item \textbf{Base de données PostgreSQL} remplaçant le stockage JSON local.
+\end{itemize}
+
+\subsection*{AZIZA v3.0 — Extension des modules}
+
+À moyen terme (Master IA), l'extension à d'autres épreuves du BAC est envisagée :
+
+\begin{itemize}
+    \item \textbf{Module Dissertation} (Niveaux 1 et 2) : structure logique, cohérence argumentative.
+    \item \textbf{Module Commentaire Composé} : triptyque Procédé-Citation-Effet, figures de style.
+    \item \textbf{Architecture RAG dynamique} : intégration de ChromaDB/FAISS avec scraping de la presse béninoise pour un ancrage culturel renforcé.
+\end{itemize}
+
+\subsection*{AZIZA v4.0 — Déploiement à l'échelle}
+
+La vision à long terme inclut :
+
+\begin{itemize}
+    \item \textbf{Application mobile Android (Flutter)} pour accès hors connexion.
+    \item \textbf{Module Enrichissement Lexical} : agent conversationnel de remédiation stylistique.
+    \item \textbf{Extension au Niveau 0} (6ème-5ème) : textes narratifs/descriptifs.
+    \item \textbf{Partenariat avec le Ministère de l'Éducation Secondaire du Bénin} pour un déploiement national.
+\end{itemize}
+
+\section*{Mot de la fin}
+
+\AZIZA\ démontre qu'une architecture hybride, combinant la fiabilité des algorithmes déterministes et la puissance expressive des grands modèles de langage, peut offrir une évaluation automatique fiable et un feedback pédagogique de qualité pour la Contraction de texte. En ouvrant la voie à un outil concret pour les élèves et enseignants béninois, ce travail contribue, modestement, à la réduction de la fracture éducative dans l'enseignement secondaire en Afrique francophone.

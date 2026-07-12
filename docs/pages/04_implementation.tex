@@ -1,0 +1,114 @@
+% ============================================================
+% CHAPITRE 3 : IMPLÉMENTATION
+% ============================================================
+\chapter{Implémentation}
+\label{ch:impl}
+
+\section{Architecture logicielle}
+
+Le code source d'\AZIZA est structuré en modules indépendants dans une arborescence claire :
+
+\begin{lstlisting}[caption=Structure du projet AZIZA]
+AZIZA/
+├── aziza/
+│   ├── __init__.py
+│   ├── pipeline/
+│   │   ├── complet.py       # Orchestrateur : fusion forme + fond + verrous
+│   │   ├── forme.py         # Evaluation de la forme (/7)
+│   │   ├── fond.py          # Evaluation du fond (/3) via Mistral
+│   │   ├── similarite.py    # Metriques lexicales (LCS, parabolique)
+│   │   └── seuils_production.json
+│   └── machine_etats.py     # Machine a etats adaptative (3 paliers)
+├── demo/
+│   ├── app.py               # Routes HTML + Swagger + rate limiting
+│   ├── api.py               # API REST (/api/v1) + auth
+│   ├── static/style.css
+│   ├── templates/           # 4 templates Jinja2
+│   └── data/
+├── docs/                    # Memoire LaTeX
+├── experiments/             # 7 notebooks Jupyter + figures
+├── tests.py                 # 117 tests unitaires + integration
+├── requirements.txt
+├── .env.example
+└── README.md
+\end{lstlisting}
+
+\section{Implémentation du pipeline Forme}
+
+La fonction \texttt{analyser\_forme} dans \texttt{forme.py} coordonne trois sous-systèmes :
+
+\subsection{Lexical}
+
+Le calcul du score lexical utilise le LCS normalisé :
+\begin{equation}
+\text{LCS\_norm} = \frac{\text{LCS}(source, contraction)}{\max(|source|, |contraction|)}
+\end{equation}
+Transformé par une fonction parabolique :
+\begin{equation}
+f(x) = -4.15x^2 + 6.64x - 1.66
+\end{equation}
+Bornée entre \(S_{\min}=0.26\) (score 0) et \(S_{\max}=0.80\) (score 3).
+
+\subsection{Syntaxe et connecteurs}
+
+Neuf catégories de connecteurs sont détectées par expressions régulières et comparées à un seuil de 3 connecteurs attendus dans une contraction de qualité.
+
+\subsection{Orthographe}
+
+L'appel à l'API LanguageTool distant renvoie la liste des erreurs avec leurs suggestions. Le barème dégressif pénalise proportionnellement au nombre de fautes.
+
+\section{Implémentation du pipeline Fond}
+
+\subsection{Défi technique : le format de l'API Mistral}
+
+Lors du développement, un bug critique est apparu : l'API Mistral a modifié son format de message (2026). Le champ \texttt{content} doit désormais être un tableau de parties :
+
+\begin{lstlisting}[caption=Correctif du format content pour Mistral API 2026,language=Python]
+def _as_text(content: str) -> list:
+    return [{"type": "text", "text": content}]
+\end{lstlisting}
+
+Ce correctif, appliqué dans \texttt{fond.py}, a résolu l'erreur \texttt{Cannot read "image.png"} qui survenait lorsque Mistral recevait une chaîne simple au lieu du format tableau.
+
+\subsection{Embedding sémantique}
+
+Le calcul de similarité cosinus utilise \texttt{mistral-embed} :
+
+\begin{equation}
+\text{sim\_sem} = \frac{\vec{v}_{source} \cdot \vec{v}_{contraction}}{\|\vec{v}_{source}\| \times \|\vec{v}_{contraction}\|}
+\end{equation}
+
+\subsection{Prompt Few-Shot avec chaîne de pensée}
+
+Le prompt système impose une chaîne de pensée obligatoire en 6 étapes avant la production du JSON de sortie. Cinq exemples illustrent les cas typiques (correct, contresens, subjectivité, omissions).
+
+\section{API REST et sécurité}
+
+L'API REST, définie dans \texttt{demo/api.py}, expose deux endpoints :
+
+\begin{itemize}
+    \item \texttt{POST /api/v1/evaluer} : évaluation complète nécessitant le header \texttt{X-API-Key}.
+    \item \texttt{GET /api/v1/health} : healthcheck public.
+\end{itemize}
+
+Le \textbf{rate limiting} (60 requêtes/min) est implémenté via \texttt{flask-limiter}, avec une clé de limitation basée sur \texttt{X-API-Key} ou l'adresse IP.
+
+\section{Documentation Swagger}
+
+La documentation interactive est générée automatiquement par \texttt{flasgger} à partir des docstrings YAML des routes. Un correctif a été nécessaire : le paramètre \texttt{headers} doit être défini à \texttt{[]} dans la configuration Swagger pour éviter un \texttt{TypeError} (`NoneType` object is not iterable).
+
+\section{Déploiement}
+
+Le déploiement initial prévu sur HuggingFace Spaces (Docker) a été abandonné suite au passage de Docker Spaces derrière un paywall en juillet 2026. L'application a été redéployée sur \textbf{PythonAnywhere} (gratuit, pas de sleep), accessible à l'adresse :
+\begin{center}
+\url{https://Jiovany11.pythonanywhere.com}
+\end{center}
+
+La procédure de déploiement inclut :
+\begin{enumerate}
+    \item Clone du dépôt GitHub.
+    \item Création d'un environnement virtuel Python 3.12.
+    \item Installation des dépendances (\texttt{requirements.txt}).
+    \item Configuration manuelle du Web App (WSGI, virtualenv, static files).
+    \item Définition des variables d'environnement (\texttt{MISTRAL\_API\_KEY}, \texttt{AZIZA\_API\_KEY}, \texttt{FLASK\_SECRET\_KEY}).
+\end{enumerate}

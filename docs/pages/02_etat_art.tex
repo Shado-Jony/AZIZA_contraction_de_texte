@@ -1,0 +1,78 @@
+% ============================================================
+% CHAPITRE 1 : ÉTAT DE L'ART
+% ============================================================
+\chapter{État de l'art}
+\label{ch:etat_art}
+
+\section{L'évaluation automatique de textes (AES)}
+
+\subsection{Les approches statistiques et déterministes classiques}
+
+Les premiers systèmes d'évaluation automatique de textes remontent aux années 1960 avec \textbf{Project Essay Grade} (PEG) développé par Ellis Page \cite{page1966}. PEG se basait sur des caractéristiques de surface du texte : longueur des phrases, nombre de mots, et rareté du vocabulaire. Bien que novateur, ce système restait incapable de comprendre le sens réel du contenu.
+
+L'introduction de l'\textbf{Analyse Sémantique Latente} (LSA) dans des outils comme \textbf{Intelligent Essay Assessor} (IEA) \cite{landauer1997} a marqué un progrès significatif. La LSA permet de comparer la similarité conceptuelle entre la copie d'un élève et un ensemble de textes de référence, en projetant les mots dans un espace sémantique latent.
+
+Cependant, ces systèmes présentent une limite fondamentale : ils sont d'excellents compteurs et détecteurs de fautes d'orthographe, mais incapables de comprendre la pertinence d'un argument, la subtilité d'une figure de style, ou la distorsion d'une idée dans un exercice de Contraction de texte. Ils sont facilement « trompés » par des phrases longues mais vides de sens.
+
+\subsection{L'ère du Deep Learning et des Transformers}
+
+L'apparition des modèles basés sur l'architecture \textbf{Transformer} \cite{vaswani2017} a révolutionné le domaine. BERT \cite{devlin2019}, RoBERTa \cite{liu2019}, et CamemBERT \cite{martin2020} pour le français comprennent le contexte bidirectionnel des mots. Les chercheurs ont utilisé ces modèles pour classifier la cohérence des paragraphes et la structure argumentative.
+
+Bien que très performants pour classer ou noter une copie par rapport à un standard, ces modèles fonctionnent comme des « boîtes noires » et n'expliquent pas pourquoi la note est basse, ce qui limite leur utilité pédagogique.
+
+\subsection{L'apport des grands modèles de langage (LLM) et le Prompt Engineering}
+
+Avec l'avènement des LLM (GPT-4 \cite{openai2023}, Llama \cite{touvron2023}, Mistral \cite{jiang2024}), la recherche s'oriente vers la génération de \textbf{feedback formatif}. L'IA ne se contente plus de donner une note brute : elle est capable d'expliquer l'erreur.
+
+Cependant, la littérature scientifique récente met en garde contre les \textbf{hallucinations} des LLM, notamment sur le décompte exact des mots — critique pour la Contraction de texte — et leur manque d'alignement avec les curricula éducatifs spécifiques \cite{li2024llm}. C'est précisément cette limite que notre architecture hybride cherche à résoudre.
+
+\section{Les systèmes de tutorat intelligent (STI)}
+
+\subsection{La modélisation de l'apprenant}
+
+Un \textbf{Système de Tutorat Intelligent} (STI) est un logiciel éducatif qui fournit des instructions ou des commentaires personnalisés. Le modèle classique repose sur le « triangle d'interaction » \cite{self1999} :
+
+\begin{itemize}
+    \item \textbf{Le modèle du domaine} (expert) : ce que l'étudiant doit apprendre.
+    \item \textbf{Le modèle de l'apprenant} : ce que l'étudiant sait ou ne sait pas à un instant donné.
+    \item \textbf{Le modèle pédagogique} : les décisions de remédiation.
+\end{itemize}
+
+Les approches traditionnelles utilisent des réseaux bayésiens ou des arbres de décision \cite{conati2002} pour mettre à jour le profil de l'élève.
+
+\subsection{Limites des STI existants}
+
+Les systèmes d'apprentissage adaptatif sont souvent confinés à des disciplines fermées (mathématiques, code informatique) où les réponses sont binaires (vrai/faux). L'adaptation dynamique dans des disciplines ouvertes et subjectives comme la rédaction littéraire en français reste un défi scientifique majeur \cite{zawacki2019}.
+
+\section{Le TALN francophone et le contexte éducatif africain}
+
+\subsection{Sous-représentation du français africain}
+
+La majorité des outils d'aide à la rédaction (comme Antidote ou Grammarly) sont conçus en Occident. Ils ciblent un public natif ou professionnel et intègrent des références culturelles européennes ou nord-américaines. Les jeux de données d'entraînement des grands modèles contiennent très peu de données issues des programmes d'Afrique subsaharienne (espace CONFEMEN).
+
+\subsection{Le problème des effectifs pléthoriques}
+
+La littérature sur la sociologie de l'éducation en Afrique de l'Ouest \cite{akpo2020} démontre que le ratio élèves/enseignant (parfois supérieur à 60 élèves par classe dans le public) rend impossible la correction individualisée. L'élève reçoit sa copie annotée des semaines après l'évaluation, ce qui brise la boucle d'apprentissage cognitive.
+
+\section{Positionnement d'AZIZA dans l'état de l'art}
+
+\begin{table}[h]
+\centering
+\caption{Positionnement d'AZIZA face aux limites de l'existant}
+\label{tab:positionnement}
+\begin{tabularx}{\textwidth}{p{5.5cm} X}
+\toprule
+\textbf{Limite de l'existant} & \textbf{Solution apportée par \AZIZA} \\
+\midrule
+Les outils AES classiques notent mais n'expliquent pas leur notation. & \AZIZA génère un feedback formatif ciblé via LLM : diagnostic + micro-cours + exemple de reformulation. \\
+\midrule
+Les LLM hallucinent sur le décompte exact des mots. & Architecture hybride : SpaCy et algorithmes déterministes pour la forme, LLM uniquement pour l'analyse sémantique du fond. \\
+\midrule
+Les STI adaptatifs ne gèrent que les matières scientifiques. & \AZIZA modélise l'apprenant dans une matière littéraire grâce à une machine à états avec algorithme de progression mathématique \(M_p\). \\
+\midrule
+Les IA éducatives globales manquent d'ancrage local. & Les prompts Few-Shot et les seuils sont calibrés sur les critères officiels du BAC béninois. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\AZIZA se positionne à l'intersection des technologies existantes en résolvant leurs limites respectives. Le tableau~\ref{tab:positionnement} synthétise ce positionnement.

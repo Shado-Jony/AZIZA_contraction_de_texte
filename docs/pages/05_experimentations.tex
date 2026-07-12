@@ -1,0 +1,186 @@
+% ============================================================
+% CHAPITRE 4 : EXPÉRIMENTATIONS
+% ============================================================
+\chapter{Expérimentations et résultats}
+\label{ch:experiences}
+
+\section{Corpus d'expérimentation}
+
+Le corpus comprend 30 contractions générées à partir de 10 textes sources issus d'annales du BAC béninois, réparties en trois paliers : correct (10), partiellement correct (10), incorrect (10). Chaque contraction a été annotée manuellement par un enseignant expert.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{distribution_paliers.png}
+\caption{Répartition des 30 contractions par palier}
+\label{fig:paliers}
+\end{figure}
+
+\section{Expérience 1 — Analyse exploratoire (EDA)}
+
+L'EDA a révélé les caractéristiques suivantes du corpus :
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{mots_vs_quota.png}
+\caption{Distribution du nombre de mots par rapport au quota cible}
+\label{fig:mots_quota}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{distribution_notes_expert.png}
+\caption{Distribution des notes attribuées par l'expert}
+\label{fig:notes_expert}
+\end{figure}
+
+\section{Expérience 2 — Métriques lexicales et seuils}
+
+Cette expérience a visé à déterminer les paramètres optimaux \(S_{\min}\) et \(S_{\max}\) de la fonction parabolique de scoring lexical.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{determination_smin.png}
+\caption{Détermination de \(S_{\min}\) : distribution des scores LCS}
+\label{fig:smin}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{determination_smax.png}
+\caption{Détermination de \(S_{\max}\) : seuil de plagiat}
+\label{fig:smax}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{distribution_4_metriques.png}
+\caption{Distribution comparée des 4 métriques de similarité}
+\label{fig:4metriques}
+\end{figure}
+
+\section{Expérience 3 — Qualité de la langue et structure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{distribution_fautes.png}
+\caption{Distribution du nombre de fautes d'orthographe}
+\label{fig:fautes}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{distribution_phrases.png}
+\caption{Distribution du ratio de phrases source/contraction}
+\label{fig:phrases}
+\end{figure}
+
+\section{Expérience 4 — Fusion du scoring global de la forme}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{correlation_pearson.png}
+\caption{Corrélation de Pearson entre score AZIZA Forme et score expert}
+\label{fig:pearson}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{confrontation_notes.png}
+\caption{Confrontation des notes AZIZA Forme vs expert}
+\label{fig:confrontation}
+\end{figure}
+
+La matrice de confusion pour la détection du plagiat montre une forte précision :
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{matrice_confusion_plagiat.png}
+\caption{Matrice de confusion — détection du plagiat}
+\label{fig:plagiat}
+\end{figure}
+
+\section{Expérience 5 — Similarité sémantique (Fond)}
+
+L'évaluation de la similarité sémantique via \texttt{mistral-embed} a produit les résultats suivants :
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{distribution_semantique.png}
+\caption{Distribution des scores de similarité sémantique}
+\label{fig:semantique}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{lcs_vs_semantique.png}
+\caption{Relation entre similarité textuelle (LCS) et sémantique}
+\label{fig:lcs_vs_sem}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{hors_sujet_vs_reste.png}
+\caption{Détection du hors-sujet : seuil sémantique à 0.85}
+\label{fig:hors_sujet}
+\end{figure}
+
+\section{Expérience 6 — Calibration du LLM Fond}
+
+Le LLM Mistral Small en configuration Few-Shot + CoT a été évalué sur le corpus complet. La matrice de confusion pour la détection des contresens montre :
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{matrice_confusion_contresens.png}
+\caption{Matrice de confusion — détection des contresens par le LLM (F1=0.77)}
+\label{fig:contresens}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{distribution_score_fond.png}
+\caption{Distribution des scores Fond attribués par le LLM}
+\label{fig:score_fond}
+\end{figure}
+
+\section{Expérience 7 — Évaluation globale du pipeline}
+
+L'évaluation finale fusionne les scores Forme (/7) et Fond (/3) en une note /10, avec application des verrous pédagogiques.
+
+\begin{table}[h]
+\centering
+\caption{Résultats de l'évaluation globale AZIZA vs expert}
+\label{tab:resultats_globaux}
+\begin{tabularx}{\textwidth}{l X}
+\toprule
+\textbf{Métrique} & \textbf{Valeur} \\
+\midrule
+Corrélation de Pearson (note globale) & 0.797 \\
+Cohen's Kappa (accord inter-juges) & 0.776 (accord substantiel) \\
+F1-score (détection contresens) & 0.77 \\
+Corrélation de Pearson (forme /7) & 0.636 \\
+Corrélation de Pearson (fond /3) & 0.860 \\
+\midrule
+Verrous déclenchés (plagiat) & 4 / 30 \\
+Verrous déclenchés (hors-sujet) & 3 / 30 \\
+Verrous déclenchés (trop court) & 0 / 30 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{distribution_comparee.png}
+\caption{Distribution comparée des notes AZIZA vs expert (sur 30 contractions)}
+\label{fig:comparee}
+\end{figure}
+
+\section{Synthèse des résultats}
+
+Les expérimentations confirment la validité de l'approche hybride :
+
+\begin{itemize}
+    \item La \textbf{corrélation de Pearson de 0.797} entre la note AZIZA et la note experte indique une forte concordance, comparable aux systèmes AES de l'état de l'art.
+    \item Le \textbf{Cohen's Kappa de 0.776} (accord substantiel) valide la fiabilité de l'évaluation.
+    \item Le \textbf{F1-score de 0.77} pour la détection des contresens démontre l'efficacité du prompt Few-Shot + CoT.
+    \item L'absence d'hallucination sur les critères de forme est garantie par l'architecture déterministe.
+\end{itemize}

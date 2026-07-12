@@ -1,0 +1,56 @@
+% ============================================================
+% INTRODUCTION GÉNÉRALE
+% ============================================================
+\chapter*{Introduction générale}
+\addcontentsline{toc}{chapter}{Introduction générale}
+
+\section*{Contexte}
+
+Au Bénin, la Contraction de texte constitue l'une des épreuves les plus redoutées du Baccalauréat (séries A, B, C, D). Elle exige de l'élève une triple maîtrise : comprendre fidèlement les idées de l'auteur, les reformuler sans plagiat, et respecter un quota de mots strict — le quart du texte original, avec une tolérance de \(\pm10\%\). Cette épreuve est systématiquement sous-préparée faute de moyens de correction individualisée dans des classes de plus de 60 élèves.
+
+L'élève reçoit sa copie annotée des semaines après la remise, brisant la boucle d'apprentissage cognitive essentielle à la progression. Aucun outil numérique existant n'évalue automatiquement la Contraction de texte selon les critères officiels du BAC béninois.
+
+\section*{Problématique}
+
+Comment concevoir et évaluer expérimentalement un pipeline NLP hybride — combinant traitement déterministe local et modèle de langage large — capable d'évaluer automatiquement la Contraction de texte selon les critères officiels du Baccalauréat béninois, de générer un feedback formatif personnalisé, et de modéliser la progression adaptative de l'apprenant ?
+
+Trois sous-questions structurent cette problématique :
+
+\begin{enumerate}
+    \item Quelle combinaison de métriques de similarité (LCS, Cosinus TF-IDF) offre la meilleure performance pour la détection du plagiat et la validation du quota dans le contexte de la Contraction de texte en français ?
+    \item Comment concevoir des prompts Few-Shot efficaces pour qu'un LLM génère un feedback formatif pertinent et fidèle aux critères du BAC béninois, sans hallucinations sur la forme ?
+    \item Comment modéliser dynamiquement la progression d'un apprenant en Contraction de texte et adapter la difficulté en conséquence ?
+\end{enumerate}
+
+\section*{Objectifs}
+
+\subsection*{Objectif général}
+
+Concevoir, implémenter et évaluer expérimentalement \AZIZA, un pipeline NLP hybride d'évaluation automatique de la Contraction de texte, avec une démonstration fonctionnelle via une interface Flask.
+
+\subsection*{Objectifs spécifiques}
+
+\begin{enumerate}
+    \item \textbf{Pipeline NLP — Forme :} décompte strict des mots et calcul de similarité textuelle (LCS, Cosinus) pour la détection du plagiat.
+    \item \textbf{Expérimentation comparative :} évaluer les performances des métriques (Précision, Rappel, F1-score, corrélation de Spearman).
+    \item \textbf{Pipeline LLM — Fond :} concevoir des prompts Few-Shot avec chaîne de pensée (CoT) pour évaluer la fidélité sémantique et générer un feedback formatif structuré.
+    \item \textbf{Évaluation du feedback LLM :} mesurer la pertinence pédagogique via un annotateur expert (Cohen's Kappa).
+    \item \textbf{Modélisation de l'apprenant :} machine à états à 3 paliers (Découverte, Consolidation, Maîtrise) avec un algorithme de progression adaptatif.
+    \item \textbf{Interface de démonstration :} application Flask avec API REST, Swagger, et déploiement PythonAnywhere.
+\end{enumerate}
+
+\section*{Contributions}
+
+Ce mémoire apporte les contributions suivantes :
+
+\begin{itemize}
+    \item Un \textbf{pipeline NLP hybride original} combinant métriques déterministes (Forme /7) et LLM (Fond /3), garantissant l'absence d'hallucination sur les critères quantitatifs.
+    \item Une \textbf{expérimentation scientifique rigoureuse} sur 30 contractions annotées, avec des métriques d'évaluation complètes (Pearson, Kappa, F1-score, courbe ROC).
+    \item Un \textbf{corpus annoté} de 30 contractions réparties en 3 niveaux de difficulté (correct, partiellement correct, incorrect), issues des annales officielles du BAC béninois.
+    \item Un \textbf{système de feedback formatif} généré par LLM, structuré en trois volets : diagnostic de l'erreur, micro-cours pédagogique, et exemple de reformulation.
+    \item Une \textbf{architecture logicielle modulaire} (API REST, rate limiting, Swagger) déployée sur PythonAnywhere, prête pour l'intégration dans une application web complète.
+\end{itemize}
+
+\section*{Organisation du mémoire}
+
+Ce mémoire est structuré en cinq chapitres. Le \textbf{Chapitre 1} dresse l'état de l'art sur l'évaluation automatique de textes, les systèmes de tutorat intelligent et le TALN francophone. Le \textbf{Chapitre 2} présente la méthodologie et l'architecture du pipeline hybride. Le \textbf{Chapitre 3} détaille l'implémentation, des décisions techniques aux déploiement. Le \textbf{Chapitre 4} expose les expérimentations et leurs résultats. Le \textbf{Chapitre 5} présente les tests et la validation. Une conclusion générale synthétise les résultats et ouvre sur les perspectives d'évolution.

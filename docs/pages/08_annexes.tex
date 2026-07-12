@@ -1,0 +1,69 @@
+% ============================================================
+% ANNEXES
+% ============================================================
+\chapter{Annexes}
+\label{ch:annexes}
+
+\section{Prompts Few-Shot complets}
+
+\subsection{Prompt système}
+
+Le prompt système fixe le rôle du LLM (correcteur expert BAC béninois), impose une chaîne de pensée obligatoire en 6 étapes, définit le barème /3 avec pénalité de subjectivité (-1pt), et spécifie le format de sortie JSON.
+
+\lstinputlisting[language=Python,caption=Prompt système AZIZA (extrait de fond.py)]{../aziza/pipeline/fond.py}
+
+\subsection{Exemples Few-Shot}
+
+Cinq exemples sont fournis au LLM, couvrant les cas :
+\begin{itemize}
+    \item Contresens majeur (score 0) : corruption limitée au secteur public.
+    \item Contraction parfaite (score 3) : langues maternelles.
+    \item Omissions (score 2) : trafic d'enfants, causes secondaires.
+    \item Contresens avec thèse partielle (score 2) : militarisation des scrutins.
+    \item Subjectivité détectée (score 2 -1) : opinion personnelle dans la contraction.
+\end{itemize}
+
+\section{Cahier des charges complet}
+
+Le cahier des charges initial du projet est disponible dans le dépôt GitHub à la racine du projet (fichier \texttt{Aziza\_cdc\_ia\_pure\_contraction.md}). Il détaille :
+
+\begin{itemize}
+    \item Le contexte et la justification du projet.
+    \item La problématique et les objectifs (général et spécifiques).
+    \item L'architecture technique du pipeline IA.
+    \item Le plan d'expérimentation et les métriques d'évaluation.
+    \item Les livrables et le calendrier.
+\end{itemize}
+
+\section{Extraits de code}
+
+\subsection{Orchestrateur du pipeline}
+
+\lstinputlisting[language=Python,caption=Pipeline complet (complet.py)]{../aziza/pipeline/complet.py}
+
+\subsection{Machine à états de l'apprenant}
+
+\lstinputlisting[language=Python,caption=Machine à états (machine_etats.py)]{../aziza/machine_etats.py}
+
+\section{Captures d'écran de l'interface}
+
+\subsection{Swagger UI}
+
+L'interface Swagger est accessible à l'adresse \url{https://Jiovany11.pythonanywhere.com/apidocs/} et documente les 8 endpoints de l'API REST \AZIZA.
+
+\subsection{Page de résultats}
+
+La page de résultats affiche le breakdown complet : scores Forme (/7), Fond (/3), verrous, feedback pédagogique, et progression de l'apprenant.
+
+\section{Structure des dépendances}
+
+\begin{lstlisting}[caption=Dépendances Python (requirements.txt)]
+flask>=3.0,<4.0
+scikit-learn>=1.3
+numpy>=2.0
+requests>=2.31
+language-tool-python>=2.7.1
+python-dotenv>=1.0
+flasgger>=0.9.7
+flask-limiter>=3.8
+\end{lstlisting}
