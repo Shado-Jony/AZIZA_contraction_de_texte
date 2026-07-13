@@ -104,6 +104,17 @@ a:hover { text-decoration: underline; }
 .page-header { margin-bottom: 2rem; }
 .page-header h1 { font-size: 1.6rem; font-weight: 700; color: var(--gray-900); }
 .subtitle { font-size: .95rem; color: var(--gray-600); margin-top: .25rem; }
+.hero-desc {
+  margin-top: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--primary-lt);
+  border-radius: var(--radius);
+  border-left: 4px solid var(--primary);
+  font-size: .92rem;
+  color: var(--gray-700);
+  line-height: 1.65;
+}
+.hero-desc strong { color: var(--primary-dk); }
 
 
 /* ── Cards ──────────────────────────────────────────────────────────────── */
