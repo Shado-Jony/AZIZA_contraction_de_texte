@@ -8,7 +8,7 @@
 
 \subsection{Prompt système}
 
-Le prompt système fixe le rôle du LLM (correcteur expert BAC béninois), impose une chaîne de pensée obligatoire en 6 étapes, définit le barème /3 avec pénalité de subjectivité (-1pt), et spécifie le format de sortie JSON.
+Le prompt système fixe le rôle du LLM (correcteur expert Baccalauréat), impose une chaîne de pensée obligatoire en 6 étapes, définit le barème /3 avec pénalité de subjectivité (-1pt), et spécifie le format de sortie JSON.
 
 \lstinputlisting[language=Python,caption=Prompt système AZIZA (extrait de fond.py)]{../aziza/pipeline/fond.py}
 
@@ -22,6 +22,130 @@ Cinq exemples sont fournis au LLM, couvrant les cas :
     \item Contresens avec thèse partielle (score 2) : militarisation des scrutins.
     \item Subjectivité détectée (score 2 -1) : opinion personnelle dans la contraction.
 \end{itemize}
+
+\section{Prompts de génération du corpus}
+\label{sec:prompts-generation}
+
+Les prompts ci-dessous ont été utilisés pour générer les 30 contractions du corpus d'expérimentation (section~\ref{sec:generation-corpus}). Chaque génération combine un prompt système fixe et un prompt utilisateur variable selon le palier et le défaut visés.
+
+\subsection{Prompt système (fixe)}
+
+Le prompt système définit le rôle du simulateur, les règles officielles de la contraction de texte, et le format de sortie JSON obligatoire :
+
+\begin{lstlisting}[caption=Prompt syst\`eme de g\'en\'eration (fixe)]
+Tu es un simulateur de productions écrites d'élèves béninois en classe de Terminale,
+spécialisé dans l'exercice de Contraction de texte du Baccalauréat.
+
+Ton rôle est de générer des contractions de texte réalistes selon des consignes précises.
+Tu dois TOUJOURS respecter les règles suivantes :
+
+RÈGLES DE LA CONTRACTION DE TEXTE :
+1. La contraction doit faire exactement le QUART (1/4) du texte source,
+   avec une tolérance de ±10\%.
+2. La contraction ne doit pas copier les phrases du texte source
+   (reformulation obligatoire).
+3. La contraction doit conserver TOUTES les idées directrices de l'auteur.
+4. La contraction doit être rédigée à la troisième personne
+   (le point de vue de l'auteur est préservé, pas le sien).
+5. Aucune opinion personnelle de l'élève ne doit apparaître.
+6. Les connecteurs logiques doivent assurer la cohérence du texte produit.
+
+FORMAT DE SORTIE OBLIGATOIRE :
+Réponds UNIQUEMENT avec un objet JSON valide, sans markdown,
+sans commentaire, sans texte avant ou après.
+\end{lstlisting}
+
+\subsection{Prompts utilisateur (variables)}
+
+\paragraph{Type 1 — Correct :}
+\begin{lstlisting}[caption=Prompt utilisateur — palier correct]
+CONSIGNE DE GÉNÉRATION :
+- Quota cible : {QUOTA} mots (±5\% accepté)
+- Palier visé : correct
+- Défaut à injecter : aucun
+- Reformule entièrement chaque idée
+  (AUCUNE séquence de 6+ mots identique au texte source)
+- Conserve TOUTES les idées directrices dans l'ordre logique
+- Utilise des connecteurs logiques variés
+- Respecte strictement le quota
+\end{lstlisting}
+
+\paragraph{Type 2a — Partiellement correct / léger hors quota :}
+\begin{lstlisting}[caption=Prompt utilisateur — partiellement correct (hors quota léger)]
+- Palier visé : partiellement_correct
+- Défaut : leger_hors_quota
+- LONGUEUR VOULUE : {QUOTA\_PLUS\_15PCT} mots (+15\% au-dessus du quota)
+- Ce dépassement doit paraître naturel : ajoute des développements
+  légers sur les idées secondaires
+\end{lstlisting}
+
+\paragraph{Type 2b — Partiellement correct / contresens mineur :}
+\begin{lstlisting}[caption=Prompt utilisateur — partiellement correct (contresens mineur)]
+- Palier visé : partiellement_correct
+- Défaut : contresens_mineur
+- Conserve toutes les idées SAUF UNE : choisis une idée SECONDAIRE
+  et déforme-la légèrement (exagère-la, atténue-la, ou inverse
+  partiellement son sens)
+- Le contresens doit être subtil
+\end{lstlisting}
+
+\paragraph{Type 2c — Partiellement correct / similarité légère :}
+\begin{lstlisting}[caption=Prompt utilisateur — partiellement correct (similarité légère)]
+- Palier visé : partiellement_correct
+- Défaut : similarite_legere
+- Conserve intentionnellement 1 à 2 séquences de 6 à 10 mots
+  consécutifs identiques au texte source
+- Ces séquences doivent être intégrées naturellement
+\end{lstlisting}
+
+\paragraph{Type 2d — Partiellement correct / omission d'idée :}
+\begin{lstlisting}[caption=Prompt utilisateur — partiellement correct (omission d'idée)]
+- Palier visé : partiellement_correct
+- Défaut : omission_idee
+- OMETS délibérément une idée SECONDAIRE du texte source
+  (pas la thèse centrale)
+- Compense avec un peu plus de développement sur les idées restantes
+\end{lstlisting}
+
+\paragraph{Type 3a — Incorrect / plagiat manifeste :}
+\begin{lstlisting}[caption=Prompt utilisateur — incorrect (plagiat manifeste)]
+- Palier visé : incorrect
+- Défaut : plagiat_manifeste
+- Simule un élève qui n'a pas vraiment reformulé : copie-colle
+  des phrases entières ou de longs segments du texte source
+- Contient AU MOINS UNE séquence de 15 mots consécutifs identique,
+  ou AU MOINS 3 séquences de 6+ mots identiques
+\end{lstlisting}
+
+\paragraph{Type 3b — Incorrect / contresens majeur :}
+\begin{lstlisting}[caption=Prompt utilisateur — incorrect (contresens majeur)]
+- Palier visé : incorrect
+- Défaut : contresens_majeur
+- INVERSE ou DÉFORME GRAVEMENT la THÈSE CENTRALE de l'auteur
+- Les idées secondaires peuvent être approximativement correctes
+  mais la thèse est trahie
+\end{lstlisting}
+
+\paragraph{Type 3c — Incorrect / hors quota grave :}
+\begin{lstlisting}[caption=Prompt utilisateur — incorrect (hors quota grave)]
+- Palier visé : incorrect
+- Défaut : hors_quota_grave
+- LONGUEUR VOULUE : {QUOTA\_PLUS\_30PCT} mots (+30\% au-dessus du quota)
+- Simule un élève qui développe trop, n'a pas compté ses mots
+\end{lstlisting}
+
+\paragraph{Type 3d — Incorrect / plagiat et hors quota :}
+\begin{lstlisting}[caption=Prompt utilisateur — incorrect (plagiat + hors quota)]
+- Palier visé : incorrect
+- Défaut : plagiat_et_hors_quota
+- Simule l'élève le plus en difficulté : il copie ET dépasse le quota
+- Contient AU MOINS 3 séquences de 6+ mots identiques
+- LONGUEUR VOULUE : {QUOTA\_PLUS\_20PCT} mots (+20\% au-dessus du quota)
+\end{lstlisting}
+
+\subsection{Matrice de génération}
+
+La matrice complète des 30 contractions, associant chaque texte source à son type de prompt, est détaillée dans le cahier des charges (Annexe~\ref{ch:annexes}).
 
 \section{Cahier des charges complet}
 

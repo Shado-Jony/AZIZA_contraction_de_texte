@@ -13,17 +13,22 @@
 
 % --- Pages liminaires ---
 \include{pages/00_garde}
+\include{pages/00_sommaire}
+\include{pages/00_epigraphe}
 \include{pages/00_dedicace}
 \include{pages/00_remerciements}
 \include{pages/00_resume}
 
 % --- Tables ---
+\addcontentsline{toc}{chapter}{Table des matières}
 \tableofcontents
-\cleardoublepage
+\clearpage
+\addcontentsline{toc}{chapter}{\listfigurename}
 \listoffigures
-\cleardoublepage
+\clearpage
+\addcontentsline{toc}{chapter}{\listtablename}
 \listoftables
-\cleardoublepage
+\clearpage
 
 % --- Sigles et abréviations ---
 \include{pages/00_sigles}

@@ -18,6 +18,8 @@
   <nav class="nav-bar">
     <div class="nav-inner">
       <a href="/soumission" class="nav-brand">AZIZA <span class="nav-version">v2.0</span></a>
+      <span class="header-desc">Évaluation intelligente de la contraction de texte</span>
+      <button class="nav-toggle" onclick="toggleNav()" aria-label="Menu">☰</button>
       <div class="nav-links">
         <a href="/soumission" class="nav-link">Évaluation</a>
         <a href="/progression" class="nav-link active">Progression</a>
@@ -54,7 +56,7 @@
     <div class="chart-grid">
       <div class="chart-card chart-full">
         <section class="card">
-          <h2>Évolution de la note globale /10</h2>
+          <h2>Évolution de la note globale /20</h2>
           <canvas id="chartGlobal"></canvas>
         </section>
       </div>
@@ -78,7 +80,13 @@
     {% endif %}
 
       <section class="card card-stats">
-        <h2>Statistiques</h2>
+        <h2>Statistiques
+          {% if profil %}
+          <span class="sous-score" style="font-size:.75rem;font-weight:400;">
+            Cycle : {{ profil.exercices_cycle }}/3
+          </span>
+          {% endif %}
+        </h2>
         <div class="stats-row">
           <div class="stat-card">
             <span class="stat-num">{{ stats.total }}</span>
@@ -86,11 +94,11 @@
           </div>
           <div class="stat-card">
             <span class="stat-num">{{ stats.moyenne }}</span>
-            <span class="stat-label">Moyenne /10</span>
+            <span class="stat-label">Moyenne /20</span>
           </div>
           <div class="stat-card">
             <span class="stat-num">{{ stats.meilleur }}</span>
-            <span class="stat-label">Meilleur /10</span>
+            <span class="stat-label">Meilleur /20</span>
           </div>
         </div>
       </section>
@@ -109,7 +117,45 @@
         </div>
       </section>
 
-      {% if historique|length > 0 and statut.historique_mp and statut.historique_mp|length > 0 %}
+      {% if statut.historique_mp and statut.historique_mp|length > 0 %}
+      <section class="card card-historique" style="grid-column:1/-1;">
+        <h2>Cycles de progression</h2>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Cycle</th>
+                <th>Mₚ (%)</th>
+                <th>Décision</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for mp in statut.historique_mp|reverse %}
+              <tr>
+                <td class="cell-id">#{{ loop.revindex }}</td>
+                <td>
+                  <span class="total-badge total-{{ 'ok' if mp >= 75 else 'mid' if mp >= 70 else 'low' }}">
+                    {{ '%.1f'|format(mp) }}%
+                  </span>
+                </td>
+                <td>
+                  {% if mp >= 75 %}
+                  <span style="color:var(--success);font-weight:600;">Progression</span>
+                  {% elif mp >= 70 %}
+                  <span style="color:var(--warning);font-weight:600;">Statu quo</span>
+                  {% else %}
+                  <span style="color:var(--danger);font-weight:600;">Consolidation</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      {% endif %}
+
+      {% if statut.historique_mp and statut.historique_mp|length > 0 %}
       <section class="card card-mp">
         <h2>Évolution de la Moyenne Pondérée (Mₚ)</h2>
         <div class="mp-chart">
@@ -165,8 +211,9 @@
                 <td class="cell-score">{{ entry.score_forme }}/7</td>
                 <td class="cell-score">{{ entry.score_fond }}/3</td>
                 <td class="cell-total">
-                  <span class="total-badge total-{{ 'ok' if entry.score_global >= 7 else 'mid' if entry.score_global >= 5 else 'low' }}">
-                    {{ entry.score_global }}/10
+                  {% set sg20 = entry.score_global_20 if entry.score_global_20 is defined else entry.score_global * 2 %}
+                  <span class="total-badge total-{{ 'ok' if sg20 >= 14 else 'mid' if sg20 >= 10 else 'low' }}">
+                    {{ '%.2f'|format(sg20) }}/20
                   </span>
                 </td>
                 <td>
@@ -203,6 +250,16 @@
     </div>
   </main>
 
+  <script>
+    function toggleNav() {
+      document.querySelector('.nav-bar').classList.toggle('nav-open');
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-bar')) {
+        document.querySelector('.nav-bar')?.classList.remove('nav-open');
+      }
+    });
+  </script>
   {% if historique|length > 0 %}
   <script>
     const h = {{ historique_json|safe }};
@@ -258,10 +315,10 @@
       });
     }
 
-    const glob = h.map(e => e.score_global);
+    const glob = h.map(e => (e.score_global_20 || e.score_global * 2));
     const forme = h.map(e => e.score_forme);
     const fond = h.map(e => e.score_fond);
-    creerChart('chartGlobal', glob, 'Note /10', 10, '#0a7e8c');
+    creerChart('chartGlobal', glob, 'Note /20', 20, '#0a7e8c');
     creerChart('chartForme', forme, 'Forme /7', 7, '#8e44ad');
     creerChart('chartFond', fond, 'Fond /3', 3, '#e67e22');
 

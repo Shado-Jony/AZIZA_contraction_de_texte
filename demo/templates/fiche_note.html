@@ -43,18 +43,56 @@
 </head>
 <body>
   <div class="no-print" style="text-align:center;padding:1rem;background:var(--gray-100);">
-    <button onclick="window.print()" class="btn btn-primary">🖨 Imprimer / PDF</button>
+    <button onclick="demanderNom()" class="btn btn-primary">🖨 Imprimer / PDF</button>
     <a href="{{ url_for('resultats', session_id=r.session_id) }}" class="btn btn-secondary">Retour aux résultats</a>
   </div>
 
+  <script>
+    function demanderNom() {
+      var nom = sessionStorage.getItem('fiche_nom_eleve');
+      if (!nom) {
+        nom = prompt('Votre nom et prénom (optionnel) :', '');
+        if (nom === null) return;
+        nom = nom.trim() || 'Élève';
+        sessionStorage.setItem('fiche_nom_eleve', nom);
+      }
+      document.getElementById('fiche_nom').textContent = nom;
+      setTimeout(function() { window.print(); }, 100);
+    }
+
+    var saved = sessionStorage.getItem('fiche_nom_eleve');
+    if (saved) {
+      document.getElementById('fiche_nom').textContent = saved;
+    }
+  </script>
+
   <main class="container">
     <div class="fiche-header">
-      <h1>Fiche d'évaluation — Contraction de texte</h1>
-      <p>Session #{{ r.session_id }} &middot; {{ r.timestamp[:19]|replace('T', ' ') }}</p>
+      <div class="fiche-header-top">
+        <div>
+          <h1>Fiche d'évaluation — Contraction de texte</h1>
+          <p>Session #{{ r.session_id }} &middot; {{ r.timestamp[:19]|replace('T', ' ') }}</p>
+        </div>
+        <div class="fiche-score-circle">
+          {% set sg20 = r.score_global_20 if r.score_global_20 is defined else r.score_global * 2 %}
+          <svg viewBox="0 0 80 80" class="circle-svg">
+            <circle cx="40" cy="40" r="34" class="circle-bg"/>
+            <circle cx="40" cy="40" r="34" class="circle-fg"
+                    stroke-dasharray="213.6"
+                    stroke-dashoffset="{{ 213.6 - (213.6 * sg20 / 20) }}"
+                    stroke="{{ '#2ecc71' if sg20 >= 14 else '#f39c12' if sg20 >= 10 else '#e74c3c' }}"/>
+          </svg>
+          <div class="circle-text">
+            <span class="circle-score">{{ '%.2f'|format(sg20) }}</span>
+            <span class="circle-divider"></span>
+            <span class="circle-max">20</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="fiche-info">
-      <span><strong>Élève :</strong> {{ profil.nom if profil else '—' }}</span>
+      <span><strong>Élève :</strong> <span id="fiche_nom">{{ profil.nom if profil else 'Élève' }}</span></span>
       <span><strong>Palier :</strong> {{ palier_label }}</span>
       <span><strong>Mots :</strong> {{ r.nb_mots }} / {{ r.quota_cible }}</span>
       <span><strong>Écart :</strong> {{ '%.1f'|format(r.ecart_pct) }} %</span>
@@ -76,8 +114,9 @@
 
     <div class="fiche-notes">
       <div class="fiche-note">
-        <div class="note-val note-glob">{{ r.score_global }}</div>
-        <div class="note-label">Note /10</div>
+        {% set sg20 = r.score_global_20 if r.score_global_20 is defined else r.score_global * 2 %}
+        <div class="note-val note-glob">{{ '%.2f'|format(sg20) }}</div>
+        <div class="note-label">Note /20</div>
       </div>
       <div class="fiche-note">
         <div class="note-val note-forme">{{ r.score_forme }}</div>
@@ -173,8 +212,15 @@
     </div>
 
     <div class="signature-line no-print" style="border-top:1px solid var(--gray-300);margin-top:1.5rem;padding-top:.5rem;font-size:.75rem;color:var(--gray-500);text-align:center;">
-      AZIZA v2.0 — Assistant Intelligent pour la Contraction de texte au BAC béninois
+      AZIZA v2.0 — Assistant Intelligent pour la Zone d'Apprentissage et l'Excellence Académique
     </div>
   </main>
+
+  <footer class="footer" style="margin-top:0;">
+    <div class="footer-inner">
+      <span>AZIZA — Assistant Intelligent pour la Zone d'Apprentissage et l'Excellence Académique</span>
+      <span class="footer-author">ADONON Jiovany</span>
+    </div>
+  </footer>
 </body>
 </html>

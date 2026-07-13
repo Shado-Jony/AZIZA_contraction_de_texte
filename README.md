@@ -1,6 +1,6 @@
 # AZIZA — Assistant Intelligent pour la Contraction de Texte au BAC Béninois
 
-[![GitHub](https://img.shields.io/badge/GitHub-Shado--Jony/AZIZA-181717?logo=github)](https://github.com/Shado-Jony/AZIZA)
+[![GitHub](https://img.shields.io/badge/GitHub-Shado--Jony/Aziza_contraction_de_texte-181717?logo=github)](https://github.com/Shado-Jony/Aziza_contraction_de_texte)
 [![Version](https://img.shields.io/badge/version-2.0.0-blue)]()
 [![PythonAnywhere](https://img.shields.io/badge/demo-PythonAnywhere-4479A1?logo=pythonanywhere)](https://Jiovany11.pythonanywhere.com)
 
@@ -58,8 +58,8 @@ AZIZA (Zone d'Apprentissage et l'Excellence Académique) est un moteur IA conçu
 ## Démarrage rapide
 
 ```bash
-git clone <votre-repo>
-cd AZIZA
+git clone https://github.com/Shado-Jony/Aziza_contraction_de_texte.git
+cd Aziza_contraction_de_texte
 
 # 1. Installer les dépendances
 pip install -r requirements.txt
@@ -164,25 +164,25 @@ https://Jiovany11.pythonanywhere.com
 1. Créez un compte sur [pythonanywhere.com](https://www.pythonanywhere.com)
 2. Ouvrez une console Bash et clonez :
    ```bash
-   git clone https://github.com/Shado-Jony/AZIZA.git
+   git clone https://github.com/Shado-Jony/Aziza_contraction_de_texte.git
    ```
 3. Créez le virtualenv :
    ```bash
    mkvirtualenv aziza --python=3.12
-   pip install -r AZIZA/requirements.txt
+   pip install -r Aziza_contraction_de_texte/requirements.txt
    ```
 4. **Web → Add a new web app → Manual configuration → Python 3.12**
 5. Configurez :
-   - **WSGI file** : pointez vers `/home/votrepseudo/AZIZA/demo/app:app`
+   - **WSGI file** : pointez vers `/home/votrepseudo/Aziza_contraction_de_texte/demo/app:app`
    - **Virtualenv** : `/home/votrepseudo/.virtualenvs/aziza`
-   - **Static files** : `/static/` → `/home/votrepseudo/AZIZA/demo/static/`
+   - **Static files** : `/static/` → `/home/votrepseudo/Aziza_contraction_de_texte/demo/static/`
    - **Environment variables** : `MISTRAL_API_KEY`, `AZIZA_API_KEY`, `FLASK_SECRET_KEY`
 6. **Reload** → votre app est en ligne
 
 ### Mise à jour
 
 ```bash
-cd ~/AZIZA && git pull
+cd ~/Aziza_contraction_de_texte && git pull
 ```
 Puis **Reload** dans l'onglet Web.
 
@@ -191,7 +191,7 @@ Puis **Reload** dans l'onglet Web.
 ## Structure du projet
 
 ```
-AZIZA/
+Aziza_contraction_de_texte/
 ├── aziza/                           # Moteur IA
 │   ├── __init__.py                  # v2.0.0
 │   ├── pipeline/                    # Pipeline d'évaluation

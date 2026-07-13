@@ -10,6 +10,8 @@
   <nav class="nav-bar">
     <div class="nav-inner">
       <a href="/soumission" class="nav-brand">AZIZA <span class="nav-version">v2.0</span></a>
+      <span class="header-desc">Évaluation intelligente de la contraction de texte</span>
+      <button class="nav-toggle" onclick="toggleNav()" aria-label="Menu">☰</button>
       <div class="nav-links">
         <a href="/soumission" class="nav-link active">Évaluation</a>
         <a href="/progression" class="nav-link">Progression</a>
@@ -70,6 +72,22 @@
               {% endfor %}
             </select>
           </div>
+          <div class="field">
+            <div class="field-row">
+              <button type="button" class="btn btn-secondary" id="btn-modele" onclick="genererModele()">
+                📖 Voir un bon résumé
+              </button>
+              <span id="modele-spinner" class="modele-spinner" style="display:none;">⏳ Génération en cours...</span>
+            </div>
+            <div id="modele-display" class="modele-card" style="display:none;margin-top:.75rem;">
+              <div class="modele-header">
+                <span class="modele-badge">Modèle 10/10</span>
+                <span class="modele-ref" id="modele-ref"></span>
+                <button type="button" class="btn-ghost" onclick="fermerModele()" title="Fermer">✕</button>
+              </div>
+              <div class="modele-texte" id="modele-texte"></div>
+            </div>
+          </div>
           {% endif %}
           <div class="field">
             <label for="texte_source">Ou collez votre texte source</label>
@@ -107,6 +125,25 @@
         </section>
       </div>
 
+      {% if profil %}
+      <div class="cycle-info">
+        <div class="cycle-bar">
+          {% for i in range(cycle_max) %}
+          <div class="cycle-dot {{ 'cycle-done' if i < exercices_cycle else 'cycle-empty' }}"></div>
+          {% endfor %}
+          <span class="cycle-label">
+            {% if cycle_complet %}
+            🔬 Test de niveau prêt !
+            {% elif exercices_cycle == 0 %}
+            Cycle d'exercices : 0/{{ cycle_max }}
+            {% else %}
+            Exercice {{ exercices_cycle }}/{{ cycle_max }} — encore {{ cycle_max - exercices_cycle }} avant le test
+            {% endif %}
+          </span>
+        </div>
+      </div>
+      {% endif %}
+
       <div class="actions">
         <div class="api-status">
           {% if has_api_key %}
@@ -116,22 +153,88 @@
           <span class="status-hint">(configurer MISTRAL_API_KEY)</span>
           {% endif %}
         </div>
-        <button type="submit" class="btn btn-primary btn-lg">
-          Évaluer la contraction
-        </button>
+        <div class="action-right">
+          {% if cycle_complet %}
+          <input type="hidden" name="mode" value="test">
+          <button type="submit" class="btn btn-primary btn-lg pulse-btn">
+            🔬 Passer le test de niveau
+          </button>
+          {% else %}
+          <input type="hidden" name="mode" value="exercise">
+          <button type="submit" class="btn btn-primary btn-lg">
+            Évaluer la contraction
+          </button>
+          {% endif %}
+        </div>
       </div>
     </form>
     {% endif %}
   </main>
 
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>AZIZA — Assistant Intelligent pour la Zone d'Apprentissage et l'Excellence Académique</span>
+      <span class="footer-author">ADONON Jiovany</span>
+    </div>
+  </footer>
+
   <script>
+    function toggleNav() {
+      document.querySelector('.nav-bar').classList.toggle('nav-open');
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-bar')) {
+        document.querySelector('.nav-bar')?.classList.remove('nav-open');
+      }
+    });
+
     const textes = {{ textes|tojson|safe }};
 
     function chargerSource(sid) {
+      fermerModele();
       if (!sid || !textes[sid]) return;
       const t = textes[sid];
       document.getElementById('texte_source').value = t.contenu;
       autoQuota({ target: document.getElementById('texte_source') });
+    }
+
+    function genererModele() {
+      const src = document.getElementById('texte_source').value.trim();
+      if (!src) { alert('Collez d\'abord un texte source.'); return; }
+
+      const btn = document.getElementById('btn-modele');
+      const spinner = document.getElementById('modele-spinner');
+      const display = document.getElementById('modele-display');
+      btn.disabled = true;
+      spinner.style.display = 'inline';
+      display.style.display = 'none';
+
+      fetch('/api/v1/generer-modele', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({texte_source: src}),
+      })
+      .then(r => r.json())
+      .then(data => {
+        spinner.style.display = 'none';
+        btn.disabled = false;
+        if (data.succes) {
+          document.getElementById('modele-ref').textContent = data.nb_mots + ' mots (quota: ' + data.quota + ')';
+          document.getElementById('modele-texte').textContent = data.texte;
+          display.style.display = 'block';
+        } else {
+          alert('Erreur : ' + (data.erreur || 'Generation echouee'));
+        }
+      })
+      .catch(err => {
+        spinner.style.display = 'none';
+        btn.disabled = false;
+        alert('Erreur : ' + err.message);
+      });
+    }
+
+    function fermerModele() {
+      document.getElementById('modele-display').style.display = 'none';
     }
 
     function autoQuota(el) {
@@ -154,11 +257,23 @@
       const quota = parseInt(document.getElementById('quota_cible').value) || 0;
       const mots = parseInt(document.getElementById('contraction_word_count').textContent) || 0;
       const badge = document.getElementById('quota_status');
-      if (!quota) { badge.textContent = 'En attente'; badge.className = 'stat-badge stat-neutral'; return; }
+      const wcBadge = document.getElementById('contraction_word_count');
+      if (!quota) {
+        badge.textContent = 'En attente'; badge.className = 'stat-badge stat-neutral';
+        wcBadge.className = 'stat-badge';
+        return;
+      }
       const ecart = Math.abs(mots - quota) / quota * 100;
-      if (ecart <= 5) { badge.textContent = '✓ Exact'; badge.className = 'stat-badge stat-ok'; }
-      else if (ecart <= 10) { badge.textContent = '⚠ Toléré'; badge.className = 'stat-badge stat-warn'; }
-      else { badge.textContent = '✗ Hors quota'; badge.className = 'stat-badge stat-err'; }
+      if (ecart <= 5) {
+        badge.textContent = '✓ Exact'; badge.className = 'stat-badge wordcount-ok';
+        wcBadge.className = 'stat-badge wordcount-ok';
+      } else if (ecart <= 10) {
+        badge.textContent = '⚠ Toléré'; badge.className = 'stat-badge wordcount-warn';
+        wcBadge.className = 'stat-badge wordcount-warn';
+      } else {
+        badge.textContent = '✗ Hors quota'; badge.className = 'stat-badge wordcount-err';
+        wcBadge.className = 'stat-badge wordcount-err';
+      }
     }
   </script>
 </body>

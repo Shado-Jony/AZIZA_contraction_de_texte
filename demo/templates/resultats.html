@@ -10,6 +10,8 @@
   <nav class="nav-bar">
     <div class="nav-inner">
       <a href="/soumission" class="nav-brand">AZIZA <span class="nav-version">v2.0</span></a>
+      <span class="header-desc">Évaluation intelligente de la contraction de texte</span>
+      <button class="nav-toggle" onclick="toggleNav()" aria-label="Menu">☰</button>
       <div class="nav-links">
         <a href="/soumission" class="nav-link">Évaluation</a>
         <a href="/progression" class="nav-link">Progression</a>
@@ -47,30 +49,48 @@
             <circle cx="60" cy="60" r="52" class="ring-bg"/>
             <circle cx="60" cy="60" r="52" class="ring-fg"
                     stroke-dasharray="326.7"
-                    stroke-dashoffset="{{ 326.7 - (326.7 * r.score_global / 10) }}"
-                    stroke="{{ '#2ecc71' if r.score_global >= 7 else '#f39c12' if r.score_global >= 5 else '#e74c3c' }}"/>
+                    stroke-dashoffset="{{ 326.7 - (326.7 * r.score_global_20 / 20) }}"
+                    stroke="{{ '#2ecc71' if r.score_global_20 >= 14 else '#f39c12' if r.score_global_20 >= 10 else '#e74c3c' }}"/>
           </svg>
           <div class="ring-text">
-            <span class="ring-score">{{ r.score_global }}</span>
-            <span class="ring-max">/ 10</span>
+            <span class="ring-score">{{ '%.2f'|format(r.score_global_20) }}</span>
+            <span class="ring-max">/ 20</span>
           </div>
         </div>
         <div class="score-pct">{{ r.score_global_pct }} %</div>
         <div class="progress-bar">
-          <div class="progress-fill" style="width:{{ r.score_global_pct }}%;background:{{ '#2ecc71' if r.score_global >= 7 else '#f39c12' if r.score_global >= 5 else '#e74c3c' }}"></div>
+          <div class="progress-fill" style="width:{{ r.score_global_pct }}%;background:{{ '#2ecc71' if r.score_global_20 >= 14 else '#f39c12' if r.score_global_20 >= 10 else '#e74c3c' }}"></div>
         </div>
         <div class="score-merite">
-          {% set merite = 'Très mal' if r.score_global <= 1 else 'Mal' if r.score_global <= 3 else 'Médiocre' if r.score_global <= 4 else 'Passable' if r.score_global == 5 else 'Assez bien' if r.score_global == 6 else 'Bien' if r.score_global <= 8 else 'Très bien' if r.score_global == 9 else 'Parfait' %}
+          {% set s = r.score_global_20 %}
+          {% set merite = 'Très mal' if s <= 2 else 'Mal' if s <= 6 else 'Médiocre' if s <= 8 else 'Passable' if s == 10 else 'Assez bien' if s == 12 else 'Bien' if s <= 16 else 'Très bien' if s == 18 else 'Parfait' %}
           <span class="merite-label">{{ merite }}</span>
         </div>
       </section>
+
+      {% if r.est_test %}
+      <div class="card card-verrou verrou-hors-sujet" style="border-left-color:var(--primary);">
+        <div class="verrou-icon">🔬</div>
+        <div class="verrou-content">
+          <h3 style="color:var(--primary);">Test de niveau — Cycle terminé</h3>
+          <p><strong>Moyenne Pondérée (Mₚ) : {{ '%.1f'|format(r.mp) }}%</strong></p>
+          {% if r.cycle_decision == "progression" %}
+          <p style="color:var(--success);font-weight:600;">✅ {{ r.cycle_message }}</p>
+          {% elif r.cycle_decision == "statu_quo" %}
+          <p style="color:var(--warning);font-weight:600;">➡️ {{ r.cycle_message }}</p>
+          {% else %}
+          <p style="color:var(--danger);font-weight:600;">🔄 {{ r.cycle_message }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
 
       {% if r.verrou_plagiat %}
       <div class="card card-verrou verrou-plagiat">
         <div class="verrou-icon">🔒</div>
         <div class="verrou-content">
           <h3>Plagiat détecté</h3>
-          <p>Le taux de similarité textuelle (LCS = {{ '%.3f'|format(r.score_lcs) }}) dépasse le seuil autorisé. La note est automatiquement fixée à <strong>0/10</strong>.</p>
+          <p>Le taux de similarité textuelle (LCS = {{ '%.3f'|format(r.score_lcs) }}) dépasse le seuil autorisé. La note est automatiquement fixée à <strong>0/20</strong>.</p>
         </div>
       </div>
       {% endif %}
@@ -80,7 +100,7 @@
         <div class="verrou-icon">🔒</div>
         <div class="verrou-content">
           <h3>Texte trop court</h3>
-          <p>La contraction ({{ r.nb_mots }} mots) est insuffisante pour une évaluation (minimum 20 mots). La note est automatiquement fixée à <strong>0/10</strong>.</p>
+          <p>La contraction ({{ r.nb_mots }} mots) est insuffisante pour une évaluation. La note est automatiquement fixée à <strong>0/20</strong>.</p>
         </div>
       </div>
       {% endif %}
@@ -223,7 +243,11 @@
       </section>
 
       <section class="card card-palier">
-        <h2>Palier actuel</h2>
+        <h2>Palier actuel
+          <span class="sous-score" style="font-size:.75rem;font-weight:400;">
+            {{ r.exercices_cycle }}/3 ex.
+          </span>
+        </h2>
         <div class="palier-display">
           <span class="badge-palier badge-{{ r.palier_actuel }} badge-lg">{{ palier_label }}</span>
         </div>
@@ -241,11 +265,84 @@
       </section>
     </div>
 
+    <div class="modele-section">
+      <button type="button" class="btn btn-secondary" id="btn-modele-resultat" onclick="genererModeleResultat()">
+        📖 Voir un bon résumé
+      </button>
+      <span id="modele-spinner-resultat" class="modele-spinner" style="display:none;">⏳ Génération en cours...</span>
+      <div id="modele-resultat" class="modele-card" style="display:none;margin-top:1rem;">
+        <div class="modele-header">
+          <span class="modele-badge">Modèle 10/10</span>
+          <span class="modele-ref" id="modele-ref-resultat"></span>
+          <button type="button" class="btn-ghost" onclick="fermerModeleResultat()" title="Fermer">✕</button>
+        </div>
+        <div class="modele-texte" id="modele-texte-resultat"></div>
+      </div>
+    </div>
+
     <div class="actions">
       <a href="/soumission" class="btn btn-primary">Nouvelle évaluation</a>
       <a href="/progression" class="btn btn-secondary">Voir la progression</a>
       <a href="/pdf/{{ r.session_id }}" class="btn btn-secondary">🖨 Fiche note (PDF)</a>
     </div>
   </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>AZIZA — Assistant Intelligent pour la Zone d'Apprentissage et l'Excellence Académique</span>
+      <span class="footer-author">ADONON Jiovany</span>
+    </div>
+  </footer>
+  <script>
+    function toggleNav() {
+      document.querySelector('.nav-bar').classList.toggle('nav-open');
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-bar')) {
+        document.querySelector('.nav-bar')?.classList.remove('nav-open');
+      }
+    });
+
+    function genererModeleResultat() {
+      const src = {{ r.texte_source|tojson|safe }};
+      if (!src) { alert('Texte source non disponible.'); return; }
+
+      const btn = document.getElementById('btn-modele-resultat');
+      const spinner = document.getElementById('modele-spinner-resultat');
+      const display = document.getElementById('modele-resultat');
+      btn.disabled = true;
+      spinner.style.display = 'inline';
+      display.style.display = 'none';
+
+      fetch('/api/v1/generer-modele', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({texte_source: src}),
+      })
+      .then(r => r.json())
+      .then(data => {
+        spinner.style.display = 'none';
+        btn.disabled = false;
+        if (data.succes) {
+          document.getElementById('modele-ref-resultat').textContent = data.nb_mots + ' mots (quota: ' + data.quota + ')';
+          document.getElementById('modele-texte-resultat').textContent = data.texte;
+          display.style.display = 'block';
+          btn.textContent = '📖 Masquer le modèle';
+        } else {
+          alert('Erreur : ' + (data.erreur || 'Generation echouee'));
+        }
+      })
+      .catch(err => {
+        spinner.style.display = 'none';
+        btn.disabled = false;
+        alert('Erreur : ' + err.message);
+      });
+    }
+    function fermerModeleResultat() {
+      document.getElementById('modele-resultat').style.display = 'none';
+      document.getElementById('btn-modele-resultat').textContent = '📖 Voir un bon résumé';
+      document.getElementById('btn-modele-resultat').disabled = false;
+    }
+  </script>
 </body>
 </html>

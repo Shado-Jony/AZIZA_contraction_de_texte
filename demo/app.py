@@ -8,7 +8,7 @@ Pipeline :
   → Note finale /10 avec verrous plagiat et hors-sujet
 """
 
-import os, sys, json, uuid, math
+import os, sys, json, uuid, math, requests
 from pathlib import Path
 from datetime import datetime
 
@@ -24,6 +24,11 @@ from flasgger import Swagger
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
+
+
+def arrondir_025(score: float) -> float:
+    """Arrondit un score au 0.25 le plus proche."""
+    return round(score * 4) / 4
 
 from demo.api import api_bp, limiter  # noqa: E402
 
@@ -64,7 +69,7 @@ HISTORIQUE_PATH   = Path(__file__).parent / "data" / "historique.json"
 TEXTES_DIR        = PROJECT_ROOT / "data" / "corpus" / "textes"
 PRODUCTIONS_DIR   = Path(__file__).parent / "data" / "productions"
 
-MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY", "LR8lvqaaFuJ7TEWAVG4uR93vVdTotsvQ")
+MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY", "")
 if MISTRAL_API_KEY:
     os.environ["MISTRAL_API_KEY"] = MISTRAL_API_KEY
 
@@ -91,24 +96,35 @@ def quota_depuis_source(txt):
 if not PIPELINE_OK:
     class ProfilApprenant:
         def __init__(self, nom, palier_actuel="decouverte", scores=None,
-                     nb_exercices=0, nb_tests=0, historique_mp=None):
+                     nb_exercices=0, nb_tests=0, historique_mp=None,
+                     exercices_cycle=0):
             self.nom = nom
             self.palier_actuel = palier_actuel
             self.scores = scores or []
             self.nb_exercices = nb_exercices
             self.nb_tests = nb_tests
             self.historique_mp = historique_mp or []
+            self.exercices_cycle = exercices_cycle
         def score_moyen_exercices(self):
             d = self.scores[-3:]
             return (sum(d) / len(d)) / 10.0 * 100.0 if d else 0.0
+        @property
+        def cycle_complet(self):
+            return self.exercices_cycle >= 3
         def to_dict(self):
             return {"nom": self.nom, "palier_actuel": self.palier_actuel,
                     "nb_exercices": self.nb_exercices, "nb_tests": self.nb_tests,
-                    "score_moyen": round(self.score_moyen_exercices(), 1)}
+                    "score_moyen": round(self.score_moyen_exercices(), 1),
+                    "exercices_cycle": self.exercices_cycle}
     class MachineEtats:
         def __init__(self, p): self.profil = p
         def enregistrer_exercice(self, s):
             self.profil.scores.append(s); self.profil.nb_exercices += 1
+            self.profil.exercices_cycle += 1
+        def evaluer_cycle(self, note_test):
+            self.profil.nb_tests += 1
+            self.profil.exercices_cycle = 0
+            return {"mp": 0, "decision": "statu_quo", "message": ""}
         def statut(self):
             return {**self.profil.to_dict(), "palier_suivant": None,
                     "seuil_progression": 75, "historique_mp": self.profil.historique_mp}
@@ -140,6 +156,58 @@ def charger_textes_sources():
 TEXTES_SOURCES = charger_textes_sources()
 
 
+# ── GÉNÉRATION D'UN BON RÉSUMÉ (Mistral) ─────────────────────────────────
+
+GENERATION_PROMPT = """Tu es un expert en contraction de texte pour le Baccalaureat beninois.
+Genere une contraction parfaite (note 10/10) du texte source fourni.
+
+Regles :
+1. Quota d'environ 1/4 du texte source (±10%)
+2. Reformule avec tes propres mots — pas de copie
+3. Conserve TOUTES les idees essentielles dans l'ordre
+4. Structure coherente avec connecteurs logiques
+5. Ton neutre et objectif — aucune opinion personnelle
+6. Aucun contresens — respecte fidelement la these de l'auteur
+
+Ta reponse doit contenir UNIQUEMENT la contraction, sans introduction ni commentaire."""
+
+
+def generer_bon_resume(texte_source: str) -> dict:
+    if not MISTRAL_API_KEY:
+        return {"succes": False, "erreur": "API Mistral non configuree"}
+    nb_mots_src = len(texte_source.split())
+    quota = max(1, round(nb_mots_src / 4))
+    user_content = f"TEXTE SOURCE :\n\"\"\"\n{texte_source[:2000]}\n\"\"\"\n\nQuota cible : {quota} mots."
+    payload = {
+        "model": "mistral-small-latest",
+        "messages": [
+            {"role": "system", "content": GENERATION_PROMPT},
+            {"role": "user", "content": user_content},
+        ],
+        "temperature": 0.3,
+        "max_tokens": 1024,
+    }
+    for attempt in range(1, 4):
+        try:
+            resp = requests.post(
+                "https://api.mistral.ai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {MISTRAL_API_KEY}"},
+                json=payload,
+                timeout=60,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            texte = data["choices"][0]["message"]["content"].strip()
+            nb_mots = len(texte.split())
+            return {"succes": True, "texte": texte, "nb_mots": nb_mots, "quota": quota}
+        except Exception as e:
+            print(f"[AZIZA][WARN] generer_bon_resume tentative {attempt}/3 : {e}")
+            if attempt < 3:
+                import time as _time
+                _time.sleep(2)
+    return {"succes": False, "erreur": "Generation echouee apres 3 tentatives"}
+
+
 # ── HISTORIQUE ──────────────────────────────────────────────────────────────
 
 def lire_historique():
@@ -169,6 +237,7 @@ def get_profil():
         nb_exercices=data.get("nb_exercices", 0),
         nb_tests=data.get("nb_tests", 0),
         historique_mp=data.get("historique_mp", []),
+        exercices_cycle=data.get("exercices_cycle", 0),
     )
 
 def save_profil(profil):
@@ -176,6 +245,7 @@ def save_profil(profil):
         "nom": profil.nom, "palier_actuel": profil.palier_actuel,
         "scores": profil.scores, "nb_exercices": profil.nb_exercices,
         "nb_tests": profil.nb_tests, "historique_mp": profil.historique_mp,
+        "exercices_cycle": profil.exercices_cycle,
     }
 
 
@@ -205,7 +275,7 @@ def sauvegarder_production(session_id, texte_source, contraction, resultat):
 
 # ── PIPELINE ─────────────────────────────────────────────────────────────────
 
-def evaluer_avec_pipeline(texte_source, contraction, quota, profil):
+def evaluer_avec_pipeline(texte_source, contraction, quota, profil, est_test=False):
     nb_mots = len(contraction.split())
 
     if not PIPELINE_OK:
@@ -216,11 +286,18 @@ def evaluer_avec_pipeline(texte_source, contraction, quota, profil):
         res = evaluer_complet(texte_source, contraction, quota, nb_mots)
 
         score_global = res["note_finale"]
-        score_global_pct = round(score_global / 10.0 * 100.0, 1)
+        score_global_20 = arrondir_025(score_global * 2)
+        score_global_pct = round(score_global_20 / 20.0 * 100.0, 1)
 
-        # Machine à états : enregistrer_exercice attend un score sur 10
         machine = MachineEtats(profil)
-        machine.enregistrer_exercice(min(10, max(0, round(score_global))))
+        score_arr = min(10, max(0, round(score_global)))
+
+        cycle_result = None
+        if est_test:
+            cycle_result = machine.evaluer_cycle(score_arr)
+        else:
+            machine.enregistrer_exercice(score_arr)
+
         statut = machine.statut()
 
         return {
@@ -258,14 +335,20 @@ def evaluer_avec_pipeline(texte_source, contraction, quota, profil):
             "verrou_trop_court":  res["verrou_trop_court"],
 
             "score_global":       score_global,
+            "score_global_20":    score_global_20,
             "score_global_pct":   score_global_pct,
             "palier_actuel":      profil.palier_actuel,
-            "mp":                 profil.historique_mp[-1] if profil.historique_mp else 0,
+            "mp":                 cycle_result["mp"] if cycle_result else (profil.historique_mp[-1] if profil.historique_mp else 0),
             "palier_suivant":     statut.get("palier_suivant"),
+            "est_test":           est_test,
+            "cycle_decision":     cycle_result["decision"] if cycle_result else None,
+            "cycle_message":      cycle_result["message"] if cycle_result else None,
             "progression": {
                 "historique_mp":  profil.historique_mp,
                 "score_moyen":    round(profil.score_moyen_exercices(), 1),
             },
+            "exercices_cycle":    profil.exercices_cycle,
+            "cycle_complet":      profil.cycle_complet,
         }
     except Exception as e:
         return _fallback_result(texte_source, contraction, quota, nb_mots, profil,
@@ -290,9 +373,11 @@ def _fallback_result(texte_source, contraction, quota, nb_mots, profil, erreur="
         "feedback_mc": "Reessayez ou contactez l'administrateur.",
         "feedback_exemple": "",
         "verrou_plagiat": False, "verrou_hors_sujet": False, "verrou_trop_court": False,
-        "score_global": 0, "score_global_pct": 0,
+        "score_global": 0, "score_global_20": 0, "score_global_pct": 0,
         "palier_actuel": profil.palier_actuel,
         "mp": 0, "palier_suivant": None,
+        "est_test": False, "cycle_decision": None, "cycle_message": None,
+        "exercices_cycle": profil.exercices_cycle, "cycle_complet": profil.cycle_complet,
         "progression": {"historique_mp": [], "score_moyen": 0},
     }
 
@@ -326,10 +411,14 @@ def soumission():
           description: Page HTML du formulaire
     """
     profil = get_profil()
+    from aziza.machine_etats import CYCLE_EXERCICES
     return render_template("soumission.html", textes=TEXTES_SOURCES,
                            profil=profil.to_dict() if profil.nom else None,
                            has_api_key=bool(MISTRAL_API_KEY),
-                           pipeline_ok=PIPELINE_OK)
+                           pipeline_ok=PIPELINE_OK,
+                           cycle_complet=profil.cycle_complet if profil.nom else False,
+                           exercices_cycle=profil.exercices_cycle if profil.nom else 0,
+                           cycle_max=CYCLE_EXERCICES)
 
 
 @app.route("/evaluer", methods=["POST"])
@@ -367,6 +456,7 @@ def evaluer():
     texte_source = request.form.get("texte_source", "").strip()
     contraction  = request.form.get("contraction", "").strip()
     quota_str    = request.form.get("quota_cible", "").strip()
+    mode         = request.form.get("mode", "exercise")
 
     if not texte_source or not contraction:
         flash("Veuillez fournir un texte source et une contraction.", "error")
@@ -376,7 +466,8 @@ def evaluer():
              else (int(quota_str) if quota_str.isdigit() else quota_depuis_source(texte_source)))
 
     profil = get_profil()
-    resultat = evaluer_avec_pipeline(texte_source, contraction, quota, profil)
+    est_test = (mode == "test")
+    resultat = evaluer_avec_pipeline(texte_source, contraction, quota, profil, est_test=est_test)
     resultat["timestamp"] = datetime.now().isoformat()
 
     session_id = str(uuid.uuid4())[:8]
@@ -385,6 +476,8 @@ def evaluer():
                                         if len(texte_source) > 200 else texte_source)
     resultat["contraction_extrait"] = (contraction[:200] + "..."
                                        if len(contraction) > 200 else contraction)
+    resultat["texte_source"] = texte_source
+    resultat["contraction"] = contraction
 
     prod_dir = sauvegarder_production(session_id, texte_source, contraction, resultat)
     resultat["production_dir"] = prod_dir
@@ -396,6 +489,7 @@ def evaluer():
         "production_dir": prod_dir,
         "timestamp": resultat["timestamp"],
         "score_global": resultat["score_global"],
+        "score_global_20": resultat["score_global_20"],
         "score_global_pct": resultat["score_global_pct"],
         "score_forme": resultat["score_forme"],
         "score_fond": resultat["score_fond"],
@@ -495,6 +589,16 @@ def fiche_note(session_id):
                            palier_label=labels.get(entry["palier_actuel"], entry["palier_actuel"]))
 
 
+@app.route("/api/v1/generer-modele", methods=["POST"])
+def generer_modele():
+    data = request.get_json(silent=True) or {}
+    texte_source = data.get("texte_source", "").strip()
+    if not texte_source:
+        return jsonify({"succes": False, "erreur": "texte_source requis"}), 400
+    resultat = generer_bon_resume(texte_source)
+    return jsonify(resultat)
+
+
 @app.route("/progression")
 def progression():
     """Tableau de bord de progression de l'élève.
@@ -581,4 +685,4 @@ if __name__ == "__main__":
         print("[ERREUR] Pipeline AZIZA :", _import_error)
     print("{} textes sources charges".format(len(TEXTES_SOURCES)))
     print("http://127.0.0.1:5100")
-    app.run(debug=True, port=5100)
+    app.run(debug=(os.getenv("FLASK_ENV") == "development"), port=5100)

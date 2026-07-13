@@ -13,7 +13,7 @@ Total Forme = /7
 
 import re
 import os
-from .similarite import lcs_score, SMIN, label_plagiat
+from .similarite import lcs_score, SMIN, SEUIL_PLAGIAT, label_plagiat, score_plagiat_parabole
 
 # ── CONNECTEURS LOGIQUES ─────────────────────────────────────────────────────
 CONNECTEURS = {
@@ -79,17 +79,6 @@ def analyser_connecteurs(texte: str) -> dict:
 
 def penalite_quota(ecart_pct: float) -> float:
     return min(2.0, ecart_pct / 50)
-
-
-def score_plagiat_parabole(lcs: float) -> float:
-    SMAX = 0.80
-    if lcs < SMIN or lcs >= SMAX:
-        return 0.0
-    M = (SMIN + SMAX) / 2
-    H = (SMAX - SMIN) / 2
-    score = -1.50 / (H ** 2) * (lcs - M) ** 2 + 2.00
-    score = round(score * 4) / 4
-    return min(max(score, 0.00), 2.00)
 
 
 # ── SCORE SYNTAXE ────────────────────────────────────────────────────────────

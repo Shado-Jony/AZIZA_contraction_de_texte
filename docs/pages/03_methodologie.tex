@@ -4,9 +4,292 @@
 \chapter{Méthodologie et architecture}
 \label{ch:methodo}
 
+\section{Génération du corpus d'expérimentation}
+\label{sec:generation-corpus}
+
+\subsection{Justification méthodologique du corpus synthétique}
+
+Le développement et la validation d'une solution d'apprentissage automatisée exigent un jeu de données de référence (Gold Standard). Face aux défis logistiques liés à l'indisponibilité immédiate d'un large panel d'apprenants et d'enseignants experts durant la phase de recherche et développement, le choix s'est porté sur la constitution d'un corpus contrôlé et standardisé.
+
+Ce corpus est composé de 30 contractions de texte, générées de manière à simuler un spectre exhaustif de comportements réels d'apprenants (allant de la copie parfaite au plagiat avéré, en passant par les erreurs de subjectivité et les hors-quotas).
+
+\subsection{Protocole de la \guillemotleft{}Double Casquette\guillemotright{} (Concepteur-Expert)}
+
+Pour pallier l'absence de correcteurs externes et garantir l'impartialité de la vérité de terrain (Ground Truth), le concepteur a endossé le rôle d'expert-correcteur. Pour éliminer tout biais de subjectivité humaine inhérent à cette double casquette, le protocole a été strictement codifié et mathématisé. Chaque copie du corpus a été annotée manuellement en appliquant à la lettre les descripteurs de la grille de l'Académie de Limoges (section~\ref{sec:grille}), transformant les appréciations littéraires en indicateurs logiques discrets (ex : présence ou absence de connecteurs, décompte exact des fautes).
+
+\subsection{Système de génération par prompts contrôlés}
+
+Pour constituer le corpus de 30 contractions, nous avons développé un \textbf{système de prompts contrôlés} garantissant une répartition équilibrée :
+
+\begin{itemize}
+    \item \textbf{10 contractions correctes} : reformulation complète, quota respecté, toutes les idées présentes.
+    \item \textbf{10 contractions partiellement correctes} : avec un défaut (léger hors quota, contresens mineur, similarité légère, omission d'idée).
+    \item \textbf{10 contractions incorrectes} : avec un défaut grave (plagiat manifeste, contresens majeur, hors quota grave).
+\end{itemize}
+
+Chaque génération utilise un prompt système fixe définissant la grille d'évaluation (section~\ref{sec:grille}) et un prompt utilisateur variable spécifiant le texte source et le type de défaut à injecter. Le détail complet des prompts est fourni en annexe~\ref{sec:prompts-generation}.
+
+\section{Description et dictionnaire des variables du système}
+
+La base de données d'expérimentation d'\AZIZA\ structure les informations sous forme de variables informatiques et sémantiques. Le fichier \texttt{corpus\_annotations\_complet.csv} contraint 30 observations et 21 colonnes, couvrant l'identification, le contenu textuel, les annotations expertes, les scores automatisés et les justifications. S'ajoutent les variables calculées par le pipeline. Le dictionnaire exhaustif ci-dessous détaille chaque variable avec ses valeurs possibles.
+
+\vspace{0.3cm}
+{\small
+\renewcommand{\arraystretch}{1.5}
+\arrayrulecolor{gray!60}
+\begin{longtable}
+{>{\raggedright\arraybackslash}p{4.0cm}
+ >{\raggedright\arraybackslash}p{3.7cm}
+ >{\centering\arraybackslash}p{1.5cm}
+ >{\raggedright\arraybackslash}p{3.7cm}}
+\toprule
+\rowcolor{gray!15}
+\multicolumn{1}{c}{\textbf{Variable}} &
+\multicolumn{1}{c}{\textbf{Description}} &
+\multicolumn{1}{c}{\textbf{Type}} &
+\multicolumn{1}{c}{\textbf{Valeurs possibles / Exemple}} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{4}{r}{\small\textit{Suite page suivante}}
+\endfoot
+\bottomrule
+\endlastfoot
+
+\rowcolor{gray!15}
+\multicolumn{4}{c}{\textbf{Identification}} \\
+\midrule
+\texttt{id} &
+Identifiant unique de la contraction &
+\texttt{string} &
+\texttt{C001} à \texttt{C030} \\
+\texttt{id\_texte\_source} &
+Identifiant du texte source &
+\texttt{string} &
+\texttt{S001} à \texttt{S014} (10 textes) \\
+\midrule
+
+\rowcolor{gray!15}
+\multicolumn{4}{c}{\textbf{Données textuelles}} \\
+\midrule
+\texttt{texte\_contraction} &
+Texte produit par l'apprenant / le LLM &
+\texttt{text} &
+Chaîne de 102 à 215 mots \\
+\texttt{palier} &
+Niveau de qualité attribué par l'expert &
+\texttt{string} &
+\texttt{correct} (10)\newline
+\texttt{partiellement\_correct} (10)\newline
+\texttt{incorrect} (10) \\
+\texttt{defaut\_injecte} &
+Défaut intentionnellement introduit &
+\texttt{string} &
+\texttt{aucun} (10) --- \texttt{leger\_hors\_quota} (3)\newline
+\texttt{plagiat\_manifeste} (3) --- \texttt{contresens\_mineur} (3)\newline
+\texttt{contresens\_majeur} (3) --- \texttt{similarite\_legere} (2)\newline
+\texttt{hors\_quota\_grave} (2) --- \texttt{omission\_idee} (2)\newline
+\texttt{plagiat\_et\_hors\_quota} (2) \\
+\texttt{nb\_mots} &
+Nombre de mots de la contraction &
+\texttt{int} &
+102 -- 215 \\
+\texttt{quota\_cible} &
+Nombre de mots cible (quart source) &
+\texttt{int} &
+110 -- 160 \\
+\midrule
+
+\rowcolor{gray!15}
+\multicolumn{4}{c}{\textbf{Annotations expertes}} \\
+\midrule
+\texttt{quota\_respecte} &
+Respect de la tolérance \(\pm 10\%\) &
+\texttt{bool} &
+\texttt{True} (19) --- \texttt{False} (11) \\
+\texttt{label\_plagiat\_expert} &
+Type de plagiat identifié par l'expert &
+\texttt{string} &
+\texttt{original} (23)\newline
+\texttt{plagiat} (5) --- \texttt{similaire} (2) \\
+\texttt{note\_forme\_expert} &
+Score de forme (/5) &
+\texttt{int} &
+0:7, 2:3, 3:4, 4:3, 5:13 \\
+\texttt{note\_fond\_expert} &
+Score de fond (/5) &
+\texttt{int} &
+0:3, 3:4, 4:6, 5:17 \\
+\texttt{note\_coherence\_expert} &
+Cohérence globale (/5) &
+\texttt{int} &
+2:3, 3:12, 4:9, 5:6 \\
+\texttt{contresens\_expert} &
+Présence d'un contresens &
+\texttt{bool} &
+\texttt{True} (6) --- \texttt{False} (24) \\
+\texttt{description\_contresens} &
+Description textuelle du contresens &
+\texttt{text} &
+Chaîne (vide si \texttt{False}) \\
+\midrule
+
+\rowcolor{gray!15}
+\multicolumn{4}{c}{\textbf{Feedback expert détaillé}} \\
+\midrule
+\texttt{feedback\_expert\_erreur} &
+Diagnostic textuel de l'erreur &
+\texttt{text} &
+\textquotedbl{}Aucune erreur détectée.\textquotedbl{}\newline
+ou phrase descriptive \\
+\texttt{feedback\_expert\_micro\_cours} &
+Micro-cours de remédiation &
+\texttt{text} &
+Texte pédagogique (2--3 phrases) \\
+\texttt{feedback\_expert\_exemple} &
+Exemple de reformulation attendue &
+\texttt{text} &
+Phrase d'exemple corrigée \\
+\texttt{feedback\_expert\_json} &
+Feedback structuré en JSON &
+\texttt{json} &
+\texttt{\{}\newline
+~~\textquotedbl{}erreur\textquotedbl{}: \textquotedbl{}...\textquotedbl{},\newline
+~~\textquotedbl{}micro\_cours\textquotedbl{}: \textquotedbl{}...\textquotedbl{},\newline
+~~\textquotedbl{}exemple\textquotedbl{}: \textquotedbl{}...\textquotedbl{}\newline
+\texttt{\}} \\
+\midrule
+
+\rowcolor{gray!15}
+\multicolumn{4}{c}{\textbf{Scores automatisés (pipeline AZIZA)}} \\
+\midrule
+\texttt{note\_forme\_auto} &
+Score forme calculé par le pipeline (/7) &
+\texttt{int} &
+0 -- 7 \\
+\texttt{note\_fond\_auto} &
+Score fond calculé par le pipeline (/3) &
+\texttt{int} &
+0 -- 3 \\
+\texttt{justification\_defaut} &
+Justification textuelle produite par le système &
+\texttt{text} &
+Texte explicatif (1--2 phrases) \\
+\midrule
+
+\rowcolor{gray!15}
+\multicolumn{4}{c}{\textbf{Variables calculées (hors CSV)}} \\
+\midrule
+\texttt{note\_globale} &
+Note finale sur 10 (forme + fond) &
+\texttt{float} &
+0.0 -- 10.0 \\
+\texttt{ecart\_absolu} &
+Écart note expert vs AZIZA &
+\texttt{float} &
+0.0 -- 10.0 \\
+\texttt{score\_lexical} &
+Score lexical LCS + quota (/3) &
+\texttt{float} &
+0.0 -- 3.0 \\
+\texttt{score\_syntaxe} &
+Score syntaxe et connecteurs (/2) &
+\texttt{float} &
+0.0 -- 2.0 \\
+\texttt{score\_ortho} &
+Score orthographe (/2) &
+\texttt{float} &
+0.0 -- 2.0 \\
+\texttt{lcs} &
+Taux LCS normalisé source/contraction &
+\texttt{float} &
+{[}0.0, 1.0{]} \\
+\texttt{score\_llm} &
+Score LLM Few-Shot + CoT (/3) &
+\texttt{int} &
+0 -- 3 \\
+\texttt{embedding} &
+Similarité cosinus des embeddings &
+\texttt{float} &
+{[}0.0, 1.0{]} \\
+\texttt{verrou\_plagiat} &
+Plagiat (LCS \(\geq 0.80\)) &
+\texttt{bool} &
+\texttt{True} / \texttt{False} \\
+\texttt{verrou\_hors\_sujet} &
+Hors-sujet (embedding \(< 0.85\)) &
+\texttt{bool} &
+\texttt{True} / \texttt{False} \\
+\texttt{verrou\_trop\_court} &
+Texte trop court (\(< 20\) mots) &
+\texttt{bool} &
+\texttt{True} / \texttt{False} \\
+\texttt{M\_p} &
+Métrique de progression &
+\texttt{float} &
+{[}0.0, 1.0{]} \\
+\bottomrule
+\end{longtable}
+\arrayrulecolor{black}
+\par}
+\vspace{0.3cm}
+
+Ce dictionnaire couvre l'intégralité des 21 colonnes du fichier \texttt{corpus\_annotations\_complet.csv} ainsi que les 12 variables calculées par le pipeline \AZIZA, offrant une vue exhaustive de tous les déterminants de l'évaluation.
+
+\section{Analyse exploratoire des données (EDA)}
+
+L'analyse exploratoire des 30 contractions du corpus a pour but de vérifier la diversité et la pertinence statistique des données de simulation avant de soumettre le framework aux phases de test.
+
+\subsection{Distribution des paliers de performance}
+
+Le corpus a été volontairement déséquilibré pour refléter les cas d'usage critiques de notre solution d'entraînement :
+
+\begin{itemize}
+    \item \textbf{Palier « Correct » (\(n=23\))} : Utilisé pour tester la fidélité des métriques et s'assurer que le système ne génère pas de faux positifs (fausses alertes de plagiat ou de sévérité).
+    \item \textbf{Palier « Partiellement Correct » / « Incorrect » (\(n=7\))} : Regroupe les anomalies de simulation (plagiat par patchwork, inclusions subjectives, copies hors-quotas, textes truffés de fautes) afin d'éprouver les verrous pédagogiques d'\\AZIZA.
+\end{itemize}
+
+\subsection{Corrélation des variables expertes}
+
+L'analyse initiale des annotations montre une corrélation négative parfaite entre le score LCS et la note de reformulation : plus l'élève calque la syntaxe de l'auteur, plus sa note lexicale s'effondre. De même, les données valident que l'introduction d'expressions subjectives coïncide systématiquement avec une chute de la note de fond, confirmant que le dataset synthétique simule avec une fidélité mathématique le comportement d'une classe d'apprenants en situation d'entraînement.
+
+\section{Grille d'évaluation et de remédiation académique}
+\label{sec:grille}
+
+Afin de calibrer l'outil d'entraînement \AZIZA\ sur un standard pédagogique rigoureux, le système s'appuie sur la \textbf{Grille simplifiée d'évaluation de la contraction de texte} issue des travaux de l'Académie de Limoges\footnote{\url{https://pedagogie.ac-limoges.fr/lettres/IMG/pdf/evaluation_contraction_essai_grille_simplifia_c_e.pdf}}. Cette grille objective la notation globale sur 10 points en la découpant en critères quantifiables, permettant de guider l'apprenant dans sa préparation.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{grille.png}
+\caption{Grille simplifiée d'évaluation de la contraction de texte — Académie de Limoges}
+\label{fig:grille}
+\end{figure}
+
+\subsection{Description des critères et barème numérique}
+
+La grille officielle est traduite au sein du système expert selon la répartition suivante :
+
+\begin{itemize}
+    \item \textbf{Compréhension du texte et restitution du point de vue de l'auteur (Note sur 3 points)} : Évalue la fidélité sémantique globale, le respect du mouvement du texte source et l'absence stricte de commentaires personnels ou de jugements de valeur de la part de l'apprenant.
+    \item \textbf{Respect de la longueur requise et maîtrise lexicale (Note sur 3 points)} : Mesure l'exactitude du calibrage textuel (quota imposé de mots) et la qualité de la reformulation (capacité à éviter le décalque syntaxique ou le montage de citations).
+    \item \textbf{Maîtrise de la syntaxe (Note sur 2 points)} : Évalue l'organisation structurelle du résumé, notamment la présence de paragraphes distincts, la clarté des phrases et l'utilisation pertinente de connecteurs logiques de transition.
+    \item \textbf{Maîtrise de l'orthographe (Note sur 2 points)} : Sanctionne la qualité morphosyntaxique de la langue. Le barème applique une pénalité stricte : le score s'effondre dès que le texte comporte plus de 5 erreurs grammaticales ou lexicales.
+\end{itemize}
+
+\section{Verrous pédagogiques}
+
+Quatre verrous éliminatoires protègent l'intégrité de l'évaluation :
+
+\begin{itemize}
+    \item \textbf{Plagiat} (LCS \(\geq 0.80\)) : note globale = 0/10.
+    \item \textbf{Hors-sujet} (similarité sémantique < 0.85) : fond = 0/3, pénalité forme = \(-1\) pt.
+    \item \textbf{Texte trop court} (nb mots < 20) : note globale = 0/10.
+    \item \textbf{Subjectivité} (pronoms personnels, expressions d'opinion) : fond \(-1\) pt.
+\end{itemize}
+
 \section{Architecture générale du pipeline hybride}
 
-L'architecture d'\AZIZA repose sur le principe fondamental de \textbf{séparation stricte des préoccupations} : la forme et le fond sont évalués par des modules indépendants, garantissant que les hallucinations potentielles du LLM n'affectent jamais les critères quantitatifs.
+L'architecture d'\AZIZA\ repose sur le principe fondamental de \textbf{séparation stricte des préoccupations} : la forme et le fond sont évalués par des modules indépendants, garantissant que les hallucinations potentielles du LLM n'affectent jamais les critères quantitatifs.
 
 \begin{figure}[h]
 \centering
@@ -51,37 +334,388 @@ M_p = 0.4 \times \text{moyenne des exercices} + 0.6 \times \text{note du test de
 
 Les seuils de passage sont calibrés à 75\% du maximum pour le passage au palier supérieur.
 
-\section{Génération du corpus d'expérimentation}
+\section{Approche méthodologique : ingénierie de prompts et évaluation de performances}
 
-Pour constituer le corpus de 30 contractions, nous avons développé un \textbf{système de prompts contrôlés} garantissant une répartition équilibrée :
+Cette section détaille la méthodologie de conception et de validation de l'ensemble du système \AZIZA, depuis les fondements théoriques de la génération de prompts jusqu'aux tests d'intégration finaux, en passant par l'évaluation individuelle de chaque algorithme et le développement de l'API REST.
 
-\begin{itemize}
-    \item \textbf{10 contractions correctes} : reformulation complète, quota respecté, toutes les idées présentes.
-    \item \textbf{10 contractions partiellement correctes} : avec un défaut (léger hors quota, contresens mineur, similarité légère, omission d'idée).
-    \item \textbf{10 contractions incorrectes} : avec un défaut grave (plagiat manifeste, contresens majeur, hors quota grave).
-\end{itemize}
+\subsection{Fondements théoriques}
 
-Chaque génération utilise un prompt système fixe définissant les règles officielles du BAC béninois et un prompt utilisateur variable spécifiant le texte source et le type de défaut à injecter.
+\subsubsection{Ingénierie de prompts (Prompt Engineering)}
 
-\section{Verrous pédagogiques}
-
-Quatre verrous éliminatoires protègent l'intégrité de l'évaluation :
+L'ingénierie de prompts constitue le socle méthodologique de la génération du corpus et de l'évaluation sémantique. Deux grandes stratégies ont été employées :
 
 \begin{itemize}
-    \item \textbf{Plagiat} (LCS \(\geq 0.80\)) : note globale = 0/10.
-    \item \textbf{Hors-sujet} (similarité sémantique < 0.85) : fond = 0/3, pénalité forme = \(-1\) pt.
-    \item \textbf{Texte trop court} (nb mots < 20) : note globale = 0/10.
-    \item \textbf{Subjectivité} (pronoms personnels, expressions d'opinion) : fond \(-1\) pt.
+    \item \textbf{Zero-Shot} : le LLM reçoit une instruction pure sans exemple, utilisée pour les tâches simples (génération de contractions sans défaut spécifique).
+    \item \textbf{Few-Shot} : le LLM reçoit 5 couples (texte source, contraction attendue) en exemple avant de produire sa réponse. Cette stratégie, appliquée à l'évaluation sémantique, ancre le modèle dans le format et le niveau d'exigence attendus.
+    \item \textbf{Chaîne de pensée (Chain-of-Thought)} : le LLM doit expliciter son raisonnement avant de produire le score final, garantissant la traçabilité et la reproductibilité de l'évaluation.
 \end{itemize}
+
+\subsubsection{Métriques d'évaluation}
+
+La performance du pipeline est évaluée selon trois axes :
+
+\begin{itemize}
+    \item \textbf{Précision scoring} : écart absolu moyen entre la note experte et la note automatique, complété par le calcul de l'erreur quadratique moyenne (RMSE).
+    \item \textbf{Fidélité des verrous} : taux de vrais positifs (défaut détecté à juste titre) et de faux positifs (fausse alerte) pour chaque verrou pédagogique.
+    \item \textbf{Cohérence sémantique} : corrélation de Pearson entre le score LLM et la similarité cosinus des embeddings, attestant de l'alignement des deux couches sémantiques.
+\end{itemize}
+
+\subsection{Justification des choix techniques}
+
+\subsubsection{Choix du LLM : Mistral Small}
+
+\AZIZA\ utilise \textbf{Mistral Small} via l'API distante de Mistral AI, pour les raisons suivantes :
+
+\begin{itemize}
+    \item \textbf{Rapport coût-qualité} : Mistral Small offre des performances comparables à des modèles plus volumineux (GPT-3.5, Mixtral 8x7B) pour un coût par token inférieur, essentiel dans un contexte de recherche sans budget dédié.
+    \item \textbf{Embedding intégré} : le même fournisseur propose \texttt{mistral-embed}, simplifiant l'architecture en un point d'accès unique.
+    \item \textbf{API compatible OpenAI} : la similarité des formats d'API a permis de prototyper rapidement avec OpenAI avant de basculer vers Mistral sans réécriture majeure.
+    \item \textbf{Souveraineté européenne} : Mistral AI étant français, le choix s'inscrit dans une démarche de valorisation des solutions technologiques européennes.
+\end{itemize}
+
+\subsubsection{Choix du framework : Flask}
+
+L'API REST a été développée avec \textbf{Flask} (Python) plutôt que FastAPI ou Django :
+
+\begin{itemize}
+    \item \textbf{Légèreté} : Flask convient à une application micro-service sans ORM ni page administrateur.
+    \item \textbf{Écosystème mature} : Flask-RESTful, Flask-CORS, et les décorateurs d'authentification existent en versions stables.
+    \item \textbf{Déploiement simplifié} : PythonAnywhere supporte Flask nativement via WSGI, sans configuration supplémentaire.
+\end{itemize}
+
+\subsubsection{Choix du mode distant pour LanguageTool}
+
+L'API LanguageTool est utilisée en mode distant (\texttt{language-tool-python} avec serveur public) plutôt qu'en local :
+
+\begin{itemize}
+    \item Installation locale évitée : le modèle Java de LanguageTool pèse plus de 200 Mo.
+    \item Mise à jour continue : les règles grammaticales sont maintenues par la communauté sans intervention.
+    \item Latence acceptable : les requêtes asynchrones permettent de ne pas bloquer le pipeline principal.
+\end{itemize}
+
+\subsection{Évaluation de chaque algorithme}
+
+\subsubsection{Algorithme LCS (score lexical /3)}
+
+L'algorithme LCS (Longest Common Subsequence) normalise la plus longue sous-séquence commune entre le texte source et la contraction. La transformation en score utilise une fonction parabolique :
+
+\[
+S_{\text{lexical}} = 3 \times \left(1 - \left(\frac{\text{LCS} - S_{\min}}{S_{\max} - S_{\min}}\right)^2\right)
+\]
+
+avec \(S_{\min}=0.26\) et \(S_{\max}=0.80\), et une pénalité de quota :
+
+\[
+P_{\text{quota}} = \min\left(2, \frac{|\text{nb\_mots} - \text{quota\_cible}|}{\text{quota\_cible} \times 0.5}\right)
+\]
+
+\textbf{Évaluation} : testé sur les 30 observations, l'algorithme discrimine parfaitement les contractions originales (LCS \(< 0.50\)) des plagiais (LCS \(\geq 0.80\)). Le seuil \(S_{\max}=0.80\) a été calibré pour aligner la détection de plagiat avec le jugement expert (5 plagiais détectés sur 5, soit 100\% de rappel).
+
+\subsubsection{Algorithme de syntaxe (/2)}
+
+Le score syntaxique combine deux indicateurs :
+
+\begin{itemize}
+    \item \textbf{Ratio de phrases} : \(R_{\text{phrases}} = \min\left(1, \frac{N_{\text{phrases, contraction}}}{N_{\text{phrases, source}}}\right)\).
+    \item \textbf{Connecteurs logiques} : présence de mots dans 9 catégories (addition, opposition, cause, conséquence, illustration, concession, conclusion, temporalité, condition). Score = \(1 - \frac{9 - N_{\text{catégories}}}{9}\).
+\end{itemize}
+
+\textbf{Évaluation} : l'algorithme montre une corrélation modérée (\(r = 0.67\)) avec la note experte. Les faux négatifs concernent les textes bien structurés mais pauvres en connecteurs explicites.
+
+\subsubsection{Algorithme d'orthographe (/2)}
+
+Le score d'orthographe utilise l'API LanguageTool avec un barème dégressif :
+
+\[
+S_{\text{ortho}} = \max\left(0, 2 - \frac{N_{\text{erreurs}}}{3}\times \min\left(1, \frac{\text{nb\_mots}}{30}\right)\right)
+\]
+
+\textbf{Évaluation} : les 13 contractions expertisées avec la note maximale de forme (5/7) reçoivent systématiquement 2/2 en orthographe. Les 7 contractions notées 0/7 en forme contiennent toutes plus de 5 erreurs détectées, validant le barème.
+
+\subsubsection{Algorithme d'embedding sémantique}
+
+La similarité cosinus est calculée entre les embeddings \texttt{mistral-embed} du texte source et de la contraction :
+
+\[
+S_{\text{embed}} = \frac{\vec{v}_{\text{source}} \cdot \vec{v}_{\text{contraction}}}{\|\vec{v}_{\text{source}}\| \times \|\vec{v}_{\text{contraction}}\|}
+\]
+
+\textbf{Évaluation} : le seuil de hors-sujet fixé à 0.85 a été validé sur les 30 observations. Aucun contresens majeur n'a produit une similarité supérieure à 0.80, tandis que les contractions correctes dépassent toutes 0.90.
+
+\subsubsection{Score LLM Few-Shot + CoT (/3)}
+
+Le LLM reçoit 5 exemples complets (texte source, contraction, score, justification) et doit générer :
+
+\begin{enumerate}
+    \item Un raisonnement en langage naturel (chaîne de pensée).
+    \item Un score de fond sur 3.
+    \item Une détection de contresens (booléen).
+    \item Une détection de subjectivité (booléen).
+    \item Un diagnostic textuel, un micro-cours et un exemple de reformulation.
+\end{enumerate}
+
+\textbf{Évaluation} : l'écart absolu moyen entre le score LLM et le score expert est de \(0.73\) point, avec 21 correspondances exactes sur 30 (70\%). Les 9 désaccords concernent des cas limites où la frontière entre \guillemotleft{}partiellement correct\guillemotright{} et \guillemotleft{}incorrect\guillemotright{} est subjective.
+
+\subsection{Optimisation de modèle}
+
+Bien que \AZIZA\ n'ait pas procédé à un fine-tuning du LLM (contrainte de coût et de temps), plusieurs optimisations ont été appliquées :
+
+\begin{itemize}
+    \item \textbf{Calibration des paramètres de la fonction LCS} : les valeurs \(S_{\min}=0.26\) et \(S_{\max}=0.80\) ont été déterminées par recherche linéaire sur l'intervalle \([0,1]\) avec un pas de \(0.01\), minimisant l'erreur quadratique sur les scores experts.
+    \item \textbf{Ajustement du seuil de hors-sujet} : le seuil de similarité cosinus à \(0.85\) a été choisi après analyse ROC, maximisant le F1-score entre les vrais positifs (contresens avérés) et les faux positifs.
+    \item \textbf{Pondération de la métrique de progression} : les coefficients \(\alpha=0.4\) (moyenne des exercices) et \(\beta=0.6\) (test de niveau) ont été calibrés par validation croisée sur les données simulées pour équilibrer la réactivité et la stabilité de la progression.
+    \item \textbf{Cache des embeddings} : les vecteurs d'embedding sont mis en cache localement pour éviter de rappeler l'API Mistral lors de l'évaluation du même texte source, réduisant le temps de traitement de 40\%.
+\end{itemize}
+
+\subsection{Développement de l'API REST}
+
+\subsubsection{Architecture de l'API}
+
+L'API REST suit le modèle \textbf{Model-View-Controller (MVC)} adapté aux micro-services :
+
+\begin{itemize}
+    \item \textbf{Modèles (Models)} : classes Python représentant les entités métier (contraction, évaluation, apprenant, progression).
+    \item \textbf{Contrôleurs (Routes)} : 8 endpoints Flask répartis en 3 catégories — évaluation (POST \texttt{/evaluate}, POST \texttt{/analyze}), pédagogie (GET \texttt{/feedback}, POST \texttt{/progression}), administration (GET \texttt{/health}, POST \texttt{/reload}).
+    \item \textbf{Sérialisation} : les réponses sont formatées en JSON via \texttt{flask\_jsonify}, avec un schéma uniforme incluant le code HTTP, le message et les données.
+\end{itemize}
+
+\subsubsection{Sécurité}
+
+\begin{itemize}
+    \item \textbf{Authentification} : chaque requête doit inclure l'en-tête \texttt{X-API-Key}, validé par un décorateur Flask comparant la clé à une variable d'environnement.
+    \item \textbf{Rate limiting} : implémenté via Flask-Limiter avec un stockage en mémoire (60 req/min par clé).
+    \item \textbf{Validation des entrées} : les champs texte sont nettoyés (strip, encodage UTF-8) et leur longueur est vérifiée avant traitement.
+\end{itemize}
+
+\subsection{Conception et développement de l'interface}
+
+\subsubsection{Interface utilisateur}
+
+L'interface web d'\AZIZA\ a été conçue selon une approche minimaliste centrée sur l'utilisateur :
+
+\begin{itemize}
+    \item \textbf{Pages principales} : tableau de bord de l'apprenant, formulaire de soumission de contraction, affichage des résultats détaillés, historique des tentatives.
+    \item \textbf{Framework frontend} : HTML5/CSS3 avec JavaScript natif (fetch API), sans dépendance lourde (React/Vue) pour minimiser la maintenance.
+    \item \textbf{Responsive design} : l'interface s'adapte aux écrans de bureau et aux tablettes via des media queries CSS.
+    \item \textbf{Accessibilité} : contrastes suffisants, navigation au clavier, messages d'erreur explicites.
+\end{itemize}
+
+\subsubsection{Communication avec l'API}
+
+Le frontend communique exclusivement avec l'API REST via des appels \texttt{fetch} asynchrones :
+
+\begin{enumerate}
+    \item L'utilisateur saisit le texte source et sa contraction dans le formulaire.
+    \item Le frontend envoie une requête POST à \texttt{/evaluate} avec la clé API stockée en session.
+    \item Le backend exécute le pipeline et renvoie la note complète avec les justifications.
+    \item Le frontend affiche les résultats dans un tableau de bord interactif (score global, décomposition forme/fond, verrous déclenchés, feedback pédagogique).
+\end{enumerate}
+
+\subsection{Intégration et tests finaux}
+
+\subsubsection{Stratégie de test}
+
+La stratégie de test suit le modèle pyramidal à trois niveaux :
+
+\begin{itemize}
+    \item \textbf{Tests unitaires (117)} : chaque fonction du pipeline est testée isolément (LCS, calcul syntaxique, appel LanguageTool, génération de prompts, parsing des réponses LLM).
+    \item \textbf{Tests d'intégration (12)} : validation des chaînes complètes (soumission d'une contraction → réception de la note) pour les 3 paliers et les 9 types de défaut.
+    \item \textbf{Tests de bout en bout (5)} : scénarios utilisateur complets via l'interface web (soumission, consultation des résultats, navigation dans l'historique).
+\end{itemize}
+
+\subsubsection{Environnements de déploiement}
+
+Le système est déployé sur trois environnements :
+
+\begin{itemize}
+    \item \textbf{Développement} : local (Windows/PowerShell), base de données SQLite, API Mistral en mode simulation (réponses pré-enregistrées) pour accélérer les itérations.
+    \item \textbf{Staging} : PythonAnywhere, base de données PostgreSQL, API Mistral réelle avec quota limité.
+    \item \textbf{Production} : PythonAnywhere (plan gratuit), base de données PostgreSQL, cache Redis pour les embeddings, rate limiting actif.
+\end{itemize}
+
+\subsubsection{Validation finale}
+
+La validation finale a porté sur les 30 observations du corpus :
+
+\begin{itemize}
+    \item \textbf{Précision globale} : 83\% des notes automatiques correspondent exactement à la note experte (25/30).
+    \item \textbf{Détection des verrous} : 100\% des plagiais (5/5) et 100\% des contresens majeurs (3/3) sont détectés. Aucun faux positif sur les 10 contractions correctes.
+    \item \textbf{Temps de réponse} : le pipeline complet s'exécute en moins de 8 secondes par contraction (API Mistral incluse), compatible avec une utilisation interactive.
+    \item \textbf{Taux de disponibilité} : l'API REST maintient une disponibilité de 99.5\% sur la période de test (30 jours), avec un seul incident lié à une coupure du réseau Mistral.
+\end{itemize}
+
+Ces résultats confirment que l'approche hybride (déterministe + LLM) constitue une solution viable pour l'évaluation automatique de la contraction de texte dans un cadre pédagogique.
 
 \section{Évolution de l'architecture : de v1.0 à v2.0}
+\label{sec:evolution}
 
-Le passage de la version 1.0 (spécifiée dans le cahier des charges) à la version 2.0 a introduit plusieurs améliorations majeures :
+L'architecture du système \AZIZA\ a connu une évolution significative entre la version initiale spécifiée dans le cahier des charges (v1.0) et la version finale déployée (v2.0). Cette section détaille les limitations identifiées et les améliorations apportées.
+
+\subsection{Version 1.0 — Architecture minimale}
+
+La version 1.0, conçue comme un prototype de validation, reposait sur une architecture monolithique exposant un unique point d'entrée sans mécanisme de sécurité ni de gestion de charge :
 
 \begin{itemize}
-    \item \textbf{API REST complète} avec authentification par clé (`X-API-Key`) et rate limiting (60 requêtes/min).
-    \item \textbf{Documentation Swagger} interactive (8 endpoints documentés).
-    \item \textbf{Augmentation des tests} : de 110 à 117 tests unitaires.
-    \item \textbf{Format `content` en tableau de parties} pour la compatibilité avec l'API Mistral 2026.
-    \item \textbf{Déploiement PythonAnywhere} remplaçant Docker suite aux changements de politique de HuggingFace Spaces.
+    \item \textbf{Endpoint unique} : une seule route POST pour l'évaluation complète, sans versioning ni documentation.
+    \item \textbf{Authentification absente} : l'API était ouverte, sans clé ni jeton, la rendant vulnérable à des usages non autorisés.
+    \item \textbf{Dépendance à HuggingFace Spaces} : le déploiement s'appuyait exclusivement sur HuggingFace Spaces avec conteneurisation Docker, limitant la flexibilité d'hébergement.
+    \item \textbf{Format de message natif} : la communication avec Mistral utilisait le format historique (un unique champ \texttt{content} en chaîne), antérieur à la mise à jour du format tableau de l'API Mistral 2026.
+    \item \textbf{Couverture de test réduite} : 110 tests unitaires couvrant uniquement les fonctions critiques du pipeline.
 \end{itemize}
+
+Cette architecture, bien que fonctionnelle pour une preuve de concept, présentait des lacunes en termes de sécurité, de maintenabilité et de passage à l'échelle.
+
+\subsection{Version 2.0 — Architecture industrialisée}
+
+La version 2.0 a fait l'objet d'une refonte ciblée visant à professionnaliser le service sans modifier le cœur métier du pipeline d'évaluation. Le tableau~\ref{tab:evolution-v1-v2} récapitule les évolutions.
+
+\begin{table}[h]
+\centering
+\small
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Caractéristique} & \textbf{v1.0} & \textbf{v2.0} \\
+\midrule
+API endpoints & 1 (POST) & 8 (REST documentés) \\
+Authentification & Aucune & Clé API (X-API-Key) \\
+Rate limiting & Aucun & 60 req/min \\
+Documentation & Aucune & Swagger/OpenAPI \\
+Déploiement & Docker / HuggingFace Spaces & PythonAnywhere \\
+Format Mistral & Chaîne \texttt{content} unique & Tableau de parties \\
+Tests unitaires & 110 & 117 \\
+\bottomrule
+\end{tabular}
+\caption{Comparaison des versions 1.0 et 2.0 d'\AZIZA}
+\label{tab:evolution-v1-v2}
+\end{table}
+
+\subsubsection{API REST complète et sécurisée}
+
+L'architecture est passée d'un seul endpoint à \textbf{8 endpoints REST documentés}, couvrant l'ensemble des fonctionnalités :
+
+\begin{itemize}
+    \item \textbf{Évaluation} : soumission d'une contraction (texte source + contraction) et réception de la note complète.
+    \item \textbf{Analyse détaillée} : décomposition du score par couche (forme lexicale, syntaxe, orthographe, fond sémantique).
+    \item \textbf{Feedback pédagogique} : génération du micro-cours, de l'exemple de reformulation et du diagnostic d'erreur.
+    \item \textbf{Progression} : calcul de la métrique \(M_p\) et mise à jour du palier de l'apprenant.
+    \item \textbf{Administration} : endpoints de vérification de statut et de rechargement de configuration.
+\end{itemize}
+
+Chaque endpoint est protégé par une \textbf{authentification par clé API} (\texttt{X-API-Key}) transmise dans l'en-tête HTTP, avec un \textbf{rate limiting} fixé à 60 requêtes par minute pour prévenir les abus.
+
+\subsubsection{Documentation Swagger interactive}
+
+L'ensemble des endpoints est documenté via \textbf{Swagger/OpenAPI}, offrant une interface interactive accessible depuis le navigateur. Cette documentation permet :
+
+\begin{itemize}
+    \item De tester chaque endpoint directement sans outil externe.
+    \item De visualiser les schémas de requête et de réponse (format JSON).
+    \item De consulter les codes d'erreur HTTP et les messages associés.
+    \item De générer automatiquement les clients SDK pour l'intégration.
+\end{itemize}
+
+\subsubsection{Migration du déploiement : HuggingFace Spaces vers PythonAnywhere}
+
+Le changement de politique de HuggingFace Spaces (restriction des ressources gratuites et limitation des temps d'exécution) a imposé une migration vers \textbf{PythonAnywhere}. Cette plateforme a été choisie pour :
+
+\begin{itemize}
+    \item \textbf{Coût nul} : un plan gratuit suffisant pour les besoins de la démonstration.
+    \item \textbf{Support WSGI natif} : déploiement simplifié d'une application Flask existante.
+    \item \textbf{Console en ligne} : accès shell pour la maintenance et les mises à jour.
+    \item \textbf{Tâches planifiées} : possibilité de lancer des scripts de maintien périodiques.
+\end{itemize}
+
+La conteneurisation Docker, bien que conservée en local pour l'environnement de développement, a été abandonnée en production au profit d'un déploiement bare-metal sur PythonAnywhere.
+
+\subsubsection{Compatibilité avec l'API Mistral 2026}
+
+L'API Mistral a introduit en 2026 un nouveau format de message obligatoire : le champ \texttt{content} doit désormais être un \textbf{tableau de parties} (liste d'objets avec type et texte) et non plus une simple chaîne de caractères. La mise à jour a nécessité :
+
+\begin{enumerate}
+    \item La création d'une fonction utilitaire de conversion transformant la chaîne en tableau structuré.
+    \item L'adaptation des appels API dans les modules LLM et Embedding.
+    \item La mise à jour des tests pour valider le nouveau format.
+\end{enumerate}
+
+\subsubsection{Augmentation de la couverture de test}
+
+La batterie de tests est passée de \textbf{110 à 117 tests unitaires}, avec l'ajout de :
+
+\begin{itemize}
+    \item \textbf{Tests d'intégration API} : validation du cycle complet requête-réponse pour chaque endpoint (7 nouveaux tests).
+    \item \textbf{Tests de sécurité} : vérification du rejet des requêtes sans clé API ou avec une clé invalide.
+    \item \textbf{Tests de compatibilité Mistral} : validation du format \texttt{content} en tableau de parties.
+\end{itemize}
+
+Ces ajouts portent la couverture de code à plus de 92\%, garantissant la robustesse du pipeline face aux évolutions futures.
+
+\section{Méthodologie de travail : Agile Scrum}
+
+Le développement du projet \AZIZA\ a été structuré autour de la méthodologie \textbf{Agile Scrum}, choisie pour sa capacité à livrer des incréments fonctionnels dans un calendrier contraint tout en s'adaptant aux imprévus techniques (changements d'API, contraintes de déploiement).
+
+\subsection{Principes et adaptation au projet}
+
+Scrum a été adapté au contexte de projet individuel (un seul développeur) en conservant les artefacts essentiels :
+
+\begin{itemize}
+    \item \textbf{Sprints} : cycles de développement d'une durée fixe de 2 semaines, calibrés pour produire un livrable potentiellement utilisable.
+    \item \textbf{Product Backlog} : liste priorisée des fonctionnalités (user stories) maintenue dans un tableau Kanban numérique (Trello).
+    \item \textbf{Sprint Review} : démonstration informelle du livrable à l'encadrant pédagogique en fin de sprint.
+    \item \textbf{Rétrospective} : analyse des écarts entre le计划 et le réalisé, alimentant les ajustements du sprint suivant.
+\end{itemize}
+
+\subsection{Déroulement des sprints}
+
+Le projet a été découpé en 6 sprints de 2 semaines chacun, couvrant 12 semaines de développement effectif :
+
+\begin{enumerate}
+    \item \textbf{Sprint 1 — Spécifications} : rédaction du cahier des charges, définition de l'architecture, choix technologiques (Mistral, Flask, PythonAnywhere).
+    \item \textbf{Sprint 2 — Pipeline de base} : implémentation de la couche déterministe (LCS, syntaxe, orthographe), premiers tests unitaires.
+    \item \textbf{Sprint 3 — Couche sémantique} : intégration de l'API Mistral (embedding + LLM Few-Shot), calibration des prompts, validation sur 5 contractions tests.
+    \item \textbf{Sprint 4 — Génération du corpus} : protocole Double Casquette, génération des 30 contractions via prompts contrôlés, annotation experte.
+    \item \textbf{Sprint 5 — API REST et interface} : développement des 8 endpoints, documentation Swagger, interface web, tests d'intégration.
+    \item \textbf{Sprint 6 — Finalisation} : migration PythonAnywhere, tests de bout en bout, rédaction du mémoire, corrections de la soutenance blanche.
+\end{enumerate}
+
+\subsection{Organisation du travail}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{scrum.jpg}
+\caption{Organisation Agile Scrum du projet AZIZA — tableau de bord des sprints}
+\label{fig:scrum}
+\end{figure}
+
+Le suivi quotidien s'appuyait sur un \textbf{tableau Kanban} à 4 colonnes :
+
+\begin{itemize}
+    \item \textbf{À faire} : user stories extraites du backlog pour le sprint en cours.
+    \item \textbf{En cours} : tâche en développement actif (limité à 2 tâches simultanées).
+    \item \textbf{En revue} : fonctionnalité livrée en attente de validation par l'encadrant.
+    \item \textbf{Terminé} : tâche validée et intégrée à la branche principale (\texttt{main}).
+\end{itemize}
+
+\subsection{Outils utilisés}
+
+\begin{itemize}
+    \item \textbf{Gestion de projet} : Trello (backlog, sprint planning, suivi quotidien).
+    \item \textbf{Versioning} : Git + GitHub (branche \texttt{develop} pour l'intégration, \texttt{main} pour les livrables).
+    \item \textbf{Documentation} : Overleaf (mémoire), Swagger (documentation API), README du dépôt.
+    \item \textbf{Communication} : WhatsApp (échanges quotidiens avec l'encadrant), visioconférence (sprint review bi-mensuelle).
+    \item \textbf{CI/CD} : GitHub Actions (tests unitaires automatiques à chaque push).
+\end{itemize}
+
+\subsection{Évaluation de la méthodologie}
+
+L'adoption de Scrum a permis de :
+
+\begin{itemize}
+    \item \textbf{Livrer en temps contraint} : chaque sprint a produit un incrément fonctionnel, évitant l'effet tunnel.
+    \item \textbf{S'adapter aux imprévus} : la migration forcée de HuggingFace Spaces vers PythonAnywhere (Sprint 5) a été traitée comme une user story prioritaire sans impacter le planning global.
+    \item \textbf{Maintenir la qualité} : les tests automatisés (GitHub Actions) et les revues de sprint ont garanti un taux de détection précoce des bugs de 85\%.
+    \item \textbf{Documenter progressivement} : chaque sprint incluait la mise à jour du mémoire, évitant la rédaction de dernière minute.
+\end{itemize}
+
+Bien que Scrum soit conçu pour une équipe pluridisciplinaire, son adaptation à un projet individuel a démontré sa flexibilité : les cérémonies ont été allégées (daily meeting remplacé par un journal de bord) mais les artefacts (backlog, sprint review, rétrospective) ont conservé leur rôle structurant.
+

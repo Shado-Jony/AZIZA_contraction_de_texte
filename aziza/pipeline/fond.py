@@ -11,17 +11,17 @@ Pipeline :
 Total Fond = /3
 """
 
+import logging
 import os
 import re
 import json
 import time
 import requests
 
+logger = logging.getLogger(__name__)
+
 # ── CONFIGURATION ────────────────────────────────────────────────────────────
-MISTRAL_API_KEY = os.environ.get(
-    "MISTRAL_API_KEY",
-    "LR8lvqaaFuJ7TEWAVG4uR93vVdTotsvQ"
-)
+MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY") or ""
 MODEL = "mistral-small-latest"
 SMIN_SEM = 0.85
 
@@ -245,6 +245,8 @@ def _clean_json_response(raw: str) -> dict:
 
 
 def _mistral_embed(texte: str) -> list[float]:
+    if not MISTRAL_API_KEY:
+        raise RuntimeError("MISTRAL_API_KEY non configurée — impossible d'appeler Mistral Embed")
     try:
         resp = requests.post(
             "https://api.mistral.ai/v1/embeddings",
@@ -255,10 +257,10 @@ def _mistral_embed(texte: str) -> list[float]:
         resp.raise_for_status()
         return resp.json()["data"][0]["embedding"]
     except Exception as e:
-        print(f"[AZIZA][WARN] _mistral_embed a échoué : {e}")
+        logger.warning("_mistral_embed a échoué : %s", e)
         if hasattr(e, 'response') and e.response is not None:
             try:
-                print(f"[AZIZA][WARN] Réponse Mistral Embed : {e.response.text[:500]}")
+                logger.warning("Réponse Mistral Embed : %s", e.response.text[:500])
             except Exception:
                 pass
         raise

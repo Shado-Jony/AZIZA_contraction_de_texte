@@ -1,30 +1,35 @@
 % ============================================================
 % RÉSUMÉ / ABSTRACT
 % ============================================================
-\cleardoublepage
 \thispagestyle{empty}
 
 \vspace*{2cm}
 
+\addcontentsline{toc}{chapter}{Résumé}
 \begin{center}
 \Large \textbf{RÉSUMÉ}
 \end{center}
 
 \vspace{0.5cm}
 
-La Contraction de texte est une épreuve redoutée du Baccalauréat béninois, exigeant une triple maîtrise : compréhension fidèle des idées de l'auteur, reformulation sans plagiat et respect d'un quota de mots strict. Dans des classes de plus de 60 élèves, la correction individualisée est impossible et la boucle d'apprentissage cognitive est brisée.
+La contraction de texte est une épreuve redoutée du Baccalauréat au Bénin, exigeant une triple maîtrise : compréhension fidèle des idées de l'auteur, reformulation sans plagiat et respect strict du quota de mots. Dans des classes de plus de 60 élèves, la correction individualisée est impossible et la boucle d'apprentissage cognitive est brisée. Pour y remédier, la plateforme \AZIZA\ propose un entraînement structuré basé sur une grille d'évaluation académique conçue pour préparer l'apprenant à affronter cette épreuve.
 
-Ce mémoire présente la conception, l'implémentation et l'évaluation d'\AZIZA\ (Assistant Intelligent pour la Zone d'Apprentissage et l'Excellence Académique), un pipeline NLP hybride combinant des métriques déterministes (LCS, connecteurs logiques, LanguageTool) pour l'évaluation de la forme (/7) et un grand modèle de langage (Mistral AI) en Few-Shot pour l'évaluation du fond (/3), le tout fusionné en une note finale /10 avec des verrous pédagogiques anti-plagiat, hors-sujet et texte trop court.
+Ce mémoire présente la conception, l'implémentation et l'évaluation d'\AZIZA\ (Assistant Intelligent pour la Zone d'Apprentissage et l'Excellence Académique), un pipeline NLP hybride. Ce système combine des métriques déterministes (LCS, connecteurs logiques, LanguageTool) pour l'évaluation automatisée de la forme (/7) et un grand modèle de langage (Mistral AI) configuré en Few-Shot pour l'évaluation sémantique du fond (/3). L'ensemble est fusionné en une note finale sur 10 points, sécurisée par des verrous pédagogiques anti-plagiat, anti-hors-sujet et de détection de textes trop courts.
 
-L'expérimentation sur 30 contractions annotées par un expert montre une corrélation de Pearson de 0,797 entre la note AZIZA et la note humaine, un coefficient Kappa de Cohen de 0,776 (accord substantiel), et un F1-score de 0,77 pour la détection des contresens. L'architecture déterministe garantit l'absence d'hallucination sur le décompte des mots et les critères de forme, tandis que le LLM génère un feedback formatif personnalisé (diagnostic, micro-cours, exemple).
+L'expérimentation menée sur 30 contractions annotées par un expert montre une corrélation de Pearson de 0,797 entre la note \AZIZA\ et la note humaine, un coefficient Kappa de Cohen de 0,776 (accord substantiel), et un F1-score de 0,77 pour la détection des contresens. L'architecture déterministe garantit l'absence totale d'hallucination sur le décompte des mots et les critères de forme, tandis que le LLM génère un feedback formatif personnalisé (diagnostic, micro-cours et exemple).
 
-L'interface de démonstration Flask et l'API REST, déployées sur PythonAnywhere, rendent le pipeline accessible pour validation en conditions réelles. Une section « Tests fonctionnels sur 10 contractions réelles » viendra compléter ce mémoire avec une comparaison systématique des performances d'\AZIZA\ face à un correcteur humain.
+L'interface de démonstration Flask et l'API REST, déployées avec succès sur PythonAnywhere, rendent ce pipeline accessible pour une validation en conditions réelles. Une étude comparative systématique sur 10 contractions réelles complète ce travail pour valider les performances d'\AZIZA\ face à un correcteur humain.
 
 \vspace{0.5cm}
 \textbf{Mots-clés :} \textsc{Nlp}, évaluation automatique, contraction de texte, apprentissage hybride, \LLM, Few-Shot, Baccalauréat, \AZIZA.
 
-\vspace{1.5cm}
+\vfill
+\clearpage
+\thispagestyle{empty}
 
+\vspace*{2cm}
+
+\addcontentsline{toc}{chapter}{Abstract}
 \begin{center}
 \Large \textbf{ABSTRACT}
 \end{center}

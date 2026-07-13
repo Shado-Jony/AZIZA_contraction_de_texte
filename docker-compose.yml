@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  aziza:
+    build: .
+    container_name: aziza
+    ports:
+      - "5100:5100"
+    env_file:
+      - .env
+    environment:
+      - FLASK_ENV=production
+    restart: unless-stopped

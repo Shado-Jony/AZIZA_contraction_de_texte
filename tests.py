@@ -301,13 +301,17 @@ class TestForme(unittest.TestCase):
         self.assertIn("fautes_details", r)
         self.assertIn("label_plagiat", r)
 
-    def test_evaluer_forme_identique(self):
+    @patch("aziza.pipeline.forme._fautes_languagetool")
+    def test_evaluer_forme_identique(self, mock_ortho):
+        mock_ortho.return_value = {"nb": 0, "details": []}
         from aziza.pipeline.forme import evaluer_forme
         txt = "Le Benin est un pays situe en Afrique."
         r = evaluer_forme(txt, txt, 10, 10)
         self.assertEqual(r["label_plagiat"], "plagiat")
 
-    def test_evaluer_forme_normal(self):
+    @patch("aziza.pipeline.forme._fautes_languagetool")
+    def test_evaluer_forme_normal(self, mock_ortho):
+        mock_ortho.return_value = {"nb": 0, "details": []}
         from aziza.pipeline.forme import evaluer_forme
         src = "Le Benin est un pays situe en Afrique de l Ouest. Sa capitale est Porto Novo."
         ctr = "Le Benin se trouve en Afrique de l Ouest. Porto Novo en est la capitale."
@@ -318,18 +322,24 @@ class TestForme(unittest.TestCase):
         self.assertIn("score_syntaxe", r)
         self.assertIn("score_orthographe", r)
 
-    def test_evaluer_forme_short_text_ortho_plafond(self):
+    @patch("aziza.pipeline.forme._fautes_languagetool")
+    def test_evaluer_forme_short_text_ortho_plafond(self, mock_ortho):
+        mock_ortho.return_value = {"nb": 0, "details": []}
         from aziza.pipeline.forme import evaluer_forme
         r = evaluer_forme("Texte source ici.", "Hi", 10, 2)
         self.assertLessEqual(r["score_orthographe"], 2.0 * 2/30)
 
-    def test_evaluer_forme_quota_penalty(self):
+    @patch("aziza.pipeline.forme._fautes_languagetool")
+    def test_evaluer_forme_quota_penalty(self, mock_ortho):
+        mock_ortho.return_value = {"nb": 0, "details": []}
         from aziza.pipeline.forme import evaluer_forme
         r = evaluer_forme("Texte source avec plusieurs mots pour le test du quota.",
                           "Texte beaucoup trop long par rapport au quota fixe.", 10, 20)
         self.assertGreater(r["penalite_quota"], 0.0)
 
-    def test_evaluer_forme_keys(self):
+    @patch("aziza.pipeline.forme._fautes_languagetool")
+    def test_evaluer_forme_keys(self, mock_ortho):
+        mock_ortho.return_value = {"nb": 0, "details": []}
         from aziza.pipeline.forme import evaluer_forme
         r = evaluer_forme("Texte source.", "Contraction.", 10, 4)
         expected = ["score_lexical", "score_syntaxe", "score_orthographe",
@@ -744,6 +754,58 @@ class TestApiREST(unittest.TestCase):
     def test_evaluer_method_not_allowed(self):
         r = self.client.get("/api/v1/evaluer")
         self.assertEqual(r.status_code, 405)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ROUTES HTML
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestRoutesHTML(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ["AZIZA_API_KEY"] = "test-api-key"
+        from demo.app import app
+        app.config["TESTING"] = True
+        cls.app = app
+        cls.client = app.test_client()
+
+    def test_redirect_root_to_soumission(self):
+        r = self.client.get("/")
+        self.assertEqual(r.status_code, 302)
+        self.assertIn("/soumission", r.location)
+
+    def test_soumission_page(self):
+        r = self.client.get("/soumission")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("text/html", r.content_type)
+
+    def test_progression_page(self):
+        r = self.client.get("/progression")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("text/html", r.content_type)
+
+    def test_resultats_unknown_session_redirects(self):
+        r = self.client.get("/resultats/inconnu")
+        self.assertEqual(r.status_code, 302)
+
+    def test_demarrer_post(self):
+        r = self.client.post("/demarrer", data={"nom": "TestEleve"})
+        self.assertEqual(r.status_code, 302)
+        self.assertIn("/soumission", r.location)
+
+    def test_reset_post(self):
+        r = self.client.post("/reset")
+        self.assertEqual(r.status_code, 302)
+        self.assertIn("/soumission", r.location)
+
+    def test_evaluation_flow(self):
+        r = self.client.post("/evaluer", data={
+            "texte_source": "Le Benin est situe en Afrique de l Ouest.",
+            "contraction": "Le Benin est en Afrique.",
+        })
+        self.assertEqual(r.status_code, 302)
+        self.assertIn("/resultats/", r.location)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

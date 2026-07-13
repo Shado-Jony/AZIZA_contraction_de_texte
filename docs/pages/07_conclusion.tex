@@ -6,7 +6,7 @@
 
 \section*{Synthèse des travaux}
 
-Ce mémoire a présenté la conception, l'implémentation et l'évaluation d'\AZIZA, un pipeline NLP hybride pour l'évaluation automatique de la Contraction de texte au Baccalauréat béninois. Les contributions principales sont :
+Ce mémoire a présenté la conception, l'implémentation et l'évaluation d'\AZIZA, un pipeline NLP hybride pour l'évaluation automatique de la Contraction de texte dans le cadre d'un entraînement au Baccalauréat. Les contributions principales sont :
 
 \begin{itemize}
     \item Une \textbf{architecture hybride originale} séparant strictement le traitement déterministe de la forme (LCS, connecteurs, LanguageTool) et l'analyse sémantique du fond via LLM (Mistral AI en Few-Shot + CoT). Cette séparation garantit l'absence d'hallucination sur les critères quantitatifs, répondant à une limitation majeure des approches purement LLM.
@@ -22,7 +22,7 @@ Plusieurs limites doivent être reconnues :
     \item \textbf{Taille du corpus} : 30 contractions constituent un échantillon modeste. Une validation à plus grande échelle (plusieurs centaines de copies) serait nécessaire pour généraliser les résultats.
     \item \textbf{Dépendance à Mistral AI} : le pipeline Fond dépend d'une API externe payante, ce qui peut limiter le déploiement à grande échelle. Une alternative open-source (Llama, Mixtral) est envisagée.
     \item \textbf{Absence de dataset public} : il n'existe pas, à notre connaissance, de corpus public de contractions annotées en français, ce qui limite la reproductibilité et la comparaison avec d'autres approches.
-    \item \textbf{Non prise en compte de certains critères du BAC} : l'évaluation actuelle ne couvre pas la qualité de l'introduction, la progression argumentative, ou la pertinence du titre.
+    \item \textbf{Non prise en compte de certains critères de la grille} : l'évaluation actuelle ne couvre pas la qualité de l'introduction, la progression argumentative, ou la pertinence du titre.
 \end{itemize}
 
 \section*{Perspectives}

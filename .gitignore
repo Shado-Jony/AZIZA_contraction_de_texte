@@ -37,6 +37,9 @@ _test_*.py
 ngrok.exe
 ngrok*
 
+# Prompt engineering notes
+docs/prompt/
+
 # LaTeX build artifacts
 docs/*.pdf
 docs/*.aux

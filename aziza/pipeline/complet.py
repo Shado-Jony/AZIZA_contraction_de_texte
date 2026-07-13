@@ -12,10 +12,15 @@ Pipeline complet AZIZA v2.0.
 Retourne un dictionnaire complet pour l'affichage.
 """
 
+import json
+from pathlib import Path
 from .forme import evaluer_forme
 from .fond  import evaluer_fond
 
-SMIN_SEM = 0.85
+_SEUILS_PATH = Path(__file__).parent / "seuils_production.json"
+with open(_SEUILS_PATH) as f:
+    _SEUILS = json.load(f)
+SMIN_SEM = _SEUILS["metriques"]["semantique"]["smin_sem"]
 
 
 def evaluer_complet(
@@ -33,7 +38,8 @@ def evaluer_complet(
     # --- Étape 3 : Verrous ---
     verrou_plagiat = forme["score_plagiat"] == 0.0
     verrou_hors_sujet = fond["score_semantique"] < SMIN_SEM
-    verrou_trop_court = nb_mots < 20
+    NB_MOTS_MIN = _SEUILS.get("barème_notation", {}).get("verrous", {}).get("nb_mots_min", 20)
+    verrou_trop_court = nb_mots < NB_MOTS_MIN
 
     score_forme = forme["score_total"]
     score_fond  = fond["score_fond_calibre"]

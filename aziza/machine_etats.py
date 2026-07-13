@@ -40,12 +40,13 @@ CYCLE_EXERCICES     = 3       # Nombre d'exercices avant le test de niveau
 class ProfilApprenant:
     """Représente le profil de compétence d'un apprenant."""
 
-    nom:           str
-    palier_actuel: str   = PALIER_DECOUVERTE
-    scores:        list  = field(default_factory=list)
-    nb_exercices:  int   = 0
-    nb_tests:      int   = 0
-    historique_mp: list  = field(default_factory=list)
+    nom:             str
+    palier_actuel:   str   = PALIER_DECOUVERTE
+    scores:          list  = field(default_factory=list)
+    nb_exercices:    int   = 0
+    nb_tests:        int   = 0
+    historique_mp:   list  = field(default_factory=list)
+    exercices_cycle: int   = 0
 
     def score_moyen_exercices(self) -> float:
         """Moyenne des 3 derniers scores d'exercices (sur 10, converti en %)."""
@@ -56,12 +57,17 @@ class ProfilApprenant:
 
     def to_dict(self) -> dict:
         return {
-            "nom":           self.nom,
-            "palier_actuel": self.palier_actuel,
-            "nb_exercices":  self.nb_exercices,
-            "nb_tests":      self.nb_tests,
-            "score_moyen":   round(self.score_moyen_exercices(), 1),
+            "nom":             self.nom,
+            "palier_actuel":   self.palier_actuel,
+            "nb_exercices":    self.nb_exercices,
+            "nb_tests":        self.nb_tests,
+            "score_moyen":     round(self.score_moyen_exercices(), 1),
+            "exercices_cycle": self.exercices_cycle,
         }
+
+    @property
+    def cycle_complet(self) -> bool:
+        return self.exercices_cycle >= CYCLE_EXERCICES
 
 
 class MachineEtats:
@@ -83,12 +89,13 @@ class MachineEtats:
     def enregistrer_exercice(self, score: float) -> None:
         """
         Enregistre le score d'un exercice (0-10).
-        Déclenche automatiquement un cycle si 3 exercices sont atteints.
+        Incrémente le compteur du cycle en cours.
         """
         if not (0 <= score <= 10):
             raise ValueError(f"Score invalide : {score}. Doit être entre 0 et 10.")
         self.profil.scores.append(score)
         self.profil.nb_exercices += 1
+        self.profil.exercices_cycle += 1
 
     def calculer_mp(self, note_test: float) -> float:
         """
@@ -127,6 +134,7 @@ class MachineEtats:
             raise ValueError(f"Note test invalide : {note_test}.")
 
         self.profil.nb_tests += 1
+        self.profil.exercices_cycle = 0
         mp           = self.calculer_mp(note_test)
         palier_avant = self.profil.palier_actuel
         idx_actuel   = PALIERS_ORDRE.index(palier_avant)
