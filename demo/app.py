@@ -630,8 +630,8 @@ def progression():
     statut = machine.statut()
     stats = {
         "total": len(historique),
-        "moyenne": round(sum(e["score_global_20"] for e in historique) / len(historique), 1) if historique else 0,
-        "meilleur": max((e["score_global_20"] for e in historique), default=0),
+        "moyenne": round(sum(e.get("score_global_20", e.get("score_global", 0) * 2) for e in historique) / len(historique), 1) if historique else 0,
+        "meilleur": max((e.get("score_global_20", e.get("score_global", 0) * 2) for e in historique), default=0),
         "dernier": historique[-1] if historique else None,
     }
     return render_template("progression.html", historique=historique, profil=profil.to_dict(),
