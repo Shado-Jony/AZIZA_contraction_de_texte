@@ -525,7 +525,7 @@ def evaluer():
     })
     ecrire_historique(historique)
 
-    session["last_result"] = resultat
+    session["last_session_id"] = session_id
     return redirect(url_for("resultats", session_id=session_id))
 
 
@@ -551,8 +551,18 @@ def resultats(session_id):
         404:
           description: Session introuvable
     """
-    resultat = session.get("last_result")
-    if not resultat or resultat.get("session_id") != session_id:
+    resultat = None
+    if session.get("last_session_id") == session_id:
+        for entry in lire_historique():
+            if entry["session_id"] == session_id:
+                prod_dir = Path(entry["production_dir"])
+                if prod_dir.exists():
+                    rpath = prod_dir / "resultat.json"
+                    if rpath.exists():
+                        resultat = json.loads(rpath.read_text(encoding="utf-8"))
+                break
+
+    if not resultat:
         for entry in lire_historique():
             if entry["session_id"] == session_id:
                 flash("Details de cette evaluation plus en memoire.", "info")
@@ -663,7 +673,7 @@ def demarrer():
 @app.route("/reset", methods=["POST"])
 def reset():
     session.pop("profil", None)
-    session.pop("last_result", None)
+    session.pop("last_session_id", None)
     HISTORIQUE_PATH.write_text("[]", encoding="utf-8")
     flash("Progression reinitialisee. Vous repartez a zero.", "info")
     return redirect(url_for("soumission"))
