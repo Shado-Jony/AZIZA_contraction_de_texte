@@ -101,13 +101,13 @@
     {% if r.verrou_plagiat or r.verrou_trop_court or r.verrou_hors_sujet %}
     <div class="fiche-verrous">
       {% if r.verrou_plagiat %}
-      <div class="fiche-verrou">🔒 Plagiat détecté (LCS = {{ '%.3f'|format(r.score_lcs) }}) — Note forcée à 0/10</div>
+      <div class="fiche-verrou">Plagiat détecté (LCS = {{ '%.3f'|format(r.score_lcs) }}) — Note forcée à 0/10</div>
       {% endif %}
       {% if r.verrou_trop_court %}
-      <div class="fiche-verrou">🔒 Texte trop court ({{ r.nb_mots }} mots, minimum 20) — Note forcée à 0/10</div>
+      <div class="fiche-verrou">Texte trop court ({{ r.nb_mots }} mots, minimum 20) — Note forcée à 0/10</div>
       {% endif %}
       {% if r.verrou_hors_sujet %}
-      <div class="fiche-verrou verrou-warn">🔒 Hors-sujet (similarité {{ '%.3f'|format(r.score_semantique) }}) — Fond 0/3, Forme -1pt</div>
+      <div class="fiche-verrou verrou-warn">Hors-sujet (similarité {{ '%.3f'|format(r.score_semantique) }}) — Fond 0/3, Forme -1pt</div>
       {% endif %}
     </div>
     {% endif %}
@@ -206,7 +206,7 @@
         <div>{{ texte_source }}</div>
       </div>
       <div class="fiche-texte-box">
-        <h3>✏ Contraction de l'élève</h3>
+        <h3>Contraction de l'élève</h3>
         <div>{{ contraction }}</div>
       </div>
     </div>
@@ -219,6 +219,10 @@
   <footer class="footer" style="margin-top:0;">
     <div class="footer-inner">
       <div class="footer-links">
+        <a href="/" class="footer-link">Accueil</a>
+        <a href="/cours" class="footer-link">Cours</a>
+        <a href="/rappel" class="footer-link">Rappel</a>
+        <a href="/exercices" class="footer-link">Exercices</a>
         <a href="/soumission" class="footer-link">Évaluation</a>
         <a href="/progression" class="footer-link">Progression</a>
       </div>

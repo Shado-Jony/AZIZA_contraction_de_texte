@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AZIZA — À propos</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="nav-bar">
+    <div class="nav-inner">
+      <a href="/" class="nav-brand">AZIZA <span class="nav-version">v2.0</span></a>
+      <span class="header-desc">Évaluation intelligente de la contraction de texte</span>
+      <div class="nav-links">
+        <a href="/cours" class="nav-link">Cours</a>
+        <a href="/rappel" class="nav-link">Rappel</a>
+        <a href="/exercices" class="nav-link">Exercices</a>
+        <a href="/soumission" class="nav-link">Évaluation</a>
+        <a href="/progression" class="nav-link">Progression</a>
+        <a href="/a-propos" class="nav-link active">À propos</a>
+      </div>
+      <div class="nav-right">
+        <button class="btn-theme" type="button" onclick="toggleTheme()" aria-label="Mode sombre/clair" id="themeBtn">☾</button>
+        <a href="/" class="nav-link nav-home">Accueil</a>
+        <button class="nav-toggle" type="button" onclick="toggleNav()" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <header class="page-header">
+      <h1>À propos</h1>
+      <p class="subtitle">Contexte, objectifs et auteur du projet AZIZA.</p>
+    </header>
+
+    <section class="card" style="margin-bottom:1.5rem;">
+      <h2>Projet AZIZA</h2>
+      <p style="margin-top:.75rem;line-height:1.7;">
+        <strong>AZIZA</strong> — Assistant Intelligent pour la Zone d'Apprentissage et l'Excellence Académique — est un moteur d'intelligence artificielle conçu dans le cadre d'un mémoire de Master en Intelligence Artificielle à l'<strong>IFRI/UAC</strong> (Institut de Formation et de Recherche en Informatique / Université d'Abomey-Calavi, Bénin).
+      </p>
+      <p style="margin-top:.5rem;line-height:1.7;">
+        L'objectif est de <strong>noter automatiquement</strong> les épreuves de contraction de texte au Baccalauréat béninois, en combinant des métriques lexicales classiques, une analyse linguistique outillée et un grand modèle de langage (LLM) pour une évaluation complète et objective.
+      </p>
+    </section>
+
+    <section class="card" style="margin-bottom:1.5rem;">
+      <h2>Auteur</h2>
+      <div style="display:flex;align-items:center;gap:1rem;margin-top:.75rem;flex-wrap:wrap;">
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;flex-shrink:0;">AJ</div>
+        <div>
+          <p style="font-weight:700;font-size:1.05rem;">ADONON Jiovany</p>
+          <p style="color:var(--gray-500);font-size:.85rem;">Étudiant en Intelligence Artificielle — IFRI/UAC</p>
+          <p style="color:var(--gray-500);font-size:.85rem;">Master en Intelligence Artificielle (en cours)</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-bottom:1.5rem;">
+      <h2>Fonctionnalités</h2>
+      <ul style="margin-top:.75rem;padding-left:1.25rem;line-height:1.9;">
+        <li>Évaluation à double axe : <strong>Forme (/7)</strong> et <strong>Fond (/3)</strong></li>
+        <li>Analyse lexicale : taux de reprise lexicale, ratio type/token, densité verbale</li>
+        <li>Génération de modèle de contraction via LLM (Mistral AI)</li>
+        <li>Progression par paliers : Découverte → Consolidation → Maîtrise</li>
+        <li>Statistiques détaillées et visualisations graphiques</li>
+        <li>Fiche d'évaluation imprimable</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Technologies utilisées</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.75rem;">
+        <span class="tag">Python / Flask</span>
+        <span class="tag">Mistral AI (LLM)</span>
+        <span class="tag">Chart.js</span>
+        <span class="tag">HTML / CSS</span>
+        <span class="tag">JavaScript</span>
+        <span class="tag">NLTK</span>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-links">
+        <a href="/" class="footer-link">Accueil</a>
+        <a href="/cours" class="footer-link">Cours</a>
+        <a href="/rappel" class="footer-link">Rappel</a>
+        <a href="/exercices" class="footer-link">Exercices</a>
+        <a href="/soumission" class="footer-link">Évaluation</a>
+        <a href="/progression" class="footer-link">Progression</a>
+        <a href="/a-propos" class="footer-link">À propos</a>
+      </div>
+      <span>AZIZA — Assistant Intelligent pour la Zone d'Apprentissage et l'Excellence Académique</span>
+      <span class="footer-author">&copy; 2026 AZIZA Contraction de Texte — ADONON Jiovany</span>
+    </div>
+  </footer>
+
+  <div id="aziza-spinner">
+    <div class="az-spinner-box">
+      <div class="az-spinner-ring"><span>AZIZA</span></div>
+      <span class="az-spinner-msg" id="aziza-spinner-msg">Chargement...</span>
+    </div>
+  </div>
+  <script>
+    function toggleNav() {
+      document.querySelector('.nav-bar').classList.toggle('nav-open');
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-bar')) {
+        document.querySelector('.nav-bar')?.classList.remove('nav-open');
+      }
+    });
+    function showSpinner(msg) {
+      var s = document.getElementById('aziza-spinner');
+      if (msg) document.getElementById('aziza-spinner-msg').textContent = msg;
+      s.classList.add('show');
+    }
+    function hideSpinner() {
+      document.getElementById('aziza-spinner').classList.remove('show');
+    }
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('.btn, button, input[type="submit"], input[type="button"]');
+      if (btn && !btn.hasAttribute('data-no-spinner') && btn.type !== 'button') showSpinner();
+    });
+    hideSpinner();
+    function toggleTheme() {
+      var html = document.documentElement;
+      var btn = document.getElementById('themeBtn');
+      if (html.getAttribute('data-theme') === 'dark') {
+        html.removeAttribute('data-theme');
+        localStorage.setItem('aziza_theme', 'light');
+        if (btn) btn.textContent = '\u263E';
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        localStorage.setItem('aziza_theme', 'dark');
+        if (btn) btn.textContent = '\u2600';
+      }
+    }
+    (function() {
+      var saved = localStorage.getItem('aziza_theme');
+      var btn = document.getElementById('themeBtn');
+      if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        if (btn) btn.textContent = '\u2600';
+      }
+    })();
+  </script>
+</body>
+</html>

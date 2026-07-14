@@ -19,10 +19,18 @@
     <div class="nav-inner">
       <a href="/soumission" class="nav-brand">AZIZA <span class="nav-version">v2.0</span></a>
       <span class="header-desc">Évaluation intelligente de la contraction de texte</span>
-      <button class="nav-toggle" onclick="toggleNav()" aria-label="Menu">☰</button>
       <div class="nav-links">
+        <a href="/cours" class="nav-link">Cours</a>
+        <a href="/rappel" class="nav-link">Rappel</a>
+        <a href="/exercices" class="nav-link">Exercices</a>
         <a href="/soumission" class="nav-link">Évaluation</a>
         <a href="/progression" class="nav-link active">Progression</a>
+        <a href="/a-propos" class="nav-link">À propos</a>
+      </div>
+      <div class="nav-right">
+        <button class="btn-theme" type="button" onclick="toggleTheme()" aria-label="Mode sombre/clair" id="themeBtn">☾</button>
+        <a href="/" class="nav-link nav-home">Accueil</a>
+        <button class="nav-toggle" type="button" onclick="toggleNav()" aria-label="Menu">☰</button>
       </div>
       <div class="nav-profil">
         {% if profil %}
@@ -31,7 +39,7 @@
         </span>
         <span class="nav-nom">{{ profil.nom }}</span>
         <form method="POST" action="/reset" class="inline-form">
-          <button type="submit" class="btn-ghost" title="Réinitialiser">⟳</button>
+          <button type="submit" class="btn-ghost" title="Réinitialiser"></button>
         </form>
         {% endif %}
       </div>
@@ -105,15 +113,36 @@
 
       <section class="card card-palier-current">
         <h2>Palier</h2>
-        <div class="palier-progress">
-          {% set p_current = {'decouverte':0,'consolidation':1,'maitrise':2}.get(profil.palier_actuel, 0) %}
-          {% for pid, plabel in [('decouverte','Découverte'),('consolidation','Consolidation'),('maitrise','Maîtrise')] %}
-          <div class="palier-step {{ 'step-active' if pid == profil.palier_actuel else 'step-done' if loop.index0 < p_current else 'step-future' }}">
-            <div class="step-dot" style="background:{{ palier_couleurs[pid] }}"></div>
-            <span class="step-label">{{ plabel }}</span>
+        {% set p_current = {'decouverte':0,'consolidation':1,'maitrise':2}.get(profil.palier_actuel, 0) %}
+        {% set cycle_progress = profil.exercices_cycle / 3 * 100 %}
+        {% set overall_pct = ((p_current / 2) * 100 + cycle_progress / 3)|round %}
+        <div class="palier-motivation">
+          <div class="palier-progress">
+            {% for pid, plabel in [('decouverte','Découverte'),('consolidation','Consolidation'),('maitrise','Maîtrise')] %}
+            <div class="palier-step {{ 'step-active' if pid == profil.palier_actuel else 'step-done' if loop.index0 < p_current else 'step-future' }}">
+              <div class="step-dot" style="background:{{ palier_couleurs[pid] }}"></div>
+              <span class="step-label">{{ plabel }}</span>
+            </div>
+            {% if not loop.last %}<div class="step-line {{ 'line-done' if loop.index0 < p_current else '' }}"></div>{% endif %}
+            {% endfor %}
           </div>
-          {% if not loop.last %}<div class="step-line {{ 'line-done' if loop.index0 < p_current else '' }}"></div>{% endif %}
-          {% endfor %}
+          <div class="cycle-bar">
+            <div class="cycle-bar-track">
+              <div class="cycle-bar-fill" style="width:{{ cycle_progress }}%;background:{{ palier_couleurs.get(profil.palier_actuel,'#3F51B5') }}"></div>
+            </div>
+            <span class="cycle-bar-label">{{ '%.0f'|format(cycle_progress) }}% du cycle</span>
+          </div>
+          <div class="palier-message">
+            {% if profil.palier_actuel == 'maitrise' %}
+            <span class="msg-icon">★</span> Maîtrise atteinte ! Continuez à vous entraîner pour rester au top.
+            {% elif cycle_progress == 0 %}
+            <span class="msg-icon">▸</span> Lancez-vous ! Chaque exercice vous rapproche de la maîtrise.
+            {% elif cycle_progress < 100 %}
+            <span class="msg-icon">▸</span> Plus que {{ 3 - profil.exercices_cycle }} exercice{% if 3 - profil.exercices_cycle > 1 %}s{% endif %} pour valider ce cycle. Vous y êtes presque !
+            {% else %}
+            <span class="msg-icon">★</span> Cycle terminé ! En attente d'évaluation pour passer au niveau suivant.
+            {% endif %}
+          </div>
         </div>
       </section>
 
@@ -250,6 +279,12 @@
     </div>
   </main>
 
+  <div id="aziza-spinner">
+    <div class="az-spinner-box">
+      <div class="az-spinner-ring"><span>AZIZA</span></div>
+      <span class="az-spinner-msg" id="aziza-spinner-msg">Chargement...</span>
+    </div>
+  </div>
   <script>
     function toggleNav() {
       document.querySelector('.nav-bar').classList.toggle('nav-open');
@@ -259,6 +294,19 @@
         document.querySelector('.nav-bar')?.classList.remove('nav-open');
       }
     });
+    function showSpinner(msg) {
+      var s = document.getElementById('aziza-spinner');
+      if (msg) document.getElementById('aziza-spinner-msg').textContent = msg;
+      s.classList.add('show');
+    }
+    function hideSpinner() {
+      document.getElementById('aziza-spinner').classList.remove('show');
+    }
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('.btn, button, input[type="submit"], input[type="button"]');
+      if (btn && !btn.hasAttribute('data-no-spinner') && btn.type !== 'button') showSpinner();
+    });
+    hideSpinner();
   </script>
   {% if historique|length > 0 %}
   <script>
@@ -367,12 +415,40 @@
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-links">
+        <a href="/" class="footer-link">Accueil</a>
+        <a href="/cours" class="footer-link">Cours</a>
+        <a href="/rappel" class="footer-link">Rappel</a>
+        <a href="/exercices" class="footer-link">Exercices</a>
         <a href="/soumission" class="footer-link">Évaluation</a>
         <a href="/progression" class="footer-link">Progression</a>
+        <a href="/a-propos" class="footer-link">À propos</a>
       </div>
       <span>AZIZA — Assistant Intelligent pour la Zone d'Apprentissage et l'Excellence Académique</span>
       <span class="footer-author">&copy; 2026 AZIZA Contraction de Texte — ADONON Jiovany</span>
     </div>
   </footer>
+  <script>
+    function toggleTheme() {
+      var html = document.documentElement;
+      var btn = document.getElementById('themeBtn');
+      if (html.getAttribute('data-theme') === 'dark') {
+        html.removeAttribute('data-theme');
+        localStorage.setItem('aziza_theme', 'light');
+        if (btn) btn.textContent = '\u263E';
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        localStorage.setItem('aziza_theme', 'dark');
+        if (btn) btn.textContent = '\u2600';
+      }
+    }
+    (function() {
+      var saved = localStorage.getItem('aziza_theme');
+      var btn = document.getElementById('themeBtn');
+      if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        if (btn) btn.textContent = '\u2600';
+      }
+    })();
+  </script>
 </body>
 </html>

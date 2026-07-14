@@ -11,10 +11,18 @@
     <div class="nav-inner">
       <a href="/soumission" class="nav-brand">AZIZA <span class="nav-version">v2.0</span></a>
       <span class="header-desc">Évaluation intelligente de la contraction de texte</span>
-      <button class="nav-toggle" onclick="toggleNav()" aria-label="Menu">☰</button>
       <div class="nav-links">
+        <a href="/cours" class="nav-link">Cours</a>
+        <a href="/rappel" class="nav-link">Rappel</a>
+        <a href="/exercices" class="nav-link">Exercices</a>
         <a href="/soumission" class="nav-link">Évaluation</a>
         <a href="/progression" class="nav-link">Progression</a>
+        <a href="/a-propos" class="nav-link">À propos</a>
+      </div>
+      <div class="nav-right">
+        <button class="btn-theme" type="button" onclick="toggleTheme()" aria-label="Mode sombre/clair" id="themeBtn">☾</button>
+        <a href="/" class="nav-link nav-home">Accueil</a>
+        <button class="nav-toggle" type="button" onclick="toggleNav()" aria-label="Menu">☰</button>
       </div>
       <div class="nav-profil">
         {% if profil %}
@@ -75,11 +83,11 @@
           <h3 style="color:var(--primary);">Test de niveau — Cycle terminé</h3>
           <p><strong>Moyenne Pondérée (Mₚ) : {{ '%.1f'|format(r.mp) }}%</strong></p>
           {% if r.cycle_decision == "progression" %}
-          <p style="color:var(--success);font-weight:600;">✅ {{ r.cycle_message }}</p>
+          <p style="color:var(--success);font-weight:600;">{{ r.cycle_message }}</p>
           {% elif r.cycle_decision == "statu_quo" %}
-          <p style="color:var(--warning);font-weight:600;">➡️ {{ r.cycle_message }}</p>
+          <p style="color:var(--warning);font-weight:600;">{{ r.cycle_message }}</p>
           {% else %}
-          <p style="color:var(--danger);font-weight:600;">🔄 {{ r.cycle_message }}</p>
+          <p style="color:var(--danger);font-weight:600;">{{ r.cycle_message }}</p>
           {% endif %}
         </div>
       </div>
@@ -87,7 +95,7 @@
 
       {% if r.verrou_plagiat %}
       <div class="card card-verrou verrou-plagiat">
-        <div class="verrou-icon">🔒</div>
+        <div class="verrou-icon">!</div>
         <div class="verrou-content">
           <h3>Plagiat détecté</h3>
           <p>Le taux de similarité textuelle (LCS = {{ '%.3f'|format(r.score_lcs) }}) dépasse le seuil autorisé. La note est automatiquement fixée à <strong>0/20</strong>.</p>
@@ -97,7 +105,7 @@
 
       {% if r.verrou_trop_court %}
       <div class="card card-verrou verrou-plagiat">
-        <div class="verrou-icon">🔒</div>
+        <div class="verrou-icon">!</div>
         <div class="verrou-content">
           <h3>Texte trop court</h3>
           <p>La contraction ({{ r.nb_mots }} mots) est insuffisante pour une évaluation. La note est automatiquement fixée à <strong>0/20</strong>.</p>
@@ -107,7 +115,7 @@
 
       {% if r.verrou_hors_sujet %}
       <div class="card card-verrou verrou-hors-sujet">
-        <div class="verrou-icon">🔒</div>
+        <div class="verrou-icon">!</div>
         <div class="verrou-content">
           <h3>Hors-sujet</h3>
           <p>La similarité sémantique ({{ '%.3f'|format(r.score_semantique) }}) est inférieure au seuil minimal (0.85). Le fond est fixé à <strong>0/3</strong> et la forme subit une pénalité de <strong>-1pt</strong>.</p>
@@ -266,10 +274,10 @@
     </div>
 
     <div class="modele-section">
-      <button type="button" class="btn btn-secondary" id="btn-modele-resultat" onclick="genererModeleResultat()">
-        📖 Voir un bon résumé
+      <button type="button" class="btn btn-secondary" id="btn-modele-resultat" onclick="genererModeleResultat()" data-no-spinner>
+Voir un bon résumé
       </button>
-      <span id="modele-spinner-resultat" class="modele-spinner" style="display:none;">⏳ Génération en cours...</span>
+
       <div id="modele-resultat" class="modele-card" style="display:none;margin-top:1rem;">
         <div class="modele-header">
           <span class="modele-badge">Modèle 10/10</span>
@@ -290,13 +298,24 @@
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-links">
+        <a href="/" class="footer-link">Accueil</a>
+        <a href="/cours" class="footer-link">Cours</a>
+        <a href="/rappel" class="footer-link">Rappel</a>
+        <a href="/exercices" class="footer-link">Exercices</a>
         <a href="/soumission" class="footer-link">Évaluation</a>
         <a href="/progression" class="footer-link">Progression</a>
+        <a href="/a-propos" class="footer-link">À propos</a>
       </div>
       <span>AZIZA — Assistant Intelligent pour la Zone d'Apprentissage et l'Excellence Académique</span>
       <span class="footer-author">&copy; 2026 AZIZA Contraction de Texte — ADONON Jiovany</span>
     </div>
   </footer>
+  <div id="aziza-spinner">
+    <div class="az-spinner-box">
+      <div class="az-spinner-ring"><span>AZIZA</span></div>
+      <span class="az-spinner-msg" id="aziza-spinner-msg">Chargement...</span>
+    </div>
+  </div>
   <script>
     function toggleNav() {
       document.querySelector('.nav-bar').classList.toggle('nav-open');
@@ -307,15 +326,27 @@
       }
     });
 
+    function showSpinner(msg) {
+      var s = document.getElementById('aziza-spinner');
+      if (msg) document.getElementById('aziza-spinner-msg').textContent = msg;
+      s.classList.add('show');
+    }
+    function hideSpinner() {
+      document.getElementById('aziza-spinner').classList.remove('show');
+    }
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('.btn, button, input[type="submit"], input[type="button"]');
+      if (btn && !btn.hasAttribute('data-no-spinner') && btn.type !== 'button') showSpinner();
+    });
+    hideSpinner();
     function genererModeleResultat() {
       const src = {{ r.texte_source|tojson|safe }};
       if (!src) { alert('Texte source non disponible.'); return; }
 
       const btn = document.getElementById('btn-modele-resultat');
-      const spinner = document.getElementById('modele-spinner-resultat');
       const display = document.getElementById('modele-resultat');
       btn.disabled = true;
-      spinner.style.display = 'inline';
+      showSpinner('Génération du résumé modèle...');
       display.style.display = 'none';
 
       fetch('/api/v1/generer-modele', {
@@ -325,28 +356,51 @@
       })
       .then(r => r.json())
       .then(data => {
-        spinner.style.display = 'none';
+        hideSpinner();
         btn.disabled = false;
         if (data.succes) {
           document.getElementById('modele-ref-resultat').textContent = data.nb_mots + ' mots (quota: ' + data.quota + ')';
           document.getElementById('modele-texte-resultat').textContent = data.texte;
           display.style.display = 'block';
-          btn.textContent = '📖 Masquer le modèle';
+          btn.textContent = 'Masquer le modèle';
         } else {
           alert('Erreur : ' + (data.erreur || 'Generation echouee'));
         }
       })
       .catch(err => {
-        spinner.style.display = 'none';
+        hideSpinner();
         btn.disabled = false;
         alert('Erreur : ' + err.message);
       });
     }
     function fermerModeleResultat() {
       document.getElementById('modele-resultat').style.display = 'none';
-      document.getElementById('btn-modele-resultat').textContent = '📖 Voir un bon résumé';
+      document.getElementById('btn-modele-resultat').textContent = 'Voir un bon résumé';
       document.getElementById('btn-modele-resultat').disabled = false;
     }
+  </script>
+  <script>
+    function toggleTheme() {
+      var html = document.documentElement;
+      var btn = document.getElementById('themeBtn');
+      if (html.getAttribute('data-theme') === 'dark') {
+        html.removeAttribute('data-theme');
+        localStorage.setItem('aziza_theme', 'light');
+        if (btn) btn.textContent = '\u263E';
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        localStorage.setItem('aziza_theme', 'dark');
+        if (btn) btn.textContent = '\u2600';
+      }
+    }
+    (function() {
+      var saved = localStorage.getItem('aziza_theme');
+      var btn = document.getElementById('themeBtn');
+      if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        if (btn) btn.textContent = '\u2600';
+      }
+    })();
   </script>
 </body>
 </html>

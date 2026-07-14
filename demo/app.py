@@ -386,15 +386,45 @@ def _fallback_result(texte_source, contraction, quota, nb_mots, profil, erreur="
 
 @app.route("/")
 def index():
-    """Redirection vers le formulaire de soumission.
+    """Page d'accueil avec présentation du projet et navigation.
     ---
     get:
-      summary: Redirige vers /soumission
+      summary: Affiche la page d'accueil
       responses:
-        302:
-          description: Redirection vers le formulaire
+        200:
+          description: Page HTML d'accueil
     """
-    return redirect(url_for("soumission"))
+    return render_template("accueil.html")
+
+
+@app.route("/cours")
+def cours():
+    """Page de cours sur la contraction de texte."""
+    return render_template("cours.html")
+
+
+@app.route("/rappel")
+def rappel():
+    """Page de rappel méthodologique."""
+    return render_template("rappel.html")
+
+
+@app.route("/fiche-methodo")
+def fiche_methodo():
+    """Fiche méthodologique imprimable (PDF)."""
+    return render_template("fiche_methodo_print.html")
+
+
+@app.route("/a-propos")
+def a_propos():
+    """Page À propos."""
+    return render_template("a_propos.html")
+
+
+@app.route("/exercices")
+def exercices():
+    """Page d'exercices."""
+    return render_template("exercices.html")
 
 
 @app.route("/soumission")

@@ -11,10 +11,18 @@
     <div class="nav-inner">
       <a href="/soumission" class="nav-brand">AZIZA <span class="nav-version">v2.0</span></a>
       <span class="header-desc">Évaluation intelligente de la contraction de texte</span>
-      <button class="nav-toggle" onclick="toggleNav()" aria-label="Menu">☰</button>
       <div class="nav-links">
+        <a href="/cours" class="nav-link">Cours</a>
+        <a href="/rappel" class="nav-link">Rappel</a>
+        <a href="/exercices" class="nav-link">Exercices</a>
         <a href="/soumission" class="nav-link active">Évaluation</a>
         <a href="/progression" class="nav-link">Progression</a>
+        <a href="/a-propos" class="nav-link">À propos</a>
+      </div>
+      <div class="nav-right">
+        <button class="btn-theme" type="button" onclick="toggleTheme()" aria-label="Mode sombre/clair" id="themeBtn">☾</button>
+        <a href="/" class="nav-link nav-home">Accueil</a>
+        <button class="nav-toggle" type="button" onclick="toggleNav()" aria-label="Menu">☰</button>
       </div>
       <div class="nav-profil">
         {% if profil %}
@@ -23,7 +31,7 @@
         </span>
         <span class="nav-nom">{{ profil.nom }}</span>
         <form method="POST" action="/reset" class="inline-form">
-          <button type="submit" class="btn-ghost" title="Réinitialiser">⟳</button>
+          <button type="submit" class="btn-ghost" title="Réinitialiser"></button>
         </form>
         {% endif %}
       </div>
@@ -77,10 +85,10 @@
           </div>
           <div class="field">
             <div class="field-row">
-              <button type="button" class="btn btn-secondary" id="btn-modele" onclick="genererModele()">
-                📖 Voir un bon résumé
+              <button type="button" class="btn btn-secondary" id="btn-modele" onclick="genererModele()" data-no-spinner>
+                Voir un bon résumé
               </button>
-              <span id="modele-spinner" class="modele-spinner" style="display:none;">⏳ Génération en cours...</span>
+
             </div>
             <div id="modele-display" class="modele-card" style="display:none;margin-top:.75rem;">
               <div class="modele-header">
@@ -177,14 +185,25 @@
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-links">
+        <a href="/" class="footer-link">Accueil</a>
+        <a href="/cours" class="footer-link">Cours</a>
+        <a href="/rappel" class="footer-link">Rappel</a>
+        <a href="/exercices" class="footer-link">Exercices</a>
         <a href="/soumission" class="footer-link">Évaluation</a>
         <a href="/progression" class="footer-link">Progression</a>
+        <a href="/a-propos" class="footer-link">À propos</a>
       </div>
       <span>AZIZA — Assistant Intelligent pour la Zone d'Apprentissage et l'Excellence Académique</span>
       <span class="footer-author">&copy; 2026 AZIZA Contraction de Texte — ADONON Jiovany</span>
     </div>
   </footer>
 
+  <div id="aziza-spinner">
+    <div class="az-spinner-box">
+      <div class="az-spinner-ring"><span>AZIZA</span></div>
+      <span class="az-spinner-msg" id="aziza-spinner-msg">Chargement...</span>
+    </div>
+  </div>
   <script>
     function toggleNav() {
       document.querySelector('.nav-bar').classList.toggle('nav-open');
@@ -210,10 +229,9 @@
       if (!src) { alert('Collez d\'abord un texte source.'); return; }
 
       const btn = document.getElementById('btn-modele');
-      const spinner = document.getElementById('modele-spinner');
       const display = document.getElementById('modele-display');
       btn.disabled = true;
-      spinner.style.display = 'inline';
+      showSpinner('Génération du résumé modèle...');
       display.style.display = 'none';
 
       fetch('/api/v1/generer-modele', {
@@ -223,7 +241,7 @@
       })
       .then(r => r.json())
       .then(data => {
-        spinner.style.display = 'none';
+        hideSpinner();
         btn.disabled = false;
         if (data.succes) {
           document.getElementById('modele-ref').textContent = data.nb_mots + ' mots (quota: ' + data.quota + ')';
@@ -234,7 +252,7 @@
         }
       })
       .catch(err => {
-        spinner.style.display = 'none';
+        hideSpinner();
         btn.disabled = false;
         alert('Erreur : ' + err.message);
       });
@@ -260,6 +278,19 @@
       checkQuota();
     }
 
+    function showSpinner(msg) {
+      var s = document.getElementById('aziza-spinner');
+      if (msg) document.getElementById('aziza-spinner-msg').textContent = msg;
+      s.classList.add('show');
+    }
+    function hideSpinner() {
+      document.getElementById('aziza-spinner').classList.remove('show');
+    }
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('.btn, button, input[type="submit"], input[type="button"]');
+      if (btn && !btn.hasAttribute('data-no-spinner') && btn.type !== 'button') showSpinner();
+    });
+    hideSpinner();
     function checkQuota() {
       const quota = parseInt(document.getElementById('quota_cible').value) || 0;
       const mots = parseInt(document.getElementById('contraction_word_count').textContent) || 0;
@@ -272,16 +303,39 @@
       }
       const ecart = Math.abs(mots - quota) / quota * 100;
       if (ecart <= 5) {
-        badge.textContent = '✓ Exact'; badge.className = 'stat-badge wordcount-ok';
+        badge.textContent = 'Exact'; badge.className = 'stat-badge wordcount-ok';
         wcBadge.className = 'stat-badge wordcount-ok';
       } else if (ecart <= 10) {
-        badge.textContent = '⚠ Toléré'; badge.className = 'stat-badge wordcount-warn';
+        badge.textContent = '\u26A0 Toléré'; badge.className = 'stat-badge wordcount-warn';
         wcBadge.className = 'stat-badge wordcount-warn';
       } else {
-        badge.textContent = '✗ Hors quota'; badge.className = 'stat-badge wordcount-err';
+        badge.textContent = '\u2717 Hors quota'; badge.className = 'stat-badge wordcount-err';
         wcBadge.className = 'stat-badge wordcount-err';
       }
     }
+  </script>
+  <script>
+    function toggleTheme() {
+      var html = document.documentElement;
+      var btn = document.getElementById('themeBtn');
+      if (html.getAttribute('data-theme') === 'dark') {
+        html.removeAttribute('data-theme');
+        localStorage.setItem('aziza_theme', 'light');
+        if (btn) btn.textContent = '\u263E';
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        localStorage.setItem('aziza_theme', 'dark');
+        if (btn) btn.textContent = '\u2600';
+      }
+    }
+    (function() {
+      var saved = localStorage.getItem('aziza_theme');
+      var btn = document.getElementById('themeBtn');
+      if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        if (btn) btn.textContent = '\u2600';
+      }
+    })();
   </script>
 </body>
 </html>

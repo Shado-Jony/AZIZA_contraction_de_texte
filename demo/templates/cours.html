@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AZIZA — Cours</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="nav-bar">
+    <div class="nav-inner">
+      <a href="/" class="nav-brand">AZIZA <span class="nav-version">v2.0</span></a>
+      <span class="header-desc">Évaluation intelligente de la contraction de texte</span>
+      <div class="nav-links">
+        <a href="/cours" class="nav-link active">Cours</a>
+        <a href="/rappel" class="nav-link">Rappel</a>
+        <a href="/exercices" class="nav-link">Exercices</a>
+        <a href="/soumission" class="nav-link">Évaluation</a>
+        <a href="/progression" class="nav-link">Progression</a>
+        <a href="/a-propos" class="nav-link">À propos</a>
+      </div>
+      <div class="nav-right">
+        <button class="btn-theme" type="button" onclick="toggleTheme()" aria-label="Mode sombre/clair" id="themeBtn">☾</button>
+        <a href="/" class="nav-link nav-home">Accueil</a>
+        <button class="nav-toggle" type="button" onclick="toggleNav()" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <header class="page-header">
+      <h1>Cours de Contraction de Texte</h1>
+      <p class="subtitle">Maîtrisez l'art de la contraction — méthode, règles et conseils.</p>
+      <a href="/fiche-methodo?print=1" class="btn btn-primary" style="margin-top:.75rem;display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;" target="_blank">Télécharger la fiche PDF</a>
+    </header>
+
+    <div class="cours-progress" id="coursProgress">
+      <div class="cp-step" data-step="0">
+        <div class="cp-dot">1</div>
+        <span class="cp-label">Définition</span>
+      </div>
+      <div class="cp-line"></div>
+      <div class="cp-step" data-step="1">
+        <div class="cp-dot">2</div>
+        <span class="cp-label">Méthode A-D</span>
+      </div>
+      <div class="cp-line"></div>
+      <div class="cp-step" data-step="2">
+        <div class="cp-dot">3</div>
+        <span class="cp-label">Exemple</span>
+      </div>
+      <div class="cp-line"></div>
+      <div class="cp-step" data-step="3">
+        <div class="cp-dot">4</div>
+        <span class="cp-label">Points clés</span>
+      </div>
+    </div>
+
+    <div class="cours-card" id="module0">
+      <span class="module-badge">Module 1 / 4</span>
+      <h2 class="module-title">Définition</h2>
+      <div class="module-body">
+        <p>La <strong>contraction de texte</strong> est un exercice qui consiste à réduire un texte au <strong>quart de sa longueur</strong>.</p>
+        <div class="def-box">
+          <div class="def-item">
+            <span class="def-icon">◆</span>
+            <div>
+              <strong>Objectif</strong>
+              <p>Conserver les idées essentielles, la logique et le ton de l'auteur, tout en supprimant les détails secondaires.</p>
+            </div>
+          </div>
+          <div class="def-item">
+            <span class="def-icon">■</span>
+            <div>
+              <strong>Différence avec le résumé</strong>
+              <p>La contraction est plus stricte : longueur imposée (¼ du texte) et fidélité absolue au texte original.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cours-card" id="module1" style="display:none">
+      <span class="module-badge">Module 2 / 4</span>
+      <h2 class="module-title">Méthode A-D</h2>
+      <div class="module-body">
+        <p>La <strong>méthode A-D</strong> (Analyser — Dégraisser — Dégrafer — Dépouiller — Disposer) est une technique progressive pour réussir une contraction de texte en cinq étapes.</p>
+        <div class="meth-part">
+          <h3 class="meth-heading"><span class="meth-letter">A</span> Analyser</h3>
+          <ul class="meth-list">
+            <li>Lire attentivement le texte une première fois pour en saisir le sens global.</li>
+            <li>Identifier le thème central, la thèse de l'auteur et les idées principales.</li>
+            <li>Repérer les connecteurs logiques et la structure argumentative.</li>
+          </ul>
+        </div>
+        <div class="meth-part">
+          <h3 class="meth-heading"><span class="meth-letter">D</span> Dégraisser</h3>
+          <ul class="meth-list">
+            <li>Supprimer les exemples, illustrations, anecdotes et digressions.</li>
+            <li>Éliminer les répétitions et les redondances inutiles.</li>
+            <li>Conserver uniquement les arguments essentiels au propos.</li>
+          </ul>
+        </div>
+        <div class="meth-part">
+          <h3 class="meth-heading"><span class="meth-letter">D</span> Dégrafer</h3>
+          <ul class="meth-list">
+            <li>Enlever les mots-outils superflus (adverbes, locutions vides).</li>
+            <li>Réduire les propositions relatives et les incises.</li>
+            <li>Simplifier les phrases sans en altérer le sens.</li>
+          </ul>
+        </div>
+        <div class="meth-part">
+          <h3 class="meth-heading"><span class="meth-letter">D</span> Dépouiller</h3>
+          <ul class="meth-list">
+            <li>Ne garder que l'essence du message : idées-clés et articulations logiques.</li>
+            <li>S'assurer que le propos reste fidèle au texte source.</li>
+            <li>Vérifier qu'aucune idée personnelle n'a été ajoutée.</li>
+          </ul>
+        </div>
+        <div class="meth-part">
+          <h3 class="meth-heading"><span class="meth-letter">D</span> Disposer</h3>
+          <ul class="meth-list">
+            <li>Rédiger la contraction dans un style neutre, clair et fluide.</li>
+            <li>Respecter la longueur imposée (¼ du texte original).</li>
+            <li>Relire et corriger les fautes d'orthographe et de syntaxe.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="cours-card" id="module2" style="display:none">
+      <span class="module-badge">Module 3 / 4</span>
+      <h2 class="module-title">Exemple pratique</h2>
+      <div class="module-body">
+        <div class="exo-box">
+          <div class="exo-header">
+            <span class="exo-badge">Texte original</span>
+            <span class="exo-count">120 mots</span>
+          </div>
+          <blockquote class="exo-text">
+            « La science moderne a permis des avancées considérables dans le domaine médical. Les vaccins, les antibiotiques et les techniques chirurgicales ont sauvé des millions de vies. Cependant, ces progrès soulèvent aussi des questions éthiques : jusqu'où peut-on manipuler le vivant ? La recherche génétique, par exemple, ouvre des perspectives fascinantes mais inquiète par ses possibles dérives. »
+          </blockquote>
+        </div>
+        <div class="exo-arrow">↓</div>
+        <div class="exo-box exo-box--result">
+          <div class="exo-header">
+            <span class="exo-badge exo-badge--result">Contraction</span>
+            <span class="exo-count">30 mots (¼)</span>
+          </div>
+          <blockquote class="exo-text">
+            « La science médicale moderne a sauvé des millions de vies grâce aux vaccins et aux techniques chirurgicales, mais elle soulève des inquiétudes éthiques, notamment avec la recherche génétique. »
+          </blockquote>
+        </div>
+      </div>
+    </div>
+
+    <div class="cours-card" id="module3" style="display:none">
+      <span class="module-badge">Module 4 / 4</span>
+      <h2 class="module-title">Points clés à retenir</h2>
+      <div class="module-body">
+        <ul class="key-list">
+          <li>
+            <span class="key-icon">▸</span>
+            <div><strong>Fidélité</strong> — Restez fidèle au texte original sans ajouter d'idées personnelles.</div>
+          </li>
+          <li>
+            <span class="key-icon">▸</span>
+            <div><strong>Longueur</strong> — Respectez strictement le quart de la longueur imposée.</div>
+          </li>
+          <li>
+            <span class="key-icon">▸</span>
+            <div><strong>Clarté</strong> — Soyez clair, concis et cohérent dans votre reformulation.</div>
+          </li>
+          <li>
+            <span class="key-icon">▸</span>
+            <div><strong>Neutralité</strong> — Gardez un ton neutre et objectif, sans opinion personnelle.</div>
+          </li>
+        </ul>
+        <div class="key-note">
+          <strong>Conseil :</strong> Entraînez-vous régulièrement avec les exercices interactifs pour maîtriser ces principes.
+        </div>
+      </div>
+    </div>
+
+    <div class="cours-nav">
+      <button class="btn btn-secondary" id="prevBtn" onclick="prevModule()" style="visibility:hidden" data-no-spinner>← Retour</button>
+      <span class="cours-counter" id="moduleCounter">1 / 4</span>
+      <button class="btn btn-primary" id="nextBtn" onclick="nextModule()" data-no-spinner>Suivant →</button>
+      <a href="/exercices" class="btn btn-primary" id="doneBtn" style="display:none" data-no-spinner>Terminer ✓</a>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-links">
+        <a href="/" class="footer-link">Accueil</a>
+        <a href="/cours" class="footer-link">Cours</a>
+        <a href="/rappel" class="footer-link">Rappel</a>
+        <a href="/exercices" class="footer-link">Exercices</a>
+        <a href="/soumission" class="footer-link">Évaluation</a>
+        <a href="/progression" class="footer-link">Progression</a>
+        <a href="/a-propos" class="footer-link">À propos</a>
+      </div>
+      <span>AZIZA — Assistant Intelligent pour la Zone d'Apprentissage et l'Excellence Académique</span>
+      <span class="footer-author">&copy; 2026 AZIZA Contraction de Texte — ADONON Jiovany</span>
+    </div>
+  </footer>
+
+  <script>
+    var current = 0;
+    var total = 4;
+    function showModule(i) {
+      for (var j = 0; j < total; j++) {
+        document.getElementById('module' + j).style.display = j === i ? 'block' : 'none';
+      }
+      document.getElementById('moduleCounter').textContent = (i + 1) + ' / ' + total;
+      document.getElementById('prevBtn').style.visibility = i === 0 ? 'hidden' : 'visible';
+      document.getElementById('nextBtn').style.display = i === total - 1 ? 'none' : 'inline-flex';
+      document.getElementById('doneBtn').style.display = i === total - 1 ? 'inline-flex' : 'none';
+      var steps = document.querySelectorAll('.cp-step');
+      steps.forEach(function(s, idx) {
+        s.classList.remove('cp-active', 'cp-done');
+        if (idx < i) s.classList.add('cp-done');
+        else if (idx === i) s.classList.add('cp-active');
+      });
+    }
+    function nextModule() {
+      if (current < total - 1) { current++; showModule(current); }
+    }
+    function prevModule() {
+      if (current > 0) { current--; showModule(current); }
+    }
+    function toggleNav() {
+      document.querySelector('.nav-bar').classList.toggle('nav-open');
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-bar')) {
+        document.querySelector('.nav-bar')?.classList.remove('nav-open');
+      }
+    });
+  </script>
+  <script>
+    function toggleTheme() {
+      var html = document.documentElement;
+      var btn = document.getElementById('themeBtn');
+      if (html.getAttribute('data-theme') === 'dark') {
+        html.removeAttribute('data-theme');
+        localStorage.setItem('aziza_theme', 'light');
+        if (btn) btn.textContent = '\u263E';
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        localStorage.setItem('aziza_theme', 'dark');
+        if (btn) btn.textContent = '\u2600';
+      }
+    }
+    (function() {
+      var saved = localStorage.getItem('aziza_theme');
+      var btn = document.getElementById('themeBtn');
+      if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        if (btn) btn.textContent = '\u2600';
+      }
+    })();
+  </script>
+  <div id="aziza-spinner">
+    <div class="az-spinner-box">
+      <div class="az-spinner-ring"><span>AZIZA</span></div>
+      <span class="az-spinner-msg" id="aziza-spinner-msg">Chargement...</span>
+    </div>
+  </div>
+  <script>
+    function showSpinner(msg) {
+      var s = document.getElementById('aziza-spinner');
+      if (msg) document.getElementById('aziza-spinner-msg').textContent = msg;
+      s.classList.add('show');
+    }
+    function hideSpinner() {
+      document.getElementById('aziza-spinner').classList.remove('show');
+    }
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('.btn, button, input[type="submit"], input[type="button"]');
+      if (btn && !btn.hasAttribute('data-no-spinner') && btn.type !== 'button') showSpinner();
+    });
+    hideSpinner();
+  </script>
+</html>

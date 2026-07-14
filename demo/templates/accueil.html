@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AZIZA — Accueil</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="nav-bar">
+    <div class="nav-inner">
+      <a href="/" class="nav-brand">AZIZA <span class="nav-version">v2.0</span></a>
+      <span class="header-desc">Évaluation intelligente de la contraction de texte</span>
+      <div class="nav-links">
+        <a href="/cours" class="nav-link">Cours</a>
+        <a href="/rappel" class="nav-link">Rappel</a>
+        <a href="/exercices" class="nav-link">Exercices</a>
+        <a href="/soumission" class="nav-link">Évaluation</a>
+        <a href="/progression" class="nav-link">Progression</a>
+        <a href="/a-propos" class="nav-link">À propos</a>
+      </div>
+      <div class="nav-right">
+        <button class="btn-theme" type="button" onclick="toggleTheme()" aria-label="Mode sombre/clair" id="themeBtn">☾</button>
+        <a href="/" class="nav-link nav-home">Accueil</a>
+        <button class="nav-toggle" type="button" onclick="toggleNav()" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <div class="hero-inner">
+        <h1 class="hero-title">AZIZA</h1>
+        <p class="hero-subtitle">Assistant Intelligent pour la Zone d'Apprentissage et l'Excellence Académique</p>
+        <p class="hero-desc">
+           AZIZA est un moteur d'intelligence artificielle conçu pour noter automatiquement les épreuves
+          de contraction de texte. Il combine des métriques lexicales classiques,
+           une analyse linguistique outillée et un LLM pour une évaluation complète en deux axes :
+          <strong>Forme (/7)</strong> et <strong>Fond (/3)</strong>, fusionnés en une note finale <strong>/10</strong>.
+        </p>
+        <p class="hero-author">
+          <strong>ADONON Jiovany</strong> — Étudiant en Intelligence Artificielle (IFRI/UAC)
+        </p>
+        <a href="/soumission" class="btn-hero">Commencer l'entraînement</a>
+      </div>
+    </section>
+
+    <section class="section-grid">
+      <a href="/cours" class="section-card">
+        <span class="card-icon" data-tip="Accédez aux leçons détaillées sur la méthodologie de la contraction de texte, avec exemples et explications pas à pas.">i</span>
+        <h3 class="card-title">Cours</h3>
+      </a>
+      <a href="/rappel" class="section-card">
+        <span class="card-icon" data-tip="Retrouvez les règles essentielles, la grille d'évaluation Forme/Fond et des conseils d'orientation.">i</span>
+        <h3 class="card-title">Rappel</h3>
+      </a>
+      <a href="/exercices" class="section-card">
+        <span class="card-icon" data-tip="Entraînez-vous avec des exercices interactifs corrigés automatiquement pour tester vos compétences.">i</span>
+        <h3 class="card-title">Exercices</h3>
+      </a>
+      <a href="/soumission" class="section-card">
+        <span class="card-icon" data-tip="Soumettez vos contractions pour une notation automatique par AZIZA, selon les critères de Forme (/7) et Fond (/3).">i</span>
+        <h3 class="card-title">Évaluation</h3>
+      </a>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-links">
+        <a href="/" class="footer-link">Accueil</a>
+        <a href="/cours" class="footer-link">Cours</a>
+        <a href="/rappel" class="footer-link">Rappel</a>
+        <a href="/exercices" class="footer-link">Exercices</a>
+        <a href="/soumission" class="footer-link">Évaluation</a>
+         <a href="/progression" class="footer-link">Progression</a>
+        <a href="/a-propos" class="footer-link">À propos</a>
+      </div>
+      <span>AZIZA — Assistant Intelligent pour la Zone d'Apprentissage et l'Excellence Académique</span>
+      <span class="footer-author">&copy; 2026 AZIZA Contraction de Texte — ADONON Jiovany</span>
+    </div>
+  </footer>
+  <div id="aziza-spinner">
+    <div class="az-spinner-box">
+      <div class="az-spinner-ring"><span>AZIZA</span></div>
+      <span class="az-spinner-msg" id="aziza-spinner-msg">Chargement...</span>
+    </div>
+  </div>
+  <script>
+    function toggleNav() {
+      document.querySelector('.nav-bar').classList.toggle('nav-open');
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-bar')) {
+        document.querySelector('.nav-bar')?.classList.remove('nav-open');
+      }
+    });
+    document.querySelectorAll('.card-icon').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var tip = this.getAttribute('data-tip');
+        if (!tip) return;
+        document.querySelectorAll('.tooltip').forEach(function(t) { t.remove(); });
+        var el = document.createElement('div');
+        el.className = 'tooltip';
+        el.textContent = tip;
+        this.appendChild(el);
+      });
+    });
+    document.addEventListener('click', function() {
+      document.querySelectorAll('.tooltip').forEach(function(t) { t.remove(); });
+    });
+    function toggleTheme() {
+      var html = document.documentElement;
+      var btn = document.getElementById('themeBtn');
+      if (html.getAttribute('data-theme') === 'dark') {
+        html.removeAttribute('data-theme');
+        localStorage.setItem('aziza_theme', 'light');
+        if (btn) btn.textContent = '\u263E';
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        localStorage.setItem('aziza_theme', 'dark');
+        if (btn) btn.textContent = '\u2600';
+      }
+    }
+    (function() {
+      var saved = localStorage.getItem('aziza_theme');
+      var btn = document.getElementById('themeBtn');
+      if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        if (btn) btn.textContent = '\u2600';
+      }
+    })();
+    function showSpinner(msg) {
+      var s = document.getElementById('aziza-spinner');
+      if (msg) document.getElementById('aziza-spinner-msg').textContent = msg;
+      s.classList.add('show');
+    }
+    function hideSpinner() {
+      document.getElementById('aziza-spinner').classList.remove('show');
+    }
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('.btn, .btn-hero, button, input[type="submit"], input[type="button"]');
+      if (btn && !btn.hasAttribute('data-no-spinner') && btn.type !== 'button') showSpinner();
+    });
+    hideSpinner();
+  </script>
+</body>
+</html>
