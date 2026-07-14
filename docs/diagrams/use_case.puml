@@ -2,7 +2,6 @@
 left to right direction
 skinparam packageStyle rectangle
 actor Apprenant as A
-actor Enseignant as E
 actor "API Mistral" as M
 
 rectangle "Système AZIZA\n(Évaluation)" {
@@ -45,7 +44,6 @@ UC7 ..> UC8 : <<extend>>
 M <-- UC6 : <<utilise>>
 M <-- UC11 : <<utilise>>
 
-E --> UC13
-E --> UC12
+
 
 @enduml
