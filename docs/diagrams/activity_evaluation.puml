@@ -1,0 +1,75 @@
+@startuml
+start
+:Apprenant arrive\nsur /soumission;
+
+:Choisir le mode;
+if (Mode ?) then (exercice)
+else (test)
+  :Vérifier cycle\n(3 exercices requis);
+  if (Cycle complet ?) then (oui)
+  else (non)
+    :Basculer en\nmode exercice;
+  endif
+endif
+
+:Filtrer / saisir\ntexte source;
+:Saisir la contraction;
+
+:Vérifier le quota\n(≈1/4 du source);
+
+if (Texte trop court\n< 20 mots) then (oui)
+  :Verrou TROP_COURT;
+  :Note = 0;
+else (non)
+
+  :Évaluer la FORME (/7);
+
+  partition "Évaluation Forme" {
+    :Calculer LCS + Jaccard\n+ TF-IDF;
+    if (LCS ≥ 80%) then (plagiat)
+      :Verrou PLAGIAT;
+    else (hors-sujet)
+      if (LCS < 26%) then
+        :Label hors-sujet;
+      endif
+    endif
+    :Score lexical\n(parabole + pénalité quota);
+    :Analyser syntaxe\n(ratio phrases + connecteurs);
+    :Vérifier orthographe\n(LanguageTool / dictionnaire);
+  }
+
+  :Évaluer le FOND (/3);
+
+  partition "Évaluation Fond" {
+    :Embedding Mistral\n(similarité cosinus);
+    if (Score sémantique < 0.85) then (hors-sujet)
+      :Verrou HORS-SUJET;
+    endif
+    :Prompt LLM few-shot\n+ Chaîne de raisonnement;
+    :Détection contresens\n+ subjectivité;
+    :Calibrer le score\n(sémantique + LLM);
+  }
+
+  :Appliquer les\nverrous actifs;
+  :Calculer note finale\nForme + Fond → /10 → /20;
+
+  :Mettre à jour la\nprogression;
+  if (Mode ?) then (exercice)
+    :enregistrer_exercice(score);
+  else (test)
+    :Mp = 0.4×moy_exos + 0.6×note_test;
+    if (Mp ≥ 75%) then (oui)
+      :Palier supérieur ✓;
+    elseif (Mp ≥ 70%) then (seuil)
+      :Statu quo;
+    else (non)
+      :Consolidation;
+    endif
+  endif
+
+endif
+
+:Afficher les résultats\n(scores, feedback, palier,\nprogression);
+
+stop
+@enduml

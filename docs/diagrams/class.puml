@@ -1,0 +1,110 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class ProfilApprenant {
+  - nom: str
+  - palier_actuel: str
+  - scores: list
+  - nb_exercices: int
+  - nb_tests: int
+  - historique_mp: list
+  - exercices_cycle: int
+  + to_dict(): dict
+}
+
+class MachineEtats {
+  + enregistrer_exercice(score: float)
+  + calculer_mp(note_test: float): float
+  + evaluer_cycle(note_test): dict
+  + statut(): dict
+}
+
+class EvaluationController {
+  + soumission() : template (GET)
+  + evaluer() : redirect (POST)
+  + resultats(session_id) : template (GET)
+}
+
+class APIEvaluation {
+  + evaluer_api() : JSON (POST /api/v1/evaluer)
+  + health() : JSON (GET /api/v1/health)
+}
+
+class Pipeline {
+  + evaluer_complet(texte, contraction, quota): dict
+  + evaluer_avec_pipeline(texte, contraction, quota, profil, est_test): dict
+}
+
+class FormeEvaluator {
+  + evaluer_forme(source, contraction, quota): dict
+  + evaluer_lexical(source, contraction): (float, float)
+  + evaluer_syntaxe(source, contraction): (float, int, int, float)
+  + evaluer_orthographe(contraction): (float, int, list)
+}
+
+class FondEvaluator {
+  + evaluer_fond(source, contraction): dict
+  + evaluer_semantique(source, contraction): float
+  + evaluer_llm(source, contraction): dict
+  + calibrer(score_sem, score_llm): float
+}
+
+class SimilariteCalculator {
+  + lcs(seq1, seq2): float
+  + jaccard_bigrams(seq1, seq2): float
+  + cosine_tfidf(texte1, texte2): float
+  + score_parabole(lcs_normalise): float
+  + labeliser(score_lcs): str
+}
+
+class ResultatEvaluation {
+  - score_lexical: float
+  - score_syntaxe: float
+  - score_orthographe: float
+  - score_fond_brut: float
+  - score_fond_calibre: float
+  - score_forme: float
+  - score_fond: float
+  - note_finale: float
+  - score_global_20: float
+  - verrou_plagiat: bool
+  - verrou_hors_sujet: bool
+  - verrou_trop_court: bool
+  - contresens_detecte: bool
+  - subjectivite_detectee: bool
+  - score_semantique: float
+  - feedback_erreur: str
+  - feedback_micro_cours: str
+  - feedback_exemple: str
+  - raisonnement: str
+  - palier_actuel: str
+  - mp: float
+  - est_test: bool
+  - cycle_decision: str
+}
+
+class Verrou {
+  - type: str
+  + declencher(resultat): bool
+}
+
+EvaluationController --> Pipeline : utilise
+EvaluationController --> MachineEtats : utilise
+EvaluationController --> ProfilApprenant : gère
+
+APIEvaluation --> Pipeline : utilise
+
+Pipeline --> FormeEvaluator : délègue
+Pipeline --> FondEvaluator : délègue
+Pipeline --> Verrou : applique
+Pipeline --> MachineEtats : interroge
+
+FormeEvaluator --> SimilariteCalculator : utilise
+
+FondEvaluator --> SimilariteCalculator : utilise
+
+Pipeline --> ResultatEvaluation : produit
+
+ProfilApprenant --> MachineEtats : lié à
+
+@enduml

@@ -1,0 +1,51 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+actor Apprenant as A
+actor Enseignant as E
+actor "API Mistral" as M
+
+rectangle "Système AZIZA\n(Évaluation)" {
+  usecase "Saisir un texte source\n(corpus ou manuel)" as UC1
+  usecase "Saisir une contraction" as UC2
+  usecase "Soumettre une contraction\n(mode exercice)" as UC3
+  usecase "Passer un test de niveau\n(mode test)" as UC4
+  usecase "Évaluer la forme\n(/7 = lexical + syntaxe + orthographe)" as UC5
+  usecase "Évaluer le fond\n(/3 = sémantique + LLM)" as UC6
+  usecase "Appliquer les verrous\n(plagiat / hors-sujet / trop court)" as UC7
+  usecase "Calculer la note finale\n(/10 → /20)" as UC8
+  usecase "Afficher les résultats\ndétaillés" as UC9
+  usecase "Consulter le feedback\n(diagnostic + micro-cours + exemple)" as UC10
+  usecase "Générer un modèle\nde contraction parfait" as UC11
+  usecase "Mettre à jour la\nprogression (palier)" as UC12
+  usecase "Consulter l'historique\ndes évaluations" as UC13
+}
+
+A --> UC1
+A --> UC2
+A --> UC3
+A --> UC4
+A --> UC9
+A --> UC10
+A --> UC11
+A --> UC13
+
+UC1 ..> UC3 : <<include>>
+UC2 ..> UC3 : <<include>>
+UC3 ..> UC5 : <<include>>
+UC3 ..> UC6 : <<include>>
+UC3 ..> UC7 : <<include>>
+UC3 ..> UC8 : <<include>>
+UC4 ..> UC12 : <<include>>
+
+UC5 ..> UC8 : <<extend>>
+UC6 ..> UC8 : <<extend>>
+UC7 ..> UC8 : <<extend>>
+
+M <-- UC6 : <<utilise>>
+M <-- UC11 : <<utilise>>
+
+E --> UC13
+E --> UC12
+
+@enduml

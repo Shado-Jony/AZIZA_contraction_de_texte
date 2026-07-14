@@ -1,0 +1,90 @@
+@startuml
+actor Apprenant as A
+participant "Interface\n(Flask)" as UI
+participant "ProfilApprenant" as PA
+participant "Pipeline" as PL
+participant "FormeEvaluator" as FE
+participant "Similarite\nCalculator" as SC
+participant "FondEvaluator" as FD
+participant "API Mistral\n(LLM + Embed)" as M
+participant "MachineEtats" as ME
+database "Disque\n(JSON / fichiers)" as FS
+
+A -> UI : POST /evaluer\n(texte, contraction, quota, mode)
+activate UI
+
+UI -> PA : get_profil()
+activate PA
+PA --> UI : profil (ou nouveau)
+deactivate PA
+
+UI -> PL : evaluer_avec_pipeline\n(source, contraction, quota, profil, est_test)
+activate PL
+
+PL -> FE : evaluer_forme(source, contraction, quota)
+activate FE
+
+FE -> SC : lcs(source, contraction)
+activate SC
+SC --> FE : score_lcs
+SC --> FE : score_plagiat
+SC --> FE : label
+deactivate SC
+
+FE -> SC : jaccard_bigrams, cosine_tfidf
+activate SC
+SC --> FE : scores
+deactivate SC
+
+FE -> FE : evaluer_syntaxe()
+FE -> FE : evaluer_orthographe()
+FE --> PL : dict score_forme (/7)
+deactivate FE
+
+PL -> FD : evaluer_fond(source, contraction)
+activate FD
+
+FD -> M : mistral-embed(source)
+activate M
+M --> FD : vecteur source
+deactivate M
+
+FD -> M : mistral-embed(contraction)
+activate M
+M --> FD : vecteur contraction
+deactivate M
+
+FD -> FD : cosine_similarity(vecteurs)\n→ score_semantique
+
+FD -> M : few-shot prompt CoT\n(source, contraction, exemples)
+activate M
+M --> FD : score_fond_brut (0-3)\ncontresens, subjectivite\nfeedback, raisonnement
+deactivate M
+
+FD -> FD : calibrer(score_semantique,\nscore_llm)
+FD --> PL : dict score_fond (/3)
+deactivate FD
+
+PL -> PL : appliquer_verrous()
+PL -> PL : calculer note_finale (/10 → /20)
+
+PL -> ME : enregistrer_exercice(score)\nou evaluer_cycle(score)
+activate ME
+ME --> PL : palier mis à jour + décision
+deactivate ME
+
+PL --> UI : dict resultat complet
+deactivate PL
+
+UI -> FS : sauvegarder_production(session_id,\njson)
+UI -> FS : ecrire_historique(json)
+UI -> A : redirect /resultats/<session_id>
+
+A -> UI : GET /resultats/<session_id>
+activate UI
+UI -> FS : lire_historique() + resultat.json
+FS --> UI : données
+UI -> A : template resultats.html\n(scores, feedback, palier)
+deactivate UI
+
+@enduml
