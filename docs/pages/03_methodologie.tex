@@ -719,3 +719,76 @@ L'adoption de Scrum a permis de :
 
 Bien que Scrum soit conçu pour une équipe pluridisciplinaire, son adaptation à un projet individuel a démontré sa flexibilité : les cérémonies ont été allégées (daily meeting remplacé par un journal de bord) mais les artefacts (backlog, sprint review, rétrospective) ont conservé leur rôle structurant.
 
+\section{Modélisation UML}
+
+Afin de formaliser l'architecture logicielle d'\AZIZA\ et de faciliter sa maintenance et son évolution, l'ensemble du système a été modélisé à l'aide du langage UML (Unified Modeling Language). Quatre diagrammes complémentaires couvrent respectivement les points de vue fonctionnel, structurel, dynamique et procédural.
+
+\subsection{Diagramme de cas d'utilisation}
+
+Le diagramme de cas d'utilisation (figure~\ref{fig:uml_use_case}) présente les interactions entre l'apprenant et le système \AZIZA. L'acteur principal est l'\textbf{Apprenant}, qui peut saisir un texte source, rédiger une contraction, soumettre son travail en mode exercice ou test, consulter ses résultats détaillés et son feedback personnalisé, et suivre sa progression. L'acteur secondaire \textbf{API Mistral} est sollicité en arrière-plan pour l'évaluation sémantique du fond et la génération du feedback.
+
+Les cas d'utilisation sont organisés autour du cas central \texttt{Soumettre une contraction} qui inclut obligatoirement l'évaluation de la forme, l'évaluation du fond, l'application des verrous pédagogiques et le calcul de la note finale. Le passage d'un test de niveau déclenche la mise à jour du palier de progression.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{use_case.png}
+\caption{Diagramme de cas d'utilisation du système AZIZA}
+\label{fig:uml_use_case}
+\end{figure}
+
+\subsection{Diagramme de classes}
+
+Le diagramme de classes (figure~\ref{fig:uml_classes}) décrit la structure statique du système en présentant les classes principales, leurs attributs, leurs méthodes et leurs relations. L'architecture suit le principe de séparation des responsabilités :
+
+\begin{itemize}
+    \item \textbf{ProfilApprenant} et \textbf{MachineEtats} : modélisent l'apprenant et sa progression adaptative à 3 paliers.
+    \item \textbf{Pipeline} : orchestrateur central qui délègue l'évaluation à \textbf{FormeEvaluator} et \textbf{FondEvaluator}, applique les \textbf{Verrou}s, et produit un \textbf{ResultatEvaluation}.
+    \item \textbf{SimilariteCalculator} : utilitaire partagé par les évaluateurs pour le calcul du LCS, de la similarité de Jaccard, du cosinus TF-IDF et de la fonction parabolique.
+    \item \textbf{EvaluationController} et \textbf{APIEvaluation} : points d'entrée de l'interface web et de l'API REST, qui utilisent le Pipeline et la Machine à états.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{class.png}
+\caption{Diagramme de classes du système AZIZA}
+\label{fig:uml_classes}
+\end{figure}
+
+\subsection{Diagramme de séquence}
+
+Le diagramme de séquence (figure~\ref{fig:uml_sequence}) détaille le flot d'interactions temporelles entre les composants lors d'une soumission d'exercice. Le scénario complet se déroule en quatre phases :
+
+\begin{enumerate}
+    \item \textbf{Soumission} : l'apprenant envoie sa contraction via l'interface Flask ; le profil est chargé et le Pipeline est invoqué.
+    \item \textbf{Évaluation de la forme} : le \texttt{FormeEvaluator} calcule le LCS et les métriques de similarité, analyse la syntaxe et les connecteurs, puis vérifie l'orthographe via LanguageTool.
+    \item \textbf{Évaluation du fond} : le \texttt{FondEvaluator} interroge l'API Mistral pour obtenir les embeddings (similarité cosinus) puis soumet un prompt Few-Shot avec chaîne de pensée pour le score sémantique, la détection de contresens et la génération du feedback.
+    \item \textbf{Post-traitement} : la Machine à états met à jour la progression, les résultats sont persistés sur le disque et la page de résultats est affichée à l'apprenant.
+\end{enumerate}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{sequence_evaluation.png}
+\caption{Diagramme de séquence — évaluation d'une contraction}
+\label{fig:uml_sequence}
+\end{figure}
+
+\subsection{Diagramme d'activité}
+
+Le diagramme d'activité (figure~\ref{fig:uml_activity}) modélise le flux complet du pipeline d'évaluation, depuis l'arrivée de l'apprenant sur la plateforme jusqu'à l'affichage des résultats. Il met en évidence :
+
+\begin{itemize}
+    \item Les \textbf{points de décision} : choix du mode (exercice/test), vérification du cycle de test, détection de texte trop court, seuil de plagiat et de hors-sujet.
+    \item Les \textbf{verrous pédagogiques} : les transitions conditionnelles vers les verrous \texttt{TROP\_COURT}, \texttt{PLAGIAT} et \texttt{HORS-SUJET} qui court-circuitent l'évaluation.
+    \item Les \textbf{pistes parallèles} : évaluation de la forme et du fond dans des partitions distinctes.
+    \item La \textbf{mise à jour de la progression} : en mode test, le calcul de \(M_p\) et la décision de passage au palier supérieur.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.58\textwidth]{activity_evaluation.png}
+\caption{Diagramme d'activité — pipeline d'évaluation AZIZA}
+\label{fig:uml_activity}
+\end{figure}
+
+Ces quatre diagrammes UML fournissent une vue d'ensemble cohérente de l'architecture d'\AZIZA, couvrant les aspects fonctionnels (cas d'utilisation), structurels (classes), dynamiques (séquence) et procéduraux (activité). Ils constituent une documentation vivante du système, facilement actualisable grâce aux fichiers sources PlantUML (\texttt{*.puml}) maintenus dans le dépôt.
+
