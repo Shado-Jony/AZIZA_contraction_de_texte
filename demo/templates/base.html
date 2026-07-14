@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AZIZA — {% block title %}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="icon" href="{{ url_for('static', filename='figures/logo.png') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <nav class="nav-bar">
+    <div class="nav-inner">
+      <img src="{{ url_for('static', filename='figures/logo.png') }}" alt="AZIZA" class="nav-logo">
+      <a href="{% block brand_href %}/{% endblock %}" class="nav-brand">AZIZA <span class="nav-version">v2.0</span></a>
+      <span class="header-desc">Évaluation intelligente de la contraction de texte</span>
+      <div class="nav-links">
+        <a href="/cours" class="nav-link{% if active_page == 'cours' %} active{% endif %}">Cours</a>
+        <a href="/rappel" class="nav-link{% if active_page == 'rappel' %} active{% endif %}">Rappel</a>
+        <a href="/exercices" class="nav-link{% if active_page == 'exercices' %} active{% endif %}">Exercices</a>
+        <a href="/soumission" class="nav-link{% if active_page == 'soumission' or active_page == 'resultats' %} active{% endif %}">Évaluation</a>
+        <a href="/progression" class="nav-link{% if active_page == 'progression' %} active{% endif %}">Progression</a>
+        <a href="/a-propos" class="nav-link{% if active_page == 'a-propos' %} active{% endif %}">À propos</a>
+      </div>
+      <div class="nav-right">
+        <button class="btn-theme" type="button" onclick="toggleTheme()" aria-label="Mode sombre/clair" id="themeBtn">☾</button>
+        <a href="/" class="nav-link nav-home">Accueil</a>
+        <button class="nav-toggle" type="button" onclick="toggleNav()" aria-label="Menu">☰</button>
+      </div>
+      {% block nav_extra %}{% endblock %}
+    </div>
+  </nav>
+
+  {% block content %}{% endblock %}
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-contact">
+        <span class="footer-contact-item"><i class="fa-solid fa-house"></i> <a href="/" style="color:inherit;text-decoration:none;">Accueil</a></span>
+        <span class="footer-contact-item"><i class="fa-solid fa-envelope"></i> <a href="mailto:Jiovanyadn11@gmail.com" style="color:inherit;text-decoration:none;">Jiovanyadn11@gmail.com</a></span>
+        <span class="footer-contact-item"><i class="fa-solid fa-phone"></i> 🇧🇯 +2290190642645 / +2290144732119</span>
+        <span class="footer-contact-item"><i class="fa-solid fa-location-dot"></i> Abomey-Calavi (Zogbadjè)</span>
+      </div>
+      <span class="footer-author">&copy; 2026 AZIZA Contraction de Texte — ADONON Jiovany</span>
+    </div>
+  </footer>
+
+  <div id="aziza-spinner">
+    <div class="az-spinner-box">
+      <div class="az-spinner-ring"><span>AZIZA</span></div>
+      <span class="az-spinner-msg" id="aziza-spinner-msg">Chargement...</span>
+    </div>
+  </div>
+
+  <script>
+    function toggleNav() {
+      document.querySelector('.nav-bar').classList.toggle('nav-open');
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-bar')) {
+        document.querySelector('.nav-bar')?.classList.remove('nav-open');
+      }
+    });
+    function showSpinner(msg) {
+      var s = document.getElementById('aziza-spinner');
+      if (msg) document.getElementById('aziza-spinner-msg').textContent = msg;
+      s.classList.add('show');
+    }
+    function hideSpinner() {
+      document.getElementById('aziza-spinner').classList.remove('show');
+    }
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('.btn, .btn-hero, button, input[type="submit"], input[type="button"]');
+      if (btn && !btn.hasAttribute('data-no-spinner') && btn.type !== 'button') showSpinner();
+    });
+    hideSpinner();
+    function toggleTheme() {
+      var html = document.documentElement;
+      var btn = document.getElementById('themeBtn');
+      if (html.getAttribute('data-theme') === 'dark') {
+        html.removeAttribute('data-theme');
+        localStorage.setItem('aziza_theme', 'light');
+        if (btn) btn.textContent = '\u263E';
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        localStorage.setItem('aziza_theme', 'dark');
+        if (btn) btn.textContent = '\u2600';
+      }
+    }
+    (function() {
+      var saved = localStorage.getItem('aziza_theme');
+      var btn = document.getElementById('themeBtn');
+      if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        if (btn) btn.textContent = '\u2600';
+      }
+    })();
+  </script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

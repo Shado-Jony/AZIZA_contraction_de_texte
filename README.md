@@ -249,6 +249,13 @@ La page `/progression` affiche (via Chart.js) :
 - **Radar des compétences** : Lexical, Syntaxe, Orthographe, Sémantique, Connecteurs
 
 ---
+---
+
+## Captures d'écran
+
+| Page d'évaluation | Page de résultats |
+|---|---|
+| ![Page d'évaluation](docs/plateforme/page_evaluation.png) | ![Page de résultats](docs/plateforme/page_resultats.png) |
 
 ---
 

@@ -804,9 +804,31 @@ select.input { cursor: pointer; appearance: auto; }
   color: rgba(255,255,255,.7);
 }
 .footer-links { display: flex; gap: 1.25rem; }
-.footer-contact { display: flex; flex-direction: column; gap: .35rem; align-items: center; }
-.footer-contact-item { color: rgba(255,255,255,.6); font-size: .85rem; }
-.footer-contact-item .fa-solid { margin-right: .4rem; font-size: .75rem; opacity: .7; }
+.footer-contact {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  align-items: center;
+  padding: .75rem 1.5rem;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  margin-bottom: .25rem;
+}
+.footer-contact-item {
+  color: rgba(255,255,255,.8);
+  font-size: .85rem;
+  font-weight: 500;
+  transition: color .15s;
+}
+.footer-contact-item:hover { color: #fff; }
+.footer-contact-item .fa-solid {
+  margin-right: .5rem;
+  font-size: .8rem;
+  opacity: .8;
+  color: var(--primary-lt);
+}
 .footer-link {
   color: rgba(255,255,255,.5);
   font-weight: 500;
