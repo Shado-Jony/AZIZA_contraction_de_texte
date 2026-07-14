@@ -4,6 +4,8 @@
 \chapter{Tests et validation}
 \label{ch:tests}
 
+Ce chapitre présente la stratégie de validation d'\AZIZA, couvrant les tests unitaires et d'intégration (117 tests automatisés), les tests fonctionnels de la plateforme web, et le protocole de test sur contractions réelles d'élèves.
+
 \section{Tests unitaires et d'intégration}
 
 Le pipeline \AZIZA\ est couvert par \textbf{117 tests unitaires et d'intégration}, répartis comme suit :
@@ -30,20 +32,81 @@ Interface Flask & Routes, templates, session & 5 \\
 
 Les tests d'intégration nécessitant l'API Mistral réelle sont marqués et peuvent être exclus lors des exécutions rapides. L'ensemble des tests est automatisé via GitHub Actions (CI) à chaque push.
 
-\section{Tests de l'API REST}
+\section{Tests Fonctionnels de la plateforme}
+\label{sec:tests-fonctionnels}
 
-L'API REST a été testée sur les scénarios suivants :
+Cette section présente les tests fonctionnels de la plateforme \AZIZA{} à travers trois aspects : la page d'évaluation, l'appel à l'API REST et l'affichage des résultats.
 
+\subsection{Page d'évaluation}
+\label{subsec:page-evaluation}
+
+La page d'évaluation propose une interface utilisateur épurée permettant à l'apprenant de soumettre sa contraction. Elle se compose de deux zones de texte (texte source et contraction de l'apprenant), d'un sélecteur de mode (exercice/test) et d'un bouton de soumission. La figure~\ref{fig:page_evaluation} illustre cette interface.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{page_evaluation.png}
+\caption{Page d'évaluation de la plateforme AZIZA — formulaire de soumission}
+\label{fig:page_evaluation}
+\end{figure}
+
+Le formulaire intègre une validation côté client (HTML5) et une vérification côté serveur via Flask-WTF. En cas d'erreur de saisie (champ vide, texte trop court), un message d'alerte s'affiche sans rechargement de page grâce à une requête AJAX.
+
+\subsection{Test d'Appel à l'API}
+\label{subsec:test-api}
+
+L'API REST d'\AZIZA{} peut être testée indépendamment de l'interface web via un outil comme \texttt{curl} ou la documentation Swagger. L'appel suivant illustre une requête typique :
+
+\begin{lstlisting}[caption=Test de l'API avec curl,language=bash]
+curl -X POST https://Jiovany11.pythonanywhere.com/api/v1/evaluer \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: votre_cle_api" \
+  -d '{
+    "source": "Le texte source de reference...",
+    "texte": "La contraction de l'apprenant...",
+    "mode": "exercice"
+  }'
+\end{lstlisting}
+
+La réponse JSON renvoyée contient la structure suivante :
+
+\begin{lstlisting}[caption=Structure de la réponse JSON de l'API,language={}]
+{
+  "score_global": 6.5,
+  "score_forme": 4.5,
+  "score_fond": 2.0,
+  "verrous": {"forme": true, "fond": false, "total": true},
+  "feedback": {
+    "erreurs": ["Idee principale omise"],
+    "micro_cours": "Rappel : une contraction doit...",
+    "exemple": "Voici une contraction correcte..."
+  }
+}
+\end{lstlisting}
+
+L'API retourne un code HTTP 200 en cas de succès, 400 pour une requête mal formée, 401 pour une clé API invalide et 429 en cas de dépassement du rate limiting. La documentation interactive Swagger est accessible via \texttt{GET /apidocs/}.
+
+\subsection{Page des résultats}
+\label{subsec:page-resultats}
+
+Après soumission et traitement, la plateforme affiche une page de résultats synthétique et pédagogique. La figure~\ref{fig:page_resultats} présente cette interface.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{page_resultats.png}
+\caption{Page des résultats d'évaluation — scores et feedback pédagogique}
+\label{fig:page_resultats}
+\end{figure}
+
+Le tableau de bord des résultats se compose de trois zones :
 \begin{itemize}
-    \item \textbf{Healthcheck} : GET /api/v1/health renvoie {\tt \{status: ok\}}.
-    \item \textbf{Authentification} : requête sans clé → 401, clé invalide → 401, clé valide → 200.
-    \item \textbf{Validation des entrées} : JSON mal formé → 400, champs manquants → 400.
-    \item \textbf{Évaluation réussie} : requête valide → JSON complet avec tous les scores.
-    \item \textbf{Rate limiting} : dépassement de 60 req/min → 429.
-    \item \textbf{Méthode non autorisée} : GET sur /evaluer → 405.
+    \item \textbf{Scores} : la note de forme (/7), la note de fond (/3) et le score total (/10) sont affichés avec un code couleur (vert si réussi, rouge si échoué).
+    \item \textbf{Verrous pédagogiques} : chaque verrou (forme, fond, total) est représenté par une icône de validation ou d'échec, permettant à l'apprenant d'identifier rapidement ses axes d'amélioration.
+    \item \textbf{Feedback Mistral} : la réponse du LLM est parsée et affichée sous forme de cartes structurées listant les erreurs détectées, les micro-cours correspondants et un exemple de contraction correcte.
 \end{itemize}
 
-\section[Rapport de tests fonctionnels sur 10 contractions réelles]{\texorpdfstring{\\Rapport de tests fonctionnels sur 10 contractions réelles}{Rapport de tests fonctionnels}}
+L'ensemble de l'interface a été testé sur les deux terminaux décrits à la section~\ref{sec:ressources_materielles} (ordinateur portable et smartphone) afin de garantir une expérience utilisateur homogène quelle que soit la plateforme.
+
+\section{Rapport de tests fonctionnels sur 10 contractions réelles}
 
 \label{sec:tests_fonctionnels}
 
@@ -67,3 +130,7 @@ Ce rapport sera rédigé après la collecte des données expérimentales sur 10 
 \vspace{1cm}
 
 Les résultats viendront compléter les métriques de validation du Chapitre~\ref{ch:experiences} et fourniront une indication concrète de la performance d'\AZIZA\ dans des conditions réelles d'utilisation.
+
+\subsection*{Synthèse du chapitre}
+
+Ce chapitre a détaillé la validation d'\AZIZA\ à trois niveaux : les 117 tests unitaires et d'intégration automatisés via GitHub Actions garantissent la robustesse du code ; les tests fonctionnels de la plateforme (page d'évaluation, appel API, page de résultats) valident l'expérience utilisateur sur terminal fixe et mobile ; le protocole de test sur 10 contractions réelles, dont les résultats sont à venir, permettra de confirmer la performance du pipeline en conditions réelles d'utilisation pédagogique.

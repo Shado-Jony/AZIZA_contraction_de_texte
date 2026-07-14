@@ -1,196 +1,103 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AZIZA — Rappel méthodologique</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-</head>
-<body>
-  <nav class="nav-bar">
-    <div class="nav-inner">
-      <img src="{{ url_for('static', filename='figures/logo.png') }}" alt="AZIZA" class="nav-logo">
-      <a href="/" class="nav-brand">AZIZA <span class="nav-version">v2.0</span></a>
-      <span class="header-desc">Évaluation intelligente de la contraction de texte</span>
-      <div class="nav-links">
-        <a href="/cours" class="nav-link">Cours</a>
-        <a href="/rappel" class="nav-link active">Rappel</a>
-        <a href="/exercices" class="nav-link">Exercices</a>
-        <a href="/soumission" class="nav-link">Évaluation</a>
-        <a href="/progression" class="nav-link">Progression</a>
-        <a href="/a-propos" class="nav-link">À propos</a>
-      </div>
-      <div class="nav-right">
-        <button class="btn-theme" type="button" onclick="toggleTheme()" aria-label="Mode sombre/clair" id="themeBtn">☾</button>
-        <a href="/" class="nav-link nav-home">Accueil</a>
-        <button class="nav-toggle" type="button" onclick="toggleNav()" aria-label="Menu">☰</button>
-      </div>
+{% extends "base.html" %}
+{% set active_page = 'rappel' %}
+{% block title %}Rappel méthodologique{% endblock %}
+{% block content %}
+<main class="container">
+  <header class="page-header">
+    <h1>Rappel méthodologique</h1>
+    <p class="subtitle">Les règles essentielles de la contraction de texte en un coup d'œil.</p>
+    <a href="/fiche-methodo?print=1" class="btn btn-primary" style="margin-top:.75rem;display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;" target="_blank">Télécharger la fiche PDF</a>
+  </header>
+
+  <div class="rappel-cards">
+    <div class="rappel-card">
+      <div class="rappel-icon">—</div>
+      <h3>Longueur imposée</h3>
+      <p>La contraction doit être au <strong>quart</strong> du texte original, avec une marge de <strong>10 %</strong> strictement respectée.</p>
     </div>
-  </nav>
-
-  <main class="container">
-    <header class="page-header">
-      <h1>Rappel méthodologique</h1>
-      <p class="subtitle">Les règles essentielles de la contraction de texte en un coup d'œil.</p>
-      <a href="/fiche-methodo?print=1" class="btn btn-primary" style="margin-top:.75rem;display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;" target="_blank">Télécharger la fiche PDF</a>
-    </header>
-
-    <div class="rappel-cards">
-      <div class="rappel-card">
-        <div class="rappel-icon">—</div>
-        <h3>Longueur imposée</h3>
-        <p>La contraction doit être au <strong>quart</strong> du texte original, avec une marge de <strong>10 %</strong> strictement respectée.</p>
-      </div>
-      <div class="rappel-card">
-        <div class="rappel-icon">—</div>
-        <h3>Fidélité au texte</h3>
-        <p>Conservez <strong>les idées essentielles</strong> et la logique de l'auteur. N'ajoutez <strong>aucune idée personnelle</strong> ni commentaire.</p>
-      </div>
-      <div class="rappel-card">
-        <div class="rappel-icon">—</div>
-        <h3>Neutralité du ton</h3>
-        <p>Adoptez un ton <strong>neutre et objectif</strong>. Reformulez avec vos propres mots sans copier des phrases entières.</p>
-      </div>
-      <div class="rappel-card">
-        <div class="rappel-icon">—</div>
-        <h3>Cohérence</h3>
-        <p>Utilisez des <strong>connecteurs logiques</strong> pour assurer la fluidité et la progression du texte contracté.</p>
-      </div>
-      <div class="rappel-card">
-        <div class="rappel-icon">—</div>
-        <h3>Reformulation</h3>
-        <p>Réécrivez <strong>avec vos propres mots</strong>. Évitez les citations ou la copie de segments entiers du texte source.</p>
-      </div>
-      <div class="rappel-card">
-        <div class="rappel-icon">—</div>
-        <h3>Vérification</h3>
-        <p>Comptez les mots, relisez pour vérifier la fidélité, et corrigez les fautes de langue et de syntaxe.</p>
-      </div>
+    <div class="rappel-card">
+      <div class="rappel-icon">—</div>
+      <h3>Fidélité au texte</h3>
+      <p>Conservez <strong>les idées essentielles</strong> et la logique de l'auteur. N'ajoutez <strong>aucune idée personnelle</strong> ni commentaire.</p>
     </div>
-
-    <section class="card grille-section">
-      <h2>Grille d'évaluation</h2>
-      <p class="grille-intro">La notation AZIZA repose sur deux axes complémentaires :</p>
-      <div class="grille-axes">
-        <div class="grille-axe">
-          <div class="axe-header" style="border-color: var(--primary);">
-            <span class="axe-titre">Forme</span>
-            <span class="axe-score">/7</span>
-          </div>
-          <ul class="axe-criteres">
-            <li><strong>Lexical</strong> — Richesse et précision du vocabulaire <span class="critere-max">/3</span></li>
-            <li><strong>Syntaxe</strong> — Structure des phrases et correction grammaticale <span class="critere-max">/2</span></li>
-            <li><strong>Orthographe</strong> — Maîtrise orthographique et typographique <span class="critere-max">/2</span></li>
-          </ul>
-        </div>
-        <div class="grille-axe">
-          <div class="axe-header" style="border-color: var(--info);">
-            <span class="axe-titre">Fond</span>
-            <span class="axe-score">/3</span>
-          </div>
-          <ul class="axe-criteres">
-            <li><strong>Fidélité au texte source</strong> — Présence des idées essentielles</li>
-            <li><strong>Respect du quota</strong> — Longueur conforme au quart du texte</li>
-            <li><strong>Cohérence logique</strong> — Articulation fluide des idées</li>
-          </ul>
-        </div>
-      </div>
-      <div class="grille-verrous">
-        <p><strong>Verrous :</strong> Plagiat → note 0/10. Hors-sujet → note bloquée à 5/10 maximum.</p>
-      </div>
-      <div class="grille-total">
-        <span class="total-label">Note finale</span>
-        <span class="total-valeur">Forme (/7) + Fond (/3) = <strong>/10</strong></span>
-      </div>
-    </section>
-
-    <section class="card orientation-section">
-      <h2>Orientation</h2>
-      <p>La contraction de texte est bien plus qu'un simple exercice scolaire. Elle joue un rôle clé dans plusieurs contextes :</p>
-      <div class="ori-grid">
-        <div class="ori-item">
-          <span class="ori-icon">◆</span>
-          <h3>Préparation au Baccalauréat</h3>
-          <p>La contraction de texte est une épreuve courante au bac, notamment dans les séries littéraires. Elle évalue votre capacité à <strong>synthétiser, reformuler et respecter des contraintes</strong> — des compétences essentielles pour l'examen.</p>
-        </div>
-        <div class="ori-item">
-          <span class="ori-icon">■</span>
-          <h3>Études supérieures</h3>
-          <p>Dans le supérieur, les capacités de synthèse sont indispensables pour : lire et comprendre des articles scientifiques, rédiger des fiches de lecture, préparer des exposés et mémoires, ou encore analyser des documents complexes.</p>
-        </div>
-        <div class="ori-item">
-          <span class="ori-icon">▸</span>
-          <h3>Vie professionnelle</h3>
-          <p>Savoir contracter un texte est utile dans de nombreux métiers : <strong>rédaction de rapports, synthèses de réunions, communication écrite</strong>, gestion de l'information. C'est une compétence transversale très recherchée.</p>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div class="footer-inner">
-      <div class="footer-contact">
-        <span class="footer-contact-item"><i class="fa-solid fa-house"></i> <a href="/" style="color:inherit;text-decoration:none;">Accueil</a></span>
-        <span class="footer-contact-item"><i class="fa-solid fa-envelope"></i> Jiovanyadn11@gmail.com</span>
-        <span class="footer-contact-item"><i class="fa-solid fa-phone"></i> 🇧🇯 +2290190642645 / +2290144732119</span>
-        <span class="footer-contact-item"><i class="fa-solid fa-location-dot"></i> Abomey-Calavi (Zogbadjè)</span>
-      </div>
-      <span class="footer-author">&copy; 2026 AZIZA Contraction de Texte — ADONON Jiovany</span>
+    <div class="rappel-card">
+      <div class="rappel-icon">—</div>
+      <h3>Neutralité du ton</h3>
+      <p>Adoptez un ton <strong>neutre et objectif</strong>. Reformulez avec vos propres mots sans copier des phrases entières.</p>
     </div>
-  </footer>
-
-  <div id="aziza-spinner">
-    <div class="az-spinner-box">
-      <div class="az-spinner-ring"><span>AZIZA</span></div>
-      <span class="az-spinner-msg" id="aziza-spinner-msg">Chargement...</span>
+    <div class="rappel-card">
+      <div class="rappel-icon">—</div>
+      <h3>Cohérence</h3>
+      <p>Utilisez des <strong>connecteurs logiques</strong> pour assurer la fluidité et la progression du texte contracté.</p>
+    </div>
+    <div class="rappel-card">
+      <div class="rappel-icon">—</div>
+      <h3>Reformulation</h3>
+      <p>Réécrivez <strong>avec vos propres mots</strong>. Évitez les citations ou la copie de segments entiers du texte source.</p>
+    </div>
+    <div class="rappel-card">
+      <div class="rappel-icon">—</div>
+      <h3>Vérification</h3>
+      <p>Comptez les mots, relisez pour vérifier la fidélité, et corrigez les fautes de langue et de syntaxe.</p>
     </div>
   </div>
-  <script>
-    function toggleNav() {
-      document.querySelector('.nav-bar').classList.toggle('nav-open');
-    }
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('.nav-bar')) {
-        document.querySelector('.nav-bar')?.classList.remove('nav-open');
-      }
-    });
-    function showSpinner(msg) {
-      var s = document.getElementById('aziza-spinner');
-      if (msg) document.getElementById('aziza-spinner-msg').textContent = msg;
-      s.classList.add('show');
-    }
-    function hideSpinner() {
-      document.getElementById('aziza-spinner').classList.remove('show');
-    }
-    document.addEventListener('click', function(e) {
-      var btn = e.target.closest('.btn, button, input[type="submit"], input[type="button"]');
-      if (btn && !btn.hasAttribute('data-no-spinner') && btn.type !== 'button') showSpinner();
-    });
-    hideSpinner();
-  </script>
-  <script>
-    function toggleTheme() {
-      var html = document.documentElement;
-      var btn = document.getElementById('themeBtn');
-      if (html.getAttribute('data-theme') === 'dark') {
-        html.removeAttribute('data-theme');
-        localStorage.setItem('aziza_theme', 'light');
-        if (btn) btn.textContent = '\u263E';
-      } else {
-        html.setAttribute('data-theme', 'dark');
-        localStorage.setItem('aziza_theme', 'dark');
-        if (btn) btn.textContent = '\u2600';
-      }
-    }
-    (function() {
-      var saved = localStorage.getItem('aziza_theme');
-      var btn = document.getElementById('themeBtn');
-      if (saved === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        if (btn) btn.textContent = '\u2600';
-      }
-    })();
-  </script>
-</body>
-</html>
+
+  <section class="card grille-section">
+    <h2>Grille d'évaluation</h2>
+    <p class="grille-intro">La notation AZIZA repose sur deux axes complémentaires :</p>
+    <div class="grille-axes">
+      <div class="grille-axe">
+        <div class="axe-header" style="border-color: var(--primary);">
+          <span class="axe-titre">Forme</span>
+          <span class="axe-score">/7</span>
+        </div>
+        <ul class="axe-criteres">
+          <li><strong>Lexical</strong> — Richesse et précision du vocabulaire <span class="critere-max">/3</span></li>
+          <li><strong>Syntaxe</strong> — Structure des phrases et correction grammaticale <span class="critere-max">/2</span></li>
+          <li><strong>Orthographe</strong> — Maîtrise orthographique et typographique <span class="critere-max">/2</span></li>
+        </ul>
+      </div>
+      <div class="grille-axe">
+        <div class="axe-header" style="border-color: var(--info);">
+          <span class="axe-titre">Fond</span>
+          <span class="axe-score">/3</span>
+        </div>
+        <ul class="axe-criteres">
+          <li><strong>Fidélité au texte source</strong> — Présence des idées essentielles</li>
+          <li><strong>Respect du quota</strong> — Longueur conforme au quart du texte</li>
+          <li><strong>Cohérence logique</strong> — Articulation fluide des idées</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grille-verrous">
+      <p><strong>Verrous :</strong> Plagiat → note 0/10. Hors-sujet → note bloquée à 5/10 maximum.</p>
+    </div>
+    <div class="grille-total">
+      <span class="total-label">Note finale</span>
+      <span class="total-valeur">Forme (/7) + Fond (/3) = <strong>/10</strong></span>
+    </div>
+  </section>
+
+  <section class="card orientation-section">
+    <h2>Orientation</h2>
+    <p>La contraction de texte est bien plus qu'un simple exercice scolaire. Elle joue un rôle clé dans plusieurs contextes :</p>
+    <div class="ori-grid">
+      <div class="ori-item">
+        <span class="ori-icon">◆</span>
+        <h3>Préparation au Baccalauréat</h3>
+        <p>La contraction de texte est une épreuve courante au bac, notamment dans les séries littéraires. Elle évalue votre capacité à <strong>synthétiser, reformuler et respecter des contraintes</strong> — des compétences essentielles pour l'examen.</p>
+      </div>
+      <div class="ori-item">
+        <span class="ori-icon">■</span>
+        <h3>Études supérieures</h3>
+        <p>Dans le supérieur, les capacités de synthèse sont indispensables pour : lire et comprendre des articles scientifiques, rédiger des fiches de lecture, préparer des exposés et mémoires, ou encore analyser des documents complexes.</p>
+      </div>
+      <div class="ori-item">
+        <span class="ori-icon">▸</span>
+        <h3>Vie professionnelle</h3>
+        <p>Savoir contracter un texte est utile dans de nombreux métiers : <strong>rédaction de rapports, synthèses de réunions, communication écrite</strong>, gestion de l'information. C'est une compétence transversale très recherchée.</p>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}

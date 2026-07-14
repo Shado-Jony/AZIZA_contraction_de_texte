@@ -1,404 +1,204 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AZIZA — Résultats</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-</head>
-<body>
-  <nav class="nav-bar">
-    <div class="nav-inner">
-      <img src="{{ url_for('static', filename='figures/logo.png') }}" alt="AZIZA" class="nav-logo">
-      <a href="/soumission" class="nav-brand">AZIZA <span class="nav-version">v2.0</span></a>
-      <span class="header-desc">Évaluation intelligente de la contraction de texte</span>
-      <div class="nav-links">
-        <a href="/cours" class="nav-link">Cours</a>
-        <a href="/rappel" class="nav-link">Rappel</a>
-        <a href="/exercices" class="nav-link">Exercices</a>
-        <a href="/soumission" class="nav-link">Évaluation</a>
-        <a href="/progression" class="nav-link">Progression</a>
-        <a href="/a-propos" class="nav-link">À propos</a>
-      </div>
-      <div class="nav-right">
-        <button class="btn-theme" type="button" onclick="toggleTheme()" aria-label="Mode sombre/clair" id="themeBtn">☾</button>
-        <a href="/" class="nav-link nav-home">Accueil</a>
-        <button class="nav-toggle" type="button" onclick="toggleNav()" aria-label="Menu">☰</button>
-      </div>
-      <div class="nav-profil">
-        {% if profil %}
-        <span class="badge-palier badge-{{ r.palier_actuel }}">
-          {{ palier_label }}
-        </span>
-        <span class="nav-nom">{{ profil.nom }}</span>
-        {% endif %}
-      </div>
-    </div>
-  </nav>
-
-  <main class="container">
-    <header class="page-header">
-      <h1>Résultats de l'évaluation</h1>
-      <p class="subtitle">Session #{{ r.session_id }} &middot; {{ r.timestamp[:19]|replace('T', ' ') }}</p>
-    </header>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
+{% extends "base.html" %}
+{% set active_page = 'resultats' %}
+{% block title %}Résultats{% endblock %}
+{% block brand_href %}/soumission{% endblock %}
+{% block nav_extra %}
+<div class="nav-profil">
+  {% if profil %}
+  <span class="badge-palier badge-{{ r.palier_actuel }}">
+    {{ palier_label }}
+  </span>
+  <span class="nav-nom">{{ profil.nom }}</span>
+  {% endif %}
+</div>
+{% endblock %}
+{% block content %}
+<main class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    {% for category, msg in messages %}
-    <div class="flash flash-{{ category }}">{{ msg }}</div>
-    {% endfor %}
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
     {% endif %}
-    {% endwith %}
+  {% endwith %}
 
-    <div class="result-grid">
-      <section class="card card-score-global">
-        <h2>Score global</h2>
-        <div class="score-ring">
-          <svg viewBox="0 0 120 120" class="ring-svg">
-            <circle cx="60" cy="60" r="52" class="ring-bg"/>
-            <circle cx="60" cy="60" r="52" class="ring-fg"
-                    stroke-dasharray="326.7"
-                    stroke-dashoffset="{{ 326.7 - (326.7 * r.score_global_20 / 20) }}"
-                    stroke="{{ '#2ecc71' if r.score_global_20 >= 14 else '#f39c12' if r.score_global_20 >= 10 else '#e74c3c' }}"/>
-          </svg>
-          <div class="ring-text">
-            <span class="ring-score">{{ '%.2f'|format(r.score_global_20) }}</span>
-            <span class="ring-max">/ 20</span>
-          </div>
-        </div>
-        <div class="score-pct">{{ r.score_global_pct }} %</div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="width:{{ r.score_global_pct }}%;background:{{ '#2ecc71' if r.score_global_20 >= 14 else '#f39c12' if r.score_global_20 >= 10 else '#e74c3c' }}"></div>
-        </div>
-        <div class="score-merite">
-          {% set s = r.score_global_20 %}
-          {% set merite = 'Très mal' if s <= 2 else 'Mal' if s <= 6 else 'Médiocre' if s <= 8 else 'Passable' if s == 10 else 'Assez bien' if s == 12 else 'Bien' if s <= 16 else 'Très bien' if s == 18 else 'Parfait' %}
-          <span class="merite-label">{{ merite }}</span>
-        </div>
-      </section>
-
-      {% if r.est_test %}
-      <div class="card card-verrou verrou-hors-sujet" style="border-left-color:var(--primary);">
-        <div class="verrou-icon">🔬</div>
-        <div class="verrou-content">
-          <h3 style="color:var(--primary);">Test de niveau — Cycle terminé</h3>
-          <p><strong>Moyenne Pondérée (Mₚ) : {{ '%.1f'|format(r.mp) }}%</strong></p>
-          {% if r.cycle_decision == "progression" %}
-          <p style="color:var(--success);font-weight:600;">{{ r.cycle_message }}</p>
-          {% elif r.cycle_decision == "statu_quo" %}
-          <p style="color:var(--warning);font-weight:600;">{{ r.cycle_message }}</p>
-          {% else %}
-          <p style="color:var(--danger);font-weight:600;">{{ r.cycle_message }}</p>
-          {% endif %}
-        </div>
-      </div>
-      {% endif %}
-
-      {% if r.verrou_plagiat %}
-      <div class="card card-verrou verrou-plagiat">
-        <div class="verrou-icon">!</div>
-        <div class="verrou-content">
-          <h3>Plagiat détecté</h3>
-          <p>Le taux de similarité textuelle (LCS = {{ '%.3f'|format(r.score_lcs) }}) dépasse le seuil autorisé. La note est automatiquement fixée à <strong>0/20</strong>.</p>
-        </div>
-      </div>
-      {% endif %}
-
-      {% if r.verrou_trop_court %}
-      <div class="card card-verrou verrou-plagiat">
-        <div class="verrou-icon">!</div>
-        <div class="verrou-content">
-          <h3>Texte trop court</h3>
-          <p>La contraction ({{ r.nb_mots }} mots) est insuffisante pour une évaluation. La note est automatiquement fixée à <strong>0/20</strong>.</p>
-        </div>
-      </div>
-      {% endif %}
-
-      {% if r.verrou_hors_sujet %}
-      <div class="card card-verrou verrou-hors-sujet">
-        <div class="verrou-icon">!</div>
-        <div class="verrou-content">
-          <h3>Hors-sujet</h3>
-          <p>La similarité sémantique ({{ '%.3f'|format(r.score_semantique) }}) est inférieure au seuil minimal (0.85). Le fond est fixé à <strong>0/3</strong> et la forme subit une pénalité de <strong>-1pt</strong>.</p>
-        </div>
-      </div>
-      {% endif %}
-
-      <section class="card card-resultat">
-        <h2>Forme <span class="sous-score">{{ r.score_forme }}/7</span></h2>
-        <div class="sous-scores">
-          <div class="ss-item">
-            <span class="ss-label">Lexical</span>
-            <span class="ss-valeur {% if r.score_lexical < 1.5 %}ss-faible{% elif r.score_lexical < 2.5 %}ss-moyen{% else %}ss-bon{% endif %}">{{ r.score_lexical }}/3</span>
-          </div>
-          <div class="ss-item">
-            <span class="ss-label">Syntaxe</span>
-            <span class="ss-valeur {% if r.score_syntaxe < 0.8 %}ss-faible{% elif r.score_syntaxe < 1.5 %}ss-moyen{% else %}ss-bon{% endif %}">{{ r.score_syntaxe }}/2</span>
-          </div>
-          <div class="ss-item">
-            <span class="ss-label">Orthographe</span>
-            <span class="ss-valeur {% if r.score_orthographe < 0.8 %}ss-faible{% elif r.score_orthographe < 1.5 %}ss-moyen{% else %}ss-bon{% endif %}">{{ r.score_orthographe }}/2</span>
-          </div>
-        </div>
-        <div class="metriques">
-          <div class="metrique">
-            <div class="metrique-label">
-              <span>Mots</span>
-              <span class="metrique-valeur">{{ r.nb_mots }} <small>/ {{ r.quota_cible }}</small></span>
-            </div>
-            <div class="metrique-badge zone-{{ r.zone_quota }}">
-              {{ '%.1f'|format(r.ecart_pct) }}%
-            </div>
-          </div>
-          <div class="metrique">
-            <div class="metrique-label">
-              <span>Plagiat (LCS)</span>
-              <span class="metrique-valeur">{{ '%.3f'|format(r.score_lcs) }}</span>
-            </div>
-            <div class="metrique-badge label-{{ r.label_plagiat }}">
-              {{ {'original':'Original','similaire':'Similaire','plagiat':'Plagiat'}.get(r.label_plagiat, r.label_plagiat) }}
-            </div>
-          </div>
-          <div class="metrique">
-            <div class="metrique-label">
-              <span>Connecteurs</span>
-              <span class="metrique-valeur">{{ r.connecteurs_total }} <small>({{ r.connecteurs_cat }} cat.)</small></span>
-            </div>
-          </div>
-          <div class="metrique">
-            <div class="metrique-label">
-              <span>Fautes</span>
-              <span class="metrique-valeur">{{ r.nb_fautes }}</span>
-            </div>
-          </div>
-          {% if r.fautes_details and r.fautes_details|length > 0 %}
-          <div class="fautes-details">
-            {% for faute in r.fautes_details %}
-            <div class="faute-item">
-              <span class="faute-msg">{{ faute.message }}</span>
-              {% if faute.contexte %}
-              <code class="faute-ctx">{{ faute.contexte }}</code>
-              {% endif %}
-              {% if faute.suggestion %}
-              <span class="faute-sugg">→ {{ faute.suggestion }}</span>
-              {% endif %}
-            </div>
-            {% endfor %}
-          </div>
-          {% endif %}
-        </div>
-      </section>
-
-      <section class="card card-resultat">
-        <h2>Fond <span class="sous-score">{{ r.score_fond }}/3</span></h2>
-        <div class="sous-scores">
-          <div class="ss-item">
-            <span class="ss-label">Similarité sémantique</span>
-            <span class="ss-valeur {% if r.score_semantique < 0.85 %}ss-faible{% elif r.score_semantique < 0.93 %}ss-moyen{% else %}ss-bon{% endif %}">{{ '%.3f'|format(r.score_semantique) }}</span>
-          </div>
-        </div>
-        {% if r.contresens %}
-        <div class="alert alert-danger">
-          <strong>⛔ Contresens détecté</strong>
-        </div>
-        {% endif %}
-        {% if r.subjectivite_detectee %}
-        <div class="alert alert-warning">
-          <strong>⚠ Subjectivité détectée</strong>
-          {% if r.phrase_subjective %}
-          <p class="alert-detail">« {{ r.phrase_subjective }} »</p>
-          {% endif %}
-          <p class="alert-detail">La contraction de texte doit rester neutre : aucune opinion personnelle n'est autorisée.</p>
-        </div>
-        {% endif %}
-        {% if r.idees_manquantes and r.idees_manquantes|length > 0 %}
-        <div class="alert alert-warning">
-          <strong>⚠ Idées manquantes :</strong>
-          <ul>
-            {% for idee in r.idees_manquantes %}
-            <li>{{ idee }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-        {% endif %}
-        {% if r.score_fond == 0 and not has_api_key %}
-        <div class="alert alert-info">
-          <strong>ℹ Évaluation du fond indisponible.</strong><br>
-          Configurez la variable d'environnement <code>MISTRAL_API_KEY</code> pour activer l'évaluation LLM du fond.
-        </div>
-        {% endif %}
-        {% if r.score_fond > 0 or has_api_key %}
-        <div class="feedback-box feedback-fond">
-          <div class="fb-section">
-            <strong>Diagnostic :</strong> {{ r.feedback_erreur }}
-          </div>
-          {% if r.feedback_mc %}
-          <div class="fb-section">
-            <strong>Micro-cours :</strong> {{ r.feedback_mc }}
-          </div>
-          {% endif %}
-          {% if r.feedback_exemple %}
-          <div class="fb-section fb-exemple">
-            <strong>Exemple :</strong> {{ r.feedback_exemple }}
-          </div>
-          {% endif %}
-          {% if r.raisonnement %}
-          <div class="fb-section">
-            <strong>Raisonnement :</strong> {{ r.raisonnement }}
-          </div>
-          {% endif %}
-        </div>
-        {% endif %}
-      </section>
-
-      <section class="card card-palier">
-        <h2>Palier actuel
-          <span class="sous-score" style="font-size:.75rem;font-weight:400;">
-            {{ r.exercices_cycle }}/3 ex.
-          </span>
-        </h2>
-        <div class="palier-display">
-          <span class="badge-palier badge-{{ r.palier_actuel }} badge-lg">{{ palier_label }}</span>
-        </div>
-        {% if r.mp is defined and r.mp > 0 %}
-        <div class="mp-display">
-          <span class="mp-label">Moyenne Pondérée (Mₚ)</span>
-          <span class="mp-valeur">{{ '%.1f'|format(r.mp) }}%</span>
-        </div>
-        {% endif %}
-        {% if r.palier_suivant %}
-        <div class="next-palier">
-          Prochain palier : <strong>{{ {'decouverte':'Découverte','consolidation':'Consolidation','maitrise':'Maîtrise'}.get(r.palier_suivant, r.palier_suivant) }}</strong>
-        </div>
-        {% endif %}
-      </section>
+  <div style="text-align:center;margin-bottom:2rem;">
+    <div class="score-ring" id="scoreRing">
+      <svg viewBox="0 0 120 120" style="width:140px;height:140px;">
+        <circle cx="60" cy="60" r="52" fill="none" stroke="#e0e0e0" stroke-width="10"/>
+        <circle id="scoreCircle" cx="60" cy="60" r="52" fill="none" stroke="{{ '#4CAF50' if r.score_global_20 >= 14 else '#FF9800' if r.score_global_20 >= 10 else '#F44336' }}" stroke-width="10" stroke-dasharray="326.7" stroke-dashoffset="326.7" stroke-linecap="round" transform="rotate(-90,60,60)"/>
+        <text x="60" y="50" text-anchor="middle" font-size="28" font-weight="800" fill="var(--text)">{{ "%.1f"|format(r.score_global_20) }}</text>
+        <text x="60" y="72" text-anchor="middle" font-size="12" fill="var(--gray-500)">/ 20</text>
+      </svg>
     </div>
+    <p style="margin-top:.25rem;font-size:.85rem;color:var(--gray-500);">Note finale — {{ r.palier_actuel|capitalize if r.palier_actuel else '—' }}</p>
+  </div>
 
-    <div class="modele-section">
-      <button type="button" class="btn btn-secondary" id="btn-modele-resultat" onclick="genererModeleResultat()" data-no-spinner>
-Voir un bon résumé
-      </button>
-
-      <div id="modele-resultat" class="modele-card" style="display:none;margin-top:1rem;">
-        <div class="modele-header">
-          <span class="modele-badge">Modèle 10/10</span>
-          <span class="modele-ref" id="modele-ref-resultat"></span>
-          <button type="button" class="btn-ghost" onclick="fermerModeleResultat()" title="Fermer">✕</button>
-        </div>
-        <div class="modele-texte" id="modele-texte-resultat"></div>
-      </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+    <div class="card">
+      <h2>Forme <span style="font-weight:400;font-size:.85rem;color:var(--gray-500);">/7</span></h2>
+      <div class="sub-score"><span>Lexical</span><span class="sub-val">{{ "%.2f"|format(r.score_lexical) }} / 3</span></div>
+      <div class="sub-score"><span>Syntaxe</span><span class="sub-val">{{ "%.2f"|format(r.score_syntaxe) }} / 2</span></div>
+      <div class="sub-score"><span>Orthographe</span><span class="sub-val">{{ "%.2f"|format(r.score_orthographe) }} / 2</span></div>
+      <div class="sub-score sub-total"><span>Total</span><span class="sub-val">{{ "%.2f"|format(r.score_forme) }} / 7</span></div>
     </div>
-
-    <div class="actions">
-      <a href="/soumission" class="btn btn-primary">Nouvelle évaluation</a>
-      <a href="/progression" class="btn btn-secondary">Voir la progression</a>
-      <a href="/pdf/{{ r.session_id }}" class="btn btn-secondary">🖨 Fiche note (PDF)</a>
-    </div>
-  </main>
-
-  <footer class="footer">
-    <div class="footer-inner">
-      <div class="footer-contact">
-        <span class="footer-contact-item"><i class="fa-solid fa-house"></i> <a href="/" style="color:inherit;text-decoration:none;">Accueil</a></span>
-        <span class="footer-contact-item"><i class="fa-solid fa-envelope"></i> Jiovanyadn11@gmail.com</span>
-        <span class="footer-contact-item"><i class="fa-solid fa-phone"></i> 🇧🇯 +2290190642645 / +2290144732119</span>
-        <span class="footer-contact-item"><i class="fa-solid fa-location-dot"></i> Abomey-Calavi (Zogbadjè)</span>
-      </div>
-      <span class="footer-author">&copy; 2026 AZIZA Contraction de Texte — ADONON Jiovany</span>
-    </div>
-  </footer>
-  <div id="aziza-spinner">
-    <div class="az-spinner-box">
-      <div class="az-spinner-ring"><span>AZIZA</span></div>
-      <span class="az-spinner-msg" id="aziza-spinner-msg">Chargement...</span>
+    <div class="card">
+      <h2>Fond <span style="font-weight:400;font-size:.85rem;color:var(--gray-500);">/3</span></h2>
+      <div class="sub-score"><span>Score brut</span><span class="sub-val">{{ "%.2f"|format(r.score_fond_brut) }} / 3</span></div>
+      <div class="sub-score"><span>Score calibré</span><span class="sub-val">{{ "%.2f"|format(r.score_fond_calibre) }} / 3</span></div>
+      <div class="sub-score"><span>Similitude sémantique</span><span class="sub-val">{{ "%.0f"|format(r.score_semantique * 100) }}%</span></div>
+      {% if r.contresens_detecte %}<div class="sub-score" style="color:#D32F2F;"><span>⚠ Contresens détecté</span></div>{% endif %}
+      {% if r.subjectivite_detectee %}<div class="sub-score" style="color:#E65100;"><span>⚠ Subjectivité détectée</span></div>{% endif %}
+      <div class="sub-score sub-total"><span>Total</span><span class="sub-val">{{ "%.2f"|format(r.score_fond) }} / 3</span></div>
     </div>
   </div>
-  <script>
-    function toggleNav() {
-      document.querySelector('.nav-bar').classList.toggle('nav-open');
-    }
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('.nav-bar')) {
-        document.querySelector('.nav-bar')?.classList.remove('nav-open');
-      }
-    });
 
-    function showSpinner(msg) {
-      var s = document.getElementById('aziza-spinner');
-      if (msg) document.getElementById('aziza-spinner-msg').textContent = msg;
-      s.classList.add('show');
-    }
-    function hideSpinner() {
-      document.getElementById('aziza-spinner').classList.remove('show');
-    }
-    document.addEventListener('click', function(e) {
-      var btn = e.target.closest('.btn, button, input[type="submit"], input[type="button"]');
-      if (btn && !btn.hasAttribute('data-no-spinner') && btn.type !== 'button') showSpinner();
-    });
-    hideSpinner();
-    function genererModeleResultat() {
-      const src = {{ r.texte_source|tojson|safe }};
-      if (!src) { alert('Texte source non disponible.'); return; }
+  {% if r.verrou_plagiat %}
+  <div class="card" style="margin-top:1.5rem;border-color:#D32F2F;background:#FFEBEE;">
+    <h2 style="color:#D32F2F;">🔒 Verrou plagiat</h2>
+    <p>La contraction est trop proche du texte source. La note est de 0.</p>
+  </div>
+  {% endif %}
+  {% if r.verrou_hors_sujet %}
+  <div class="card" style="margin-top:1.5rem;border-color:#E65100;background:#FFF3E0;">
+    <h2 style="color:#E65100;">🔒 Verrou hors-sujet</h2>
+    <p>La contraction s'éloigne trop du texte source. La note de fond est à 0.</p>
+  </div>
+  {% endif %}
+  {% if r.verrou_trop_court %}
+  <div class="card" style="margin-top:1.5rem;border-color:#D32F2F;background:#FFEBEE;">
+    <h2 style="color:#D32F2F;">🔒 Verrou trop court</h2>
+    <p>La contraction est trop courte pour être évaluée.</p>
+  </div>
+  {% endif %}
 
-      const btn = document.getElementById('btn-modele-resultat');
-      const display = document.getElementById('modele-resultat');
-      btn.disabled = true;
-      showSpinner('Génération du résumé modèle...');
-      display.style.display = 'none';
+  <div class="card" style="margin-top:1.5rem;">
+    <h2>Diagnostic</h2>
+    <p style="margin-top:.5rem;line-height:1.7;">{{ r.feedback_erreur or 'Aucune erreur majeure détectée.' }}</p>
+  </div>
 
-      fetch('/api/v1/generer-modele', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({texte_source: src}),
-      })
-      .then(r => r.json())
-      .then(data => {
-        hideSpinner();
-        btn.disabled = false;
-        if (data.succes) {
-          document.getElementById('modele-ref-resultat').textContent = data.nb_mots + ' mots (quota: ' + data.quota + ')';
-          document.getElementById('modele-texte-resultat').textContent = data.texte;
-          display.style.display = 'block';
-          btn.textContent = 'Masquer le modèle';
-        } else {
-          alert('Erreur : ' + (data.erreur || 'Generation echouee'));
-        }
-      })
-      .catch(err => {
-        hideSpinner();
-        btn.disabled = false;
-        alert('Erreur : ' + err.message);
-      });
-    }
-    function fermerModeleResultat() {
-      document.getElementById('modele-resultat').style.display = 'none';
-      document.getElementById('btn-modele-resultat').textContent = 'Voir un bon résumé';
-      document.getElementById('btn-modele-resultat').disabled = false;
-    }
-  </script>
-  <script>
-    function toggleTheme() {
-      var html = document.documentElement;
-      var btn = document.getElementById('themeBtn');
-      if (html.getAttribute('data-theme') === 'dark') {
-        html.removeAttribute('data-theme');
-        localStorage.setItem('aziza_theme', 'light');
-        if (btn) btn.textContent = '\u263E';
+  {% if r.feedback_micro_cours %}
+  <div class="card" style="margin-top:1.5rem;">
+    <h2>Micro-cours</h2>
+    <p style="margin-top:.5rem;line-height:1.7;">{{ r.feedback_micro_cours }}</p>
+  </div>
+  {% endif %}
+
+  {% if r.feedback_exemple %}
+  <div class="card" style="margin-top:1.5rem;">
+    <h2>Exemple d'amélioration</h2>
+    <p style="margin-top:.5rem;line-height:1.7;font-style:italic;">{{ r.feedback_exemple }}</p>
+  </div>
+  {% endif %}
+
+  {% if r.raisonnement and has_api_key %}
+  <div class="card" style="margin-top:1.5rem;">
+    <h2>Raisonnement du LLM</h2>
+    <p style="margin-top:.5rem;line-height:1.7;font-size:.85rem;color:var(--gray-500);">{{ r.raisonnement }}</p>
+  </div>
+  {% endif %}
+
+  {% if r.idees_manquantes and r.idees_manquantes|length > 0 %}
+  <div class="card" style="margin-top:1.5rem;">
+    <h2>Idées manquantes</h2>
+    <ul style="margin-top:.5rem;padding-left:1.25rem;line-height:1.9;">
+      {% for idee in r.idees_manquantes %}
+      <li>{{ idee }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if r.est_test %}
+  <div class="card" style="margin-top:1.5rem;border-color:var(--primary);">
+    <h2>Résultat du test de niveau</h2>
+    <p style="margin-top:.5rem;line-height:1.7;">Moyenne pondérée : <strong>{{ "%.1f"|format(r.mp) }}%</strong></p>
+    <p style="line-height:1.7;">Décision : <strong>{{ r.cycle_decision }}</strong></p>
+    {% if r.cycle_message %}
+    <p style="margin-top:.5rem;line-height:1.7;">{{ r.cycle_message }}</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div style="display:flex;gap:1rem;margin-top:1.5rem;flex-wrap:wrap;">
+    <a href="/soumission" class="btn btn-primary">Nouvelle évaluation</a>
+    <a href="/progression" class="btn btn-secondary">Voir progression</a>
+    <a href="/pdf/{{ r.session_id }}" class="btn btn-secondary" target="_blank">Fiche note (PDF)</a>
+    {% if has_api_key and r.texte_source %}
+    <button type="button" class="btn btn-secondary" onclick="genererModeleResultat()" id="btn-modele-resultat" data-no-spinner>Voir un bon résumé</button>
+    {% endif %}
+  </div>
+
+  {% if has_api_key and r.texte_source %}
+  <div id="modele-resultat" class="card" style="display:none;margin-top:1.5rem;position:relative;">
+    <button type="button" onclick="fermerModeleResultat()" style="position:absolute;top:.75rem;right:.75rem;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--gray-500);" data-no-spinner>×</button>
+    <h2>Modèle de contraction</h2>
+    <p style="margin-top:.5rem;font-size:.8rem;color:var(--gray-500);">Modèle généré — <span id="modele-ref-resultat">...</span></p>
+    <div id="modele-texte-resultat" style="margin-top:.75rem;line-height:1.7;font-size:.9rem;white-space:pre-wrap;"></div>
+  </div>
+  {% endif %}
+
+  <style>
+    .score-ring { display:inline-block; }
+    .sub-score { display:flex; justify-content:space-between; padding:.4rem 0; border-bottom:1px solid var(--border); font-size:.85rem; }
+    .sub-val { font-weight:600; }
+    .sub-total { border-bottom:none; padding-top:.6rem; font-weight:700; font-size:.95rem; }
+    .flash { padding:.6rem 1rem; border-radius:8px; margin-bottom:1rem; font-size:.85rem; }
+    .flash-error { background:#FFEBEE; color:#C62828; border:1px solid #FFCDD2; }
+    .badge-palier { display:inline-block; padding:.15rem .55rem; border-radius:99px; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.3px; }
+    .badge-decouverte { background:#FFF3E0; color:#E65100; }
+    .badge-consolidation { background:#E3F2FD; color:#1565C0; }
+    .badge-maitrise { background:#E8F5E9; color:#2E7D32; }
+    .nav-nom { color:rgba(255,255,255,.8); font-size:.8rem; font-weight:500; margin-left:.5rem; }
+    .nav-profil { display:flex; align-items:center; gap:.4rem; margin-left:auto; }
+  </style>
+</main>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+  (function() {
+    var circle = document.getElementById('scoreCircle');
+    var score = {{ r.score_global_20 }};
+    var max = 20;
+    var offset = 326.7 - (score / max) * 326.7;
+    circle.setAttribute('stroke-dashoffset', offset);
+  })();
+  function genererModeleResultat() {
+    const src = {{ r.texte_source|tojson|safe }};
+    if (!src) { alert('Texte source non disponible.'); return; }
+    const btn = document.getElementById('btn-modele-resultat');
+    const display = document.getElementById('modele-resultat');
+    btn.disabled = true;
+    showSpinner('Génération du résumé modèle...');
+    display.style.display = 'none';
+    fetch('/api/v1/generer-modele', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({texte_source: src}),
+    })
+    .then(r => r.json())
+    .then(data => {
+      hideSpinner();
+      btn.disabled = false;
+      if (data.succes) {
+        document.getElementById('modele-ref-resultat').textContent = data.nb_mots + ' mots (quota: ' + data.quota + ')';
+        document.getElementById('modele-texte-resultat').textContent = data.texte;
+        display.style.display = 'block';
+        btn.textContent = 'Masquer le modèle';
       } else {
-        html.setAttribute('data-theme', 'dark');
-        localStorage.setItem('aziza_theme', 'dark');
-        if (btn) btn.textContent = '\u2600';
+        alert('Erreur : ' + (data.erreur || 'Génération échouée'));
       }
-    }
-    (function() {
-      var saved = localStorage.getItem('aziza_theme');
-      var btn = document.getElementById('themeBtn');
-      if (saved === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        if (btn) btn.textContent = '\u2600';
-      }
-    })();
-  </script>
-</body>
-</html>
+    })
+    .catch(err => {
+      hideSpinner();
+      btn.disabled = false;
+      alert('Erreur : ' + err.message);
+    });
+  }
+  function fermerModeleResultat() {
+    document.getElementById('modele-resultat').style.display = 'none';
+    document.getElementById('btn-modele-resultat').textContent = 'Voir un bon résumé';
+    document.getElementById('btn-modele-resultat').disabled = false;
+  }
+</script>
+{% endblock %}

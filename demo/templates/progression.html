@@ -1,452 +1,203 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AZIZA — Progression</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-  <style>
-    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-    .chart-full { grid-column: 1 / -1; }
-    .chart-card .card { height: 100%; }
-    .chart-card canvas { max-height: 220px; max-width: 100%; }
-    @media (max-width: 800px) { .chart-grid { grid-template-columns: 1fr; } }
-  </style>
-</head>
-<body>
-  <nav class="nav-bar">
-    <div class="nav-inner">
-      <img src="{{ url_for('static', filename='figures/logo.png') }}" alt="AZIZA" class="nav-logo">
-      <a href="/soumission" class="nav-brand">AZIZA <span class="nav-version">v2.0</span></a>
-      <span class="header-desc">Évaluation intelligente de la contraction de texte</span>
-      <div class="nav-links">
-        <a href="/cours" class="nav-link">Cours</a>
-        <a href="/rappel" class="nav-link">Rappel</a>
-        <a href="/exercices" class="nav-link">Exercices</a>
-        <a href="/soumission" class="nav-link">Évaluation</a>
-        <a href="/progression" class="nav-link active">Progression</a>
-        <a href="/a-propos" class="nav-link">À propos</a>
-      </div>
-      <div class="nav-right">
-        <button class="btn-theme" type="button" onclick="toggleTheme()" aria-label="Mode sombre/clair" id="themeBtn">☾</button>
-        <a href="/" class="nav-link nav-home">Accueil</a>
-        <button class="nav-toggle" type="button" onclick="toggleNav()" aria-label="Menu">☰</button>
-      </div>
-      <div class="nav-profil">
-        {% if profil %}
-        <span class="badge-palier badge-{{ profil.palier_actuel }}">
-          {{ palier_labels.get(profil.palier_actuel, profil.palier_actuel) }}
-        </span>
-        <span class="nav-nom">{{ profil.nom }}</span>
-        <form method="POST" action="/reset" class="inline-form">
-          <button type="submit" class="btn-ghost" title="Réinitialiser"></button>
-        </form>
-        {% endif %}
-      </div>
-    </div>
-  </nav>
-
-  <main class="container">
-    <header class="page-header">
-      <h1>Progression</h1>
-      <p class="subtitle">Suivez l'évolution des performances dans le temps.</p>
-    </header>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
+{% extends "base.html" %}
+{% set active_page = 'progression' %}
+{% block title %}Progression{% endblock %}
+{% block brand_href %}/soumission{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+  .chart-full { grid-column: 1 / -1; }
+  .chart-card .card { height: 100%; }
+  .chart-card canvas { max-height: 220px; max-width: 100%; }
+  @media (max-width: 800px) { .chart-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+{% block nav_extra %}
+<div class="nav-profil">
+  {% if profil %}
+  <span class="badge-palier badge-{{ profil.palier_actuel }}">
+    {{ {'decouverte':'Découverte','consolidation':'Consolidation','maitrise':'Maîtrise'}.get(profil.palier_actuel, profil.palier_actuel) }}
+  </span>
+  <span class="nav-nom">{{ profil.nom }}</span>
+  {% endif %}
+</div>
+{% endblock %}
+{% block content %}
+<main class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    {% for category, msg in messages %}
-    <div class="flash flash-{{ category }}">{{ msg }}</div>
-    {% endfor %}
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
     {% endif %}
-    {% endwith %}
+  {% endwith %}
 
-    {% if historique|length > 0 %}
-    <div class="chart-grid">
-      <div class="chart-card chart-full">
-        <section class="card">
-          <h2>Évolution de la note globale /20</h2>
-          <canvas id="chartGlobal"></canvas>
-        </section>
-      </div>
-      <div class="chart-card">
-        <section class="card">
-          <h2>Forme /7</h2>
-          <canvas id="chartForme"></canvas>
-        </section>
-      </div>
-      <div class="chart-card">
-        <section class="card">
-          <h2>Fond /3</h2>
-          <canvas id="chartFond"></canvas>
-        </section>
-      </div>
+  <header class="page-header">
+    <h1>Progression</h1>
+    <p class="subtitle">Suivez votre évolution et visualisez vos résultats.</p>
+  </header>
+
+  <section class="card" style="margin-bottom:1.5rem;">
+    <h2>Palier actuel</h2>
+    <div style="margin-top:.75rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+      <span class="palier-badge palier-{{ profil.palier_actuel if profil.palier_actuel else 'decouverte' }}">
+        {{ {'decouverte':'Découverte','consolidation':'Consolidation','maitrise':'Maîtrise'}.get(profil.palier_actuel, profil.palier_actuel) }}
+      </span>
+      <span style="color:var(--gray-500);font-size:.85rem;">
+        {{ profil.nb_exercices }} exercices · {{ profil.nb_tests }} tests
+      </span>
     </div>
+  </section>
 
-    <div class="prog-grid">
-    {% else %}
-    <div class="prog-grid" style="grid-template-columns:1fr;">
-    {% endif %}
-
-      <section class="card card-stats">
-        <h2>Statistiques
-          {% if profil %}
-          <span class="sous-score" style="font-size:.75rem;font-weight:400;">
-            Cycle : {{ profil.exercices_cycle }}/3
-          </span>
-          {% endif %}
-        </h2>
-        <div class="stats-row">
-          <div class="stat-card">
-            <span class="stat-num">{{ stats.total }}</span>
-            <span class="stat-label">Évaluations</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-num">{{ stats.moyenne }}</span>
-            <span class="stat-label">Moyenne /20</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-num">{{ stats.meilleur }}</span>
-            <span class="stat-label">Meilleur /20</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="card card-palier-current">
-        <h2>Palier</h2>
-        {% set p_current = {'decouverte':0,'consolidation':1,'maitrise':2}.get(profil.palier_actuel, 0) %}
-        {% set cycle_progress = profil.exercices_cycle / 3 * 100 %}
-        {% set overall_pct = ((p_current / 2) * 100 + cycle_progress / 3)|round %}
-        <div class="palier-motivation">
-          <div class="palier-progress">
-            {% for pid, plabel in [('decouverte','Découverte'),('consolidation','Consolidation'),('maitrise','Maîtrise')] %}
-            <div class="palier-step {{ 'step-active' if pid == profil.palier_actuel else 'step-done' if loop.index0 < p_current else 'step-future' }}">
-              <div class="step-dot" style="background:{{ palier_couleurs[pid] }}"></div>
-              <span class="step-label">{{ plabel }}</span>
-            </div>
-            {% if not loop.last %}<div class="step-line {{ 'line-done' if loop.index0 < p_current else '' }}"></div>{% endif %}
-            {% endfor %}
-          </div>
-          <div class="cycle-bar">
-            <div class="cycle-bar-track">
-              <div class="cycle-bar-fill" style="width:{{ cycle_progress }}%;background:{{ palier_couleurs.get(profil.palier_actuel,'#3F51B5') }}"></div>
-            </div>
-            <span class="cycle-bar-label">{{ '%.0f'|format(cycle_progress) }}% du cycle</span>
-          </div>
-          <div class="palier-message">
-            {% if profil.palier_actuel == 'maitrise' %}
-            <span class="msg-icon">★</span> Maîtrise atteinte ! Continuez à vous entraîner pour rester au top.
-            {% elif cycle_progress == 0 %}
-            <span class="msg-icon">▸</span> Lancez-vous ! Chaque exercice vous rapproche de la maîtrise.
-            {% elif cycle_progress < 100 %}
-            <span class="msg-icon">▸</span> Plus que {{ 3 - profil.exercices_cycle }} exercice{% if 3 - profil.exercices_cycle > 1 %}s{% endif %} pour valider ce cycle. Vous y êtes presque !
-            {% else %}
-            <span class="msg-icon">★</span> Cycle terminé ! En attente d'évaluation pour passer au niveau suivant.
-            {% endif %}
-          </div>
-        </div>
-      </section>
-
-      {% if statut.historique_mp and statut.historique_mp|length > 0 %}
-      <section class="card card-historique" style="grid-column:1/-1;">
-        <h2>Cycles de progression</h2>
-        <div class="table-wrap">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Cycle</th>
-                <th>Mₚ (%)</th>
-                <th>Décision</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for mp in statut.historique_mp|reverse %}
-              <tr>
-                <td class="cell-id">#{{ loop.revindex }}</td>
-                <td>
-                  <span class="total-badge total-{{ 'ok' if mp >= 75 else 'mid' if mp >= 70 else 'low' }}">
-                    {{ '%.1f'|format(mp) }}%
-                  </span>
-                </td>
-                <td>
-                  {% if mp >= 75 %}
-                  <span style="color:var(--success);font-weight:600;">Progression</span>
-                  {% elif mp >= 70 %}
-                  <span style="color:var(--warning);font-weight:600;">Statu quo</span>
-                  {% else %}
-                  <span style="color:var(--danger);font-weight:600;">Consolidation</span>
-                  {% endif %}
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </section>
-      {% endif %}
-
-      {% if statut.historique_mp and statut.historique_mp|length > 0 %}
-      <section class="card card-mp">
-        <h2>Évolution de la Moyenne Pondérée (Mₚ)</h2>
-        <div class="mp-chart">
-          {% set max_mp = statut.historique_mp|max %}
-          {% set min_mp = statut.historique_mp|min %}
-          {% set range_mp = (max_mp - min_mp) if (max_mp - min_mp) > 0 else 1 %}
-          {% for mp in statut.historique_mp %}
-          <div class="mp-bar-wrapper">
-            <div class="mp-bar" style="height:{{ (mp - min_mp + 5) / (range_mp + 10) * 100 }}%;
-                                        background:{{ '#2ecc71' if mp >= 75 else '#f39c12' if mp >= 70 else '#e74c3c' }}"
-                 title="Mₚ = {{ '%.1f'|format(mp) }}%"></div>
-            <span class="mp-bar-label">{{ loop.index }}</span>
-          </div>
-          {% endfor %}
-        </div>
-        <div class="mp-legend">
-          <span class="mp-leg-seuil">Seuil progression : 75%</span>
-          <span class="mp-leg-seuil">Seuil consolidation : 70%</span>
-        </div>
-      </section>
-      {% endif %}
-
-      {% if historique|length > 0 %}
-      <section class="card card-compétences">
-        <h2>Profil de compétences (dernière évaluation)</h2>
-        <canvas id="chartRadar" style="max-height:260px;max-width:100%;"></canvas>
-      </section>
-      {% endif %}
-
-      <section class="card card-historique">
-        <h2>Historique des évaluations</h2>
-        {% if historique %}
-        <div class="table-wrap">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Date</th>
-                <th>Forme</th>
-                <th>Fond</th>
-                <th>Total</th>
-                <th>Plagiat</th>
-                <th>Zone</th>
-                <th>Contresens</th>
-                <th>Subj.</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for entry in historique|reverse %}
-              <tr>
-                <td class="cell-id">{{ loop.revindex }}</td>
-                <td class="cell-date">{{ entry.timestamp[:10] }}</td>
-                <td class="cell-score">{{ entry.score_forme }}/7</td>
-                <td class="cell-score">{{ entry.score_fond }}/3</td>
-                <td class="cell-total">
-                  {% set sg20 = entry.score_global_20 if entry.score_global_20 is defined else entry.score_global * 2 %}
-                  <span class="total-badge total-{{ 'ok' if sg20 >= 14 else 'mid' if sg20 >= 10 else 'low' }}">
-                    {{ '%.2f'|format(sg20) }}/20
-                  </span>
-                </td>
-                <td>
-                  {% if entry.label_plagiat is defined %}
-                  <span class="badge-sm label-{{ entry.label_plagiat }}">{{ entry.label_plagiat[:4] }}</span>
-                  {% elif entry.verrou_plagiat %}
-                  <span class="badge-sm label-plagiat">Pla</span>
-                  {% else %}
-                  <span class="badge-sm label-original">Orig</span>
-                  {% endif %}
-                </td>
-                <td>{{ entry.zone_quota if entry.zone_quota is defined else '—' }}</td>
-                <td>{{ '⚠' if entry.contresens else '—' }}</td>
-                <td>{{ '⚠' if entry.subjectivite_detectee else '—' }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% else %}
-        <div class="empty-state">
-          <p>Aucune évaluation pour le moment.</p>
-          <a href="/soumission" class="btn btn-primary">Faire une première évaluation</a>
-        </div>
-        {% endif %}
-      </section>
+  {% if historique_mp %}
+  <section class="card" style="margin-bottom:1.5rem;">
+    <h2>Évolution de la moyenne pondérée (Mp)</h2>
+    <div class="chart-card">
+      <canvas id="chartMp"></canvas>
     </div>
-
-    <div class="actions">
-      <a href="/soumission" class="btn btn-primary">Nouvelle évaluation</a>
-      <form method="POST" action="/reset" class="inline-form">
-        <button type="submit" class="btn btn-danger">Réinitialiser la progression</button>
-      </form>
-    </div>
-  </main>
-
-  <div id="aziza-spinner">
-    <div class="az-spinner-box">
-      <div class="az-spinner-ring"><span>AZIZA</span></div>
-      <span class="az-spinner-msg" id="aziza-spinner-msg">Chargement...</span>
-    </div>
-  </div>
-  <script>
-    function toggleNav() {
-      document.querySelector('.nav-bar').classList.toggle('nav-open');
-    }
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('.nav-bar')) {
-        document.querySelector('.nav-bar')?.classList.remove('nav-open');
-      }
-    });
-    function showSpinner(msg) {
-      var s = document.getElementById('aziza-spinner');
-      if (msg) document.getElementById('aziza-spinner-msg').textContent = msg;
-      s.classList.add('show');
-    }
-    function hideSpinner() {
-      document.getElementById('aziza-spinner').classList.remove('show');
-    }
-    document.addEventListener('click', function(e) {
-      var btn = e.target.closest('.btn, button, input[type="submit"], input[type="button"]');
-      if (btn && !btn.hasAttribute('data-no-spinner') && btn.type !== 'button') showSpinner();
-    });
-    hideSpinner();
-  </script>
-  {% if historique|length > 0 %}
-  <script>
-    const h = {{ historique_json|safe }};
-    const labels = h.map((e,i) => (i+1).toString());
-    const dates = h.map(e => e.timestamp ? e.timestamp.slice(0,10) : '');
-
-    function noteCouleur(v, max) {
-      const pct = v / max;
-      return pct >= 0.7 ? '#2ecc71' : pct >= 0.5 ? '#f39c12' : '#e74c3c';
-    }
-
-    function creerChart(id, data, label, max, color) {
-      const ctx = document.getElementById(id).getContext('2d');
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: label,
-            data: data,
-            borderColor: color,
-            backgroundColor: color + '22',
-            fill: true,
-            tension: 0.3,
-            pointBackgroundColor: data.map(v => noteCouleur(v, max)),
-            pointRadius: 4,
-            pointHoverRadius: 7,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: ctx => ctx.parsed.y + '/' + max
-              }
-            }
-          },
-          scales: {
-            x: {
-              title: { display: true, text: 'Évaluation #' },
-              ticks: { maxTicksLimit: 20 }
-            },
-            y: {
-              min: 0,
-              max: max,
-              title: { display: true, text: label }
-            }
-          }
-        }
-      });
-    }
-
-    const glob = h.map(e => (e.score_global_20 || e.score_global * 2));
-    const forme = h.map(e => e.score_forme);
-    const fond = h.map(e => e.score_fond);
-    creerChart('chartGlobal', glob, 'Note /20', 20, '#0a7e8c');
-    creerChart('chartForme', forme, 'Forme /7', 7, '#8e44ad');
-    creerChart('chartFond', fond, 'Fond /3', 3, '#e67e22');
-
-    const dernier = h[h.length - 1];
-    if (document.getElementById('chartRadar')) {
-      const ctx = document.getElementById('chartRadar').getContext('2d');
-      new Chart(ctx, {
-        type: 'radar',
-        data: {
-          labels: ['Lexical', 'Syntaxe', 'Orthographe', 'Sémantique', 'Connecteurs'],
-          datasets: [{
-            label: 'Dernière évaluation',
-            data: [
-              (dernier.score_lexical || 0) / 3 * 100,
-              (dernier.score_syntaxe || 0) / 2 * 100,
-              (dernier.score_orthographe || 0) / 2 * 100,
-              (dernier.score_semantique || 0) * 100,
-              Math.min(100, ((dernier.connecteurs_total || 0) / 5) * 100)
-            ],
-            backgroundColor: 'rgba(10,126,140,0.2)',
-            borderColor: '#0a7e8c',
-            pointBackgroundColor: '#0a7e8c',
-            pointRadius: 4,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          scales: {
-            r: {
-              min: 0,
-              max: 100,
-              ticks: { stepSize: 20, font: { size: 10 } },
-              pointLabels: { font: { size: 11 } }
-            }
-          },
-          plugins: {
-            legend: { display: false }
-          }
-        }
-      });
-    }
-  </script>
+  </section>
   {% endif %}
 
-  <footer class="footer">
-    <div class="footer-inner">
-      <div class="footer-contact">
-        <span class="footer-contact-item"><i class="fa-solid fa-house"></i> <a href="/" style="color:inherit;text-decoration:none;">Accueil</a></span>
-        <span class="footer-contact-item"><i class="fa-solid fa-envelope"></i> Jiovanyadn11@gmail.com</span>
-        <span class="footer-contact-item"><i class="fa-solid fa-phone"></i> 🇧🇯 +2290190642645 / +2290144732119</span>
-        <span class="footer-contact-item"><i class="fa-solid fa-location-dot"></i> Abomey-Calavi (Zogbadjè)</span>
-      </div>
-      <span class="footer-author">&copy; 2026 AZIZA Contraction de Texte — ADONON Jiovany</span>
+  {% if dernier %}
+  <section class="card" style="margin-bottom:1.5rem;">
+    <h2>Profil de compétences</h2>
+    <div class="chart-card">
+      <canvas id="chartRadar"></canvas>
     </div>
-  </footer>
-  <script>
-    function toggleTheme() {
-      var html = document.documentElement;
-      var btn = document.getElementById('themeBtn');
-      if (html.getAttribute('data-theme') === 'dark') {
-        html.removeAttribute('data-theme');
-        localStorage.setItem('aziza_theme', 'light');
-        if (btn) btn.textContent = '\u263E';
-      } else {
-        html.setAttribute('data-theme', 'dark');
-        localStorage.setItem('aziza_theme', 'dark');
-        if (btn) btn.textContent = '\u2600';
+  </section>
+  {% endif %}
+
+  <section class="card" style="margin-bottom:1.5rem;">
+    <h2>Historique des évaluations</h2>
+    {% if historique %}
+    <div style="overflow-x:auto;margin-top:.75rem;">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Mode</th>
+            <th>Note /20</th>
+            <th>Forme /7</th>
+            <th>Fond /3</th>
+            <th>Palier</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for h in historique %}
+          <tr>
+            <td style="white-space:nowrap;">{{ h.timestamp[:10] if h.timestamp else '—' }}</td>
+            <td>{{ 'Test' if h.get('est_test') else 'Exercice' }}</td>
+            <td><strong>{{ "%.1f"|format(h.score_global_20) }}</strong></td>
+            <td>{{ "%.2f"|format(h.score_forme) }}</td>
+            <td>{{ "%.2f"|format(h.score_fond) }}</td>
+            <td><span class="badge-palier badge-{{ h.palier_actuel }}">{{ h.palier_actuel|capitalize if h.palier_actuel else '—' }}</span></td>
+            <td><a href="/resultats/{{ h.session_id }}" class="btn btn-secondary" style="font-size:.75rem;padding:.25rem .6rem;">Détail</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p style="color:var(--gray-500);margin-top:.5rem;">Aucune évaluation pour le moment. <a href="/soumission">Soumettez votre première contraction.</a></p>
+    {% endif %}
+  </section>
+
+  <style>
+    .flash { padding:.6rem 1rem; border-radius:8px; margin-bottom:1rem; font-size:.85rem; }
+    .flash-error { background:#FFEBEE; color:#C62828; border:1px solid #FFCDD2; }
+    .table { width:100%; border-collapse:collapse; font-size:.8rem; }
+    .table th, .table td { padding:.5rem .6rem; text-align:left; border-bottom:1px solid var(--border); }
+    .table th { font-weight:600; color:var(--gray-500); }
+    .badge-palier { display:inline-block; padding:.15rem .55rem; border-radius:99px; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.3px; }
+    .badge-decouverte, .palier-decouverte { background:#FFF3E0; color:#E65100; }
+    .badge-consolidation, .palier-consolidation { background:#E3F2FD; color:#1565C0; }
+    .badge-maitrise, .palier-maitrise { background:#E8F5E9; color:#2E7D32; }
+    .palier-badge { display:inline-block; padding:.35rem 1rem; border-radius:99px; font-size:.9rem; font-weight:700; }
+    .nav-nom { color:rgba(255,255,255,.8); font-size:.8rem; font-weight:500; margin-left:.5rem; }
+    .nav-profil { display:flex; align-items:center; gap:.4rem; margin-left:auto; }
+  </style>
+</main>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+  {% if historique_mp %}
+  (function() {
+    var ctx = document.getElementById('chartMp').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [{% for mp in historique_mp %}'{{ loop.index }}'{% if not loop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+          label: 'Mp (%)',
+          data: [{% for mp in historique_mp %}{{ "%.1f"|format(mp) }}{% if not loop.last %},{% endif %}{% endfor %}],
+          borderColor: '#3F51B5',
+          backgroundColor: 'rgba(63,81,181,0.1)',
+          fill: true,
+          tension: 0.3,
+          pointBackgroundColor: '#3F51B5',
+          pointRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+          y: { min: 0, max: 100, ticks: { stepSize: 25, font: { size: 10 } } },
+          x: { ticks: { font: { size: 10 } } }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) { return 'Mp: ' + ctx.parsed.y + '%'; }
+            }
+          }
+        }
       }
-    }
-    (function() {
-      var saved = localStorage.getItem('aziza_theme');
-      var btn = document.getElementById('themeBtn');
-      if (saved === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        if (btn) btn.textContent = '\u2600';
+    });
+  })();
+  {% endif %}
+
+  {% if dernier %}
+  (function() {
+    var ctx = document.getElementById('chartRadar').getContext('2d');
+    new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ['Lexical', 'Syntaxe', 'Orthographe', 'Sémantique', 'Connecteurs'],
+        datasets: [{
+          label: 'Dernière évaluation',
+          data: [
+            ({{ dernier.score_lexical }} || 0) / 3 * 100,
+            ({{ dernier.score_syntaxe }} || 0) / 2 * 100,
+            ({{ dernier.score_orthographe }} || 0) / 2 * 100,
+            ({{ dernier.score_semantique }} || 0) * 100,
+            Math.min(100, (({{ dernier.connecteurs_total }} || 0) / 5) * 100)
+          ],
+          backgroundColor: 'rgba(10,126,140,0.2)',
+          borderColor: '#0a7e8c',
+          pointBackgroundColor: '#0a7e8c',
+          pointRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+          r: {
+            min: 0,
+            max: 100,
+            ticks: { stepSize: 20, font: { size: 10 } },
+            pointLabels: { font: { size: 11 } }
+          }
+        },
+        plugins: {
+          legend: { display: false }
+        }
       }
-    })();
-  </script>
-</body>
-</html>
+    });
+  })();
+  {% endif %}
+</script>
+{% endblock %}

@@ -1,526 +1,102 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AZIZA — Exercices</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-</head>
-<body>
-  <nav class="nav-bar">
-    <div class="nav-inner">
-      <img src="{{ url_for('static', filename='figures/logo.png') }}" alt="AZIZA" class="nav-logo">
-      <a href="/" class="nav-brand">AZIZA <span class="nav-version">v2.0</span></a>
-      <span class="header-desc">Évaluation intelligente de la contraction de texte</span>
-      <div class="nav-links">
-        <a href="/cours" class="nav-link">Cours</a>
-        <a href="/rappel" class="nav-link">Rappel</a>
-        <a href="/exercices" class="nav-link active">Exercices</a>
-        <a href="/soumission" class="nav-link">Évaluation</a>
-        <a href="/progression" class="nav-link">Progression</a>
-        <a href="/a-propos" class="nav-link">À propos</a>
-      </div>
-      <div class="nav-right">
-        <button class="btn-theme" type="button" onclick="toggleTheme()" aria-label="Mode sombre/clair" id="themeBtn">☾</button>
-        <a href="/" class="nav-link nav-home">Accueil</a>
-        <button class="nav-toggle" type="button" onclick="toggleNav()" aria-label="Menu">☰</button>
-      </div>
-    </div>
-  </nav>
+{% extends "base.html" %}
+{% set active_page = 'exercices' %}
+{% block title %}Exercices{% endblock %}
+{% block content %}
+<main class="container">
+  <header class="page-header">
+    <h1>Exercices</h1>
+    <p class="subtitle">Entraînez-vous avec des textes adaptés à votre niveau.</p>
+  </header>
 
-  <main class="container">
-    <header class="page-header">
-      <h1>Exercices</h1>
-      <p class="subtitle">Entraînez-vous avec des textes adaptés à votre niveau.</p>
-    </header>
+  <form method="POST" action="/demarrer" style="margin-bottom:1.5rem;">
+    <button type="submit" class="btn btn-primary">Nouvel exercice</button>
+  </form>
 
-    <div class="exo-progress-wrap">
-      <div class="exo-progress-bar">
-        <div class="exo-progress-fill" id="progFill"></div>
-      </div>
-      <span class="exo-progress-label" id="progLabel">0 / 10</span>
-      <span class="exo-progress-pct" id="progPct">0%</span>
-      <span class="exo-complete-badge">Tous faits !</span>
-    </div>
-
-    <div class="exo-intro">
-      <p>Faites ces exercices au brouillon, puis appuyez sur le bouton <strong>"Voir un bon résumé"</strong> pour afficher une correction générée par intelligence artificielle.</p>
-    </div>
-
-    <section class="card quiz-card" id="quizSection">
-      <h2>Quiz de vérification</h2>
-      <p class="quiz-intro">Testez vos connaissances avant de commencer les exercices.</p>
-
-      <div class="quiz-q" data-q="0">
-        <p class="quiz-question">1. Quelle doit être la longueur d'une contraction de texte ?</p>
-        <label class="quiz-opt"><input type="radio" name="q0" value="0"> La moitié du texte original</label>
-        <label class="quiz-opt"><input type="radio" name="q0" value="1"> Le quart du texte original</label>
-        <label class="quiz-opt"><input type="radio" name="q0" value="2"> Le double du texte original</label>
-      </div>
-      <div class="quiz-q" data-q="1">
-        <p class="quiz-question">2. Quel ton doit-on adopter dans une contraction ?</p>
-        <label class="quiz-opt"><input type="radio" name="q1" value="0"> Subjectif et critique</label>
-        <label class="quiz-opt"><input type="radio" name="q1" value="1"> Neutre et objectif</label>
-        <label class="quiz-opt"><input type="radio" name="q1" value="2"> Passionné et engagé</label>
-      </div>
-      <div class="quiz-q" data-q="2">
-        <p class="quiz-question">3. Que doit-on absolument éviter ?</p>
-        <label class="quiz-opt"><input type="radio" name="q2" value="0"> Les connecteurs logiques</label>
-        <label class="quiz-opt"><input type="radio" name="q2" value="1"> L'ajout d'idées personnelles</label>
-        <label class="quiz-opt"><input type="radio" name="q2" value="2"> La reformulation</label>
-      </div>
-      <div class="quiz-q" data-q="3">
-        <p class="quiz-question">4. Quelle est la différence entre contraction et résumé ?</p>
-        <label class="quiz-opt"><input type="radio" name="q3" value="0"> La contraction est plus stricte (longueur imposée, fidélité absolue)</label>
-        <label class="quiz-opt"><input type="radio" name="q3" value="1"> Le résumé est plus difficile</label>
-        <label class="quiz-opt"><input type="radio" name="q3" value="2"> Il n'y a pas de différence</label>
-      </div>
-      <div class="quiz-q" data-q="4">
-        <p class="quiz-question">5. Quel est le premier verbe de la méthode A-D ?</p>
-        <label class="quiz-opt"><input type="radio" name="q4" value="0"> Analyser</label>
-        <label class="quiz-opt"><input type="radio" name="q4" value="1"> Abréger</label>
-        <label class="quiz-opt"><input type="radio" name="q4" value="2"> Adapter</label>
-      </div>
-      <div class="quiz-q" data-q="5">
-        <p class="quiz-question">6. Que signifie le verbe "Dégraisser" dans la méthode A-D ?</p>
-        <label class="quiz-opt"><input type="radio" name="q5" value="0"> Supprimer les passages inutiles (exemples, répétitions)</label>
-        <label class="quiz-opt"><input type="radio" name="q5" value="1"> Ajouter des commentaires personnels</label>
-        <label class="quiz-opt"><input type="radio" name="q5" value="2"> Rallonger le texte</label>
-      </div>
-      <div class="quiz-q" data-q="6">
-        <p class="quiz-question">7. Quelle marge est tolérée par rapport au quart du texte original ?</p>
-        <label class="quiz-opt"><input type="radio" name="q6" value="0"> 5 %</label>
-        <label class="quiz-opt"><input type="radio" name="q6" value="1"> 10 %</label>
-        <label class="quiz-opt"><input type="radio" name="q6" value="2"> 20 %</label>
-      </div>
-      <div class="quiz-q" data-q="7">
-        <p class="quiz-question">8. Dans l'axe "Forme", sur combien de points est notée l'orthographe ?</p>
-        <label class="quiz-opt"><input type="radio" name="q7" value="0"> /1</label>
-        <label class="quiz-opt"><input type="radio" name="q7" value="1"> /2</label>
-        <label class="quiz-opt"><input type="radio" name="q7" value="2"> /3</label>
-      </div>
-      <div class="quiz-q" data-q="8">
-        <p class="quiz-question">9. Quel verrou entraîne une note de 0/10 ?</p>
-        <label class="quiz-opt"><input type="radio" name="q8" value="0"> Le hors-sujet</label>
-        <label class="quiz-opt"><input type="radio" name="q8" value="1"> Le plagiat</label>
-        <label class="quiz-opt"><input type="radio" name="q8" value="2"> Le dépassement du quota</label>
-      </div>
-      <div class="quiz-q" data-q="9">
-        <p class="quiz-question">10. Combien de paliers de progression comporte AZIZA ?</p>
-        <label class="quiz-opt"><input type="radio" name="q9" value="0"> 2</label>
-        <label class="quiz-opt"><input type="radio" name="q9" value="1"> 3</label>
-        <label class="quiz-opt"><input type="radio" name="q9" value="2"> 4</label>
-      </div>
-      <button class="btn btn-primary" onclick="corrigerQuiz()" id="quizBtn" data-no-spinner>Vérifier mes réponses</button>
-      <div id="quizResult" style="display:none" class="quiz-result"></div>
-    </section>
-
-    <section class="exo-niveau">
-      <h2 class="niveau-titre">Exercices courts <span class="niveau-badge">≈ 40 mots</span></h2>
-
-      <div class="exo-card" data-id="1">
-        <div class="exo-card-header">
-          <span class="exo-num">Exercice 1</span>
-          <span class="exo-consigne">Réduire à 10 mots</span>
-          <span class="exo-done-badge">✓</span>
-        </div>
-        <blockquote class="exo-source">La lecture quotidienne permet d'élargir le vocabulaire, d'améliorer la compréhension et de stimuler l'imagination. Elle constitue un outil essentiel pour l'apprentissage et le développement personnel.</blockquote>
-        <div class="exo-actions">
-          <button class="btn btn-secondary btn-sm" onclick="genererModele(this, 1)" data-no-spinner>Voir un bon résumé</button>
-
-        </div>
-        <div class="modele-card" style="display:none">
-          <div class="modele-header">
-            <span class="modele-badge">Bon résumé</span>
-            <span class="modele-ref"></span>
-            <button type="button" class="btn-ghost" onclick="fermerModele(this)" title="Fermer">✕</button>
-          </div>
-          <div class="modele-texte"></div>
-        </div>
-      </div>
-
-      <div class="exo-card" data-id="2">
-        <div class="exo-card-header">
-          <span class="exo-num">Exercice 2</span>
-          <span class="exo-consigne">Réduire à 10–12 mots</span>
-          <span class="exo-done-badge">✓</span>
-        </div>
-        <blockquote class="exo-source">Les réseaux sociaux facilitent la communication rapide, mais ils peuvent aussi propager des rumeurs et réduire la qualité des échanges humains.</blockquote>
-        <div class="exo-actions">
-          <button class="btn btn-secondary btn-sm" onclick="genererModele(this, 2)">Voir un bon résumé</button>
-
-        </div>
-        <div class="modele-card" style="display:none">
-          <div class="modele-header">
-            <span class="modele-badge">Bon résumé</span>
-            <span class="modele-ref"></span>
-            <button type="button" class="btn-ghost" onclick="fermerModele(this)" title="Fermer">✕</button>
-          </div>
-          <div class="modele-texte"></div>
-        </div>
-      </div>
-
-      <div class="exo-card" data-id="3">
-        <div class="exo-card-header">
-          <span class="exo-num">Exercice 3</span>
-          <span class="exo-consigne">Réduire à 10 mots</span>
-          <span class="exo-done-badge">✓</span>
-        </div>
-        <blockquote class="exo-source">L'eau est une ressource vitale pour la vie, mais sa mauvaise gestion entraîne pénuries, conflits et déséquilibres écologiques.</blockquote>
-        <div class="exo-actions">
-          <button class="btn btn-secondary btn-sm" onclick="genererModele(this, 3)">Voir un bon résumé</button>
-
-        </div>
-        <div class="modele-card" style="display:none">
-          <div class="modele-header">
-            <span class="modele-badge">Bon résumé</span>
-            <span class="modele-ref"></span>
-            <button type="button" class="btn-ghost" onclick="fermerModele(this)" title="Fermer">✕</button>
-          </div>
-          <div class="modele-texte"></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="exo-niveau">
-      <h2 class="niveau-titre"> Exercices intermédiaires <span class="niveau-badge">≈ 80 mots</span></h2>
-
-      <div class="exo-card" data-id="4">
-        <div class="exo-card-header">
-          <span class="exo-num">Exercice 4</span>
-          <span class="exo-consigne">Réduire à 20 mots</span>
-          <span class="exo-done-badge">✓</span>
-        </div>
-        <blockquote class="exo-source">Le sport est une activité qui développe le corps et l'esprit. Il favorise la discipline, l'esprit d'équipe et la persévérance. Cependant, la compétition excessive peut engendrer stress et comportements antisportifs.</blockquote>
-        <div class="exo-actions">
-          <button class="btn btn-secondary btn-sm" onclick="genererModele(this, 4)">Voir un bon résumé</button>
-
-        </div>
-        <div class="modele-card" style="display:none">
-          <div class="modele-header">
-            <span class="modele-badge">Bon résumé</span>
-            <span class="modele-ref"></span>
-            <button type="button" class="btn-ghost" onclick="fermerModele(this)" title="Fermer">✕</button>
-          </div>
-          <div class="modele-texte"></div>
-        </div>
-      </div>
-
-      <div class="exo-card" data-id="5">
-        <div class="exo-card-header">
-          <span class="exo-num">Exercice 5</span>
-          <span class="exo-consigne">Réduire à 20–25 mots</span>
-          <span class="exo-done-badge">✓</span>
-        </div>
-        <blockquote class="exo-source">Les progrès scientifiques ont permis de guérir des maladies autrefois mortelles. Les vaccins et les antibiotiques ont sauvé des millions de vies. Mais ces avancées posent des questions éthiques sur la manipulation du vivant.</blockquote>
-        <div class="exo-actions">
-          <button class="btn btn-secondary btn-sm" onclick="genererModele(this, 5)">Voir un bon résumé</button>
-
-        </div>
-        <div class="modele-card" style="display:none">
-          <div class="modele-header">
-            <span class="modele-badge">Bon résumé</span>
-            <span class="modele-ref"></span>
-            <button type="button" class="btn-ghost" onclick="fermerModele(this)" title="Fermer">✕</button>
-          </div>
-          <div class="modele-texte"></div>
-        </div>
-      </div>
-
-      <div class="exo-card" data-id="6">
-        <div class="exo-card-header">
-          <span class="exo-num">Exercice 6</span>
-          <span class="exo-consigne">Réduire à 20 mots</span>
-          <span class="exo-done-badge">✓</span>
-        </div>
-        <blockquote class="exo-source">L'éducation est la clé du développement d'une nation. Elle forme les citoyens, favorise l'innovation et réduit les inégalités. Pourtant, dans certains pays, l'accès à l'école reste limité, freinant la croissance sociale et économique.</blockquote>
-        <div class="exo-actions">
-          <button class="btn btn-secondary btn-sm" onclick="genererModele(this, 6)">Voir un bon résumé</button>
-
-        </div>
-        <div class="modele-card" style="display:none">
-          <div class="modele-header">
-            <span class="modele-badge">Bon résumé</span>
-            <span class="modele-ref"></span>
-            <button type="button" class="btn-ghost" onclick="fermerModele(this)" title="Fermer">✕</button>
-          </div>
-          <div class="modele-texte"></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="exo-niveau">
-      <h2 class="niveau-titre">Exercices avancés <span class="niveau-badge">≈ 120 mots</span></h2>
-
-      <div class="exo-card" data-id="7">
-        <div class="exo-card-header">
-          <span class="exo-num">Exercice 7</span>
-          <span class="exo-consigne">Réduire à 30 mots</span>
-          <span class="exo-done-badge">✓</span>
-        </div>
-        <blockquote class="exo-source">La mondialisation a transformé les échanges économiques et culturels. Les produits circulent plus vite, les idées se diffusent largement et les cultures se rencontrent. Cependant, elle entraîne aussi uniformisation, perte d'identité et dépendance économique. Les pays doivent trouver un équilibre entre ouverture et préservation de leurs spécificités.</blockquote>
-        <div class="exo-actions">
-          <button class="btn btn-secondary btn-sm" onclick="genererModele(this, 7)">Voir un bon résumé</button>
-
-        </div>
-        <div class="modele-card" style="display:none">
-          <div class="modele-header">
-            <span class="modele-badge">Bon résumé</span>
-            <span class="modele-ref"></span>
-            <button type="button" class="btn-ghost" onclick="fermerModele(this)" title="Fermer">✕</button>
-          </div>
-          <div class="modele-texte"></div>
-        </div>
-      </div>
-
-      <div class="exo-card" data-id="8">
-        <div class="exo-card-header">
-          <span class="exo-num">Exercice 8</span>
-          <span class="exo-consigne">Réduire à 30–35 mots</span>
-          <span class="exo-done-badge">✓</span>
-        </div>
-        <blockquote class="exo-source">L'intelligence artificielle révolutionne de nombreux domaines : santé, éducation, industrie. Elle permet des diagnostics rapides, une personnalisation des apprentissages et une automatisation des tâches. Mais elle suscite des inquiétudes : perte d'emplois, biais algorithmiques, dépendance technologique. La société doit encadrer son usage pour en tirer les bénéfices tout en limitant les risques.</blockquote>
-        <div class="exo-actions">
-          <button class="btn btn-secondary btn-sm" onclick="genererModele(this, 8)">Voir un bon résumé</button>
-
-        </div>
-        <div class="modele-card" style="display:none">
-          <div class="modele-header">
-            <span class="modele-badge">Bon résumé</span>
-            <span class="modele-ref"></span>
-            <button type="button" class="btn-ghost" onclick="fermerModele(this)" title="Fermer">✕</button>
-          </div>
-          <div class="modele-texte"></div>
-        </div>
-      </div>
-
-      <div class="exo-card" data-id="9">
-        <div class="exo-card-header">
-          <span class="exo-num">Exercice 9</span>
-          <span class="exo-consigne">Réduire à 30 mots</span>
-          <span class="exo-done-badge">✓</span>
-        </div>
-        <blockquote class="exo-source">La littérature joue un rôle fondamental dans la formation intellectuelle. Elle transmet des valeurs, développe l'esprit critique et nourrit l'imagination. Les grands auteurs offrent des réflexions intemporelles sur la condition humaine. Pourtant, à l'ère numérique, la lecture recule face aux écrans. Il est urgent de redonner goût aux livres pour préserver la richesse culturelle.</blockquote>
-        <div class="exo-actions">
-          <button class="btn btn-secondary btn-sm" onclick="genererModele(this, 9)">Voir un bon résumé</button>
-
-        </div>
-        <div class="modele-card" style="display:none">
-          <div class="modele-header">
-            <span class="modele-badge">Bon résumé</span>
-            <span class="modele-ref"></span>
-            <button type="button" class="btn-ghost" onclick="fermerModele(this)" title="Fermer">✕</button>
-          </div>
-          <div class="modele-texte"></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="exo-niveau">
-      <h2 class="niveau-titre">Exercice expert <span class="niveau-badge">≈ 150 mots</span></h2>
-
-      <div class="exo-card" data-id="10">
-        <div class="exo-card-header">
-          <span class="exo-num">Exercice 10</span>
-          <span class="exo-consigne">Réduire à 40–50 mots</span>
-          <span class="exo-done-badge">✓</span>
-        </div>
-        <blockquote class="exo-source">La science moderne a bouleversé notre rapport au monde. Les découvertes en physique, biologie et informatique ont permis des avancées spectaculaires : voyages spatiaux, médecine de pointe, communication instantanée. Ces progrès améliorent la vie quotidienne, mais ils posent aussi des défis majeurs. La pollution, le réchauffement climatique et les inégalités technologiques menacent l'équilibre planétaire. De plus, la recherche génétique et l'intelligence artificielle soulèvent des questions éthiques sur la manipulation du vivant et la place de l'homme face à la machine. La société doit apprendre à utiliser la science avec discernement, en conciliant innovation et responsabilité.</blockquote>
-        <div class="exo-actions">
-          <button class="btn btn-secondary btn-sm" onclick="genererModele(this, 10)">Voir un bon résumé</button>
-
-        </div>
-        <div class="modele-card" style="display:none">
-          <div class="modele-header">
-            <span class="modele-badge">Bon résumé</span>
-            <span class="modele-ref"></span>
-            <button type="button" class="btn-ghost" onclick="fermerModele(this)" title="Fermer">✕</button>
-          </div>
-          <div class="modele-texte"></div>
-        </div>
-      </div>
-    </section>
-
-    <div class="exo-fin">
-      <button class="btn btn-secondary" onclick="recommencerExercices()">Recommencer</button>
-      <a href="/soumission" class="btn btn-primary btn-lg">Terminer</a>
-    </div>
-  </main>
-
-  <footer class="footer">
-    <div class="footer-inner">
-      <div class="footer-contact">
-        <span class="footer-contact-item"><i class="fa-solid fa-house"></i> <a href="/" style="color:inherit;text-decoration:none;">Accueil</a></span>
-        <span class="footer-contact-item"><i class="fa-solid fa-envelope"></i> Jiovanyadn11@gmail.com</span>
-        <span class="footer-contact-item"><i class="fa-solid fa-phone"></i> 🇧🇯 +2290190642645 / +2290144732119</span>
-        <span class="footer-contact-item"><i class="fa-solid fa-location-dot"></i> Abomey-Calavi (Zogbadjè)</span>
-      </div>
-      <span class="footer-author">&copy; 2026 AZIZA Contraction de Texte — ADONON Jiovany</span>
-    </div>
-  </footer>
-
-  <div id="aziza-spinner">
-    <div class="az-spinner-box">
-      <div class="az-spinner-ring"><span>AZIZA</span></div>
-      <span class="az-spinner-msg" id="aziza-spinner-msg">Chargement...</span>
+  <div id="exercices-container">
+    <div class="card">
+      <p style="color:var(--gray-500);">Cliquez sur "Nouvel exercice" pour générer un exercice adapté à votre niveau actuel.</p>
     </div>
   </div>
-  <script>
-    function toggleNav() {
-      document.querySelector('.nav-bar').classList.toggle('nav-open');
-    }
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('.nav-bar')) {
-        document.querySelector('.nav-bar')?.classList.remove('nav-open');
-      }
-    });
 
-    var REPONSES = [1, 1, 1, 0, 0, 0, 1, 1, 1, 1];
+  <div class="card" style="margin-top:1.5rem;">
+    <h2>Quiz de préparation</h2>
+    <p style="margin-top:.5rem;">Testez vos connaissances sur la contraction de texte avant de commencer les exercices.</p>
+    <div id="quiz-container" style="margin-top:1rem;">
+      <div class="quiz-q">
+        <p><strong>1.</strong> Quelle est la longueur imposée d'une contraction de texte ?</p>
+        <label><input type="radio" name="q0" value="0"> Le tiers du texte original</label>
+        <label><input type="radio" name="q0" value="1"> Le quart du texte original</label>
+        <label><input type="radio" name="q0" value="2"> La moitié du texte original</label>
+      </div>
+      <div class="quiz-q">
+        <p><strong>2.</strong> Que signifie "être fidèle au texte source" ?</p>
+        <label><input type="radio" name="q1" value="0"> Recopier des phrases entières</label>
+        <label><input type="radio" name="q1" value="1"> Ajouter son opinion personnelle</label>
+        <label><input type="radio" name="q1" value="2"> Conserver les idées essentielles sans les déformer</label>
+      </div>
+      <div class="quiz-q">
+        <p><strong>3.</strong> Quel est le premier axe de notation de la grille AZIZA ?</p>
+        <label><input type="radio" name="q2" value="0"> La longueur du texte</label>
+        <label><input type="radio" name="q2" value="1"> La Forme (/7)</label>
+        <label><input type="radio" name="q2" value="2"> Le nombre de connecteurs</label>
+      </div>
+      <div class="quiz-q">
+        <p><strong>4.</strong> Que signifie "dégraisser" dans la méthode A-D ?</p>
+        <label><input type="radio" name="q3" value="0"> Ajouter des détails au texte</label>
+        <label><input type="radio" name="q3" value="1"> Supprimer les éléments superflus</label>
+        <label><input type="radio" name="q3" value="2"> Réécrire entièrement le texte</label>
+      </div>
+      <div class="quiz-q">
+        <p><strong>5.</strong> Quel verrou AZIZA annule la note si la contraction est trop proche du texte source ?</p>
+        <label><input type="radio" name="q4" value="0"> Verrou hors-sujet</label>
+        <label><input type="radio" name="q4" value="1"> Verrou plagiat</label>
+        <label><input type="radio" name="q4" value="2"> Verrou trop court</label>
+      </div>
+      <div style="margin-top:1rem;">
+        <button type="button" class="btn btn-primary" onclick="corrigerQuiz()" data-no-spinner>Corriger</button>
+      </div>
+      <div id="quizResult" class="quiz-result" style="display:none;margin-top:1rem;"></div>
+    </div>
+  </div>
 
-    function chargerProgression() {
-      var done = JSON.parse(localStorage.getItem('aziza_exos_done') || '[]');
-      var total = document.querySelectorAll('.exo-card').length;
-      document.querySelectorAll('.exo-card').forEach(function(card) {
-        var id = card.getAttribute('data-id');
-        if (done.indexOf(id) !== -1) {
-          card.classList.add('exo-done');
-        } else {
-          card.classList.remove('exo-done');
-        }
-      });
-      var count = done.length;
-      var pct = total > 0 ? (count / total) * 100 : 0;
-      var fill = document.getElementById('progFill');
-      fill.style.width = pct + '%';
-      fill.classList.toggle('exo-progress-complete', pct >= 100);
-      document.getElementById('progLabel').textContent = count + ' / ' + total;
-      document.getElementById('progPct').textContent = Math.round(pct) + '%';
-      document.querySelector('.exo-progress-wrap').classList.toggle('exo-all-done', pct >= 100);
-    }
-
-    function marquerFait(id) {
-      var done = JSON.parse(localStorage.getItem('aziza_exos_done') || '[]');
-      if (done.indexOf(String(id)) === -1) {
-        done.push(String(id));
-        localStorage.setItem('aziza_exos_done', JSON.stringify(done));
-      }
-      chargerProgression();
-    }
-
-    function recommencerExercices() {
-      if (confirm('Voulez-vous vraiment recommencer tous les exercices depuis le début ?')) {
-        localStorage.removeItem('aziza_exos_done');
-        document.querySelectorAll('.modele-card').forEach(function(m) { m.style.display = 'none'; });
-        chargerProgression();
-      }
-    }
-
-    function genererModele(btn, id) {
-      var card = btn.closest('.exo-card');
-      var texte = card.querySelector('.exo-source').textContent.trim();
-      var modeleCard = card.querySelector('.modele-card');
-      var modeleTexte = modeleCard.querySelector('.modele-texte');
-      var modeleRef = modeleCard.querySelector('.modele-ref');
-      btn.disabled = true;
-      showSpinner('Génération du résumé modèle...');
-      modeleCard.style.display = 'none';
-      fetch('/api/v1/generer-modele', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ texte_source: texte })
-      })
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        hideSpinner();
-        btn.disabled = false;
-        if (data.succes) {
-          modeleTexte.textContent = data.texte;
-          modeleRef.textContent = data.nb_mots + ' mots (quota: ' + data.quota + ')';
-          modeleCard.style.display = 'block';
-          marquerFait(id);
-        } else {
-          alert('Erreur : ' + (data.erreur || 'Génération échouée'));
-        }
-      })
-      .catch(function(err) {
-        hideSpinner();
-        btn.disabled = false;
-        alert('Erreur réseau : ' + err.message);
-      });
-    }
-
-    function fermerModele(btn) {
-      var card = btn.closest('.exo-card');
-      card.querySelector('.modele-card').style.display = 'none';
-    }
-
-    function corrigerQuiz() {
-      var ok = 0;
-      for (var i = 0; i < REPONSES.length; i++) {
-        var sel = document.querySelector('input[name="q' + i + '"]:checked');
-        var qDiv = document.querySelectorAll('.quiz-q')[i];
-        qDiv.classList.remove('quiz-juste', 'quiz-faux');
-        if (sel) {
-          if (parseInt(sel.value) === REPONSES[i]) {
-            ok++;
-            qDiv.classList.add('quiz-juste');
-          } else {
-            qDiv.classList.add('quiz-faux');
-          }
+  <div id="chargement-exos" style="display:none;text-align:center;padding:2rem;">
+    <p style="color:var(--gray-500);">Chargement des exercices...</p>
+  </div>
+</main>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+  var REPONSES = [1, 2, 1, 1, 1];
+  function chargerProgression() {
+    var stats = document.querySelector('.stat-badge');
+  }
+  function corrigerQuiz() {
+    var ok = 0;
+    for (var i = 0; i < REPONSES.length; i++) {
+      var sel = document.querySelector('input[name="q' + i + '"]:checked');
+      var qDiv = document.querySelectorAll('.quiz-q')[i];
+      qDiv.classList.remove('quiz-juste', 'quiz-faux');
+      if (sel) {
+        if (parseInt(sel.value) === REPONSES[i]) {
+          ok++;
+          qDiv.classList.add('quiz-juste');
         } else {
           qDiv.classList.add('quiz-faux');
         }
-      }
-      var result = document.getElementById('quizResult');
-      result.style.display = 'block';
-      result.className = 'quiz-result';
-      if (ok === REPONSES.length) {
-        result.classList.add('quiz-reussi');
-        result.innerHTML = 'Félicitations ! Vous avez toutes les bonnes réponses. Vous êtes prêt pour les exercices.';
       } else {
-        result.classList.add('quiz-echoue');
-        result.innerHTML = '❌ ' + ok + ' / ' + REPONSES.length + ' réponses correctes. Révisez le cours puis réessayez.';
+        qDiv.classList.add('quiz-faux');
       }
     }
-
-    function showSpinner(msg) {
-      var s = document.getElementById('aziza-spinner');
-      if (msg) document.getElementById('aziza-spinner-msg').textContent = msg;
-      s.classList.add('show');
+    var result = document.getElementById('quizResult');
+    result.style.display = 'block';
+    result.className = 'quiz-result';
+    if (ok === REPONSES.length) {
+      result.classList.add('quiz-reussi');
+      result.innerHTML = 'Félicitations ! Vous avez toutes les bonnes réponses. Vous êtes prêt pour les exercices.';
+    } else {
+      result.classList.add('quiz-echoue');
+      result.innerHTML = '❌ ' + ok + ' / ' + REPONSES.length + ' réponses correctes. Révisez le cours puis réessayez.';
     }
-    function hideSpinner() {
-      document.getElementById('aziza-spinner').classList.remove('show');
-    }
-    document.addEventListener('click', function(e) {
-      var btn = e.target.closest('.btn, button, input[type="submit"], input[type="button"]');
-      if (btn && !btn.hasAttribute('data-no-spinner') && btn.type !== 'button') showSpinner();
-    });
-    hideSpinner();
-    chargerProgression();
-  </script>
-  <script>
-    function toggleTheme() {
-      var html = document.documentElement;
-      var btn = document.getElementById('themeBtn');
-      if (html.getAttribute('data-theme') === 'dark') {
-        html.removeAttribute('data-theme');
-        localStorage.setItem('aziza_theme', 'light');
-        if (btn) btn.textContent = '\u263E';
-      } else {
-        html.setAttribute('data-theme', 'dark');
-        localStorage.setItem('aziza_theme', 'dark');
-        if (btn) btn.textContent = '\u2600';
-      }
-    }
-    (function() {
-      var saved = localStorage.getItem('aziza_theme');
-      var btn = document.getElementById('themeBtn');
-      if (saved === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        if (btn) btn.textContent = '\u2600';
-      }
-    })();
-  </script>
-</body>
-</html>
+  }
+</script>
+{% endblock %}

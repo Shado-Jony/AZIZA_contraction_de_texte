@@ -4,34 +4,40 @@
 \chapter{Implémentation}
 \label{ch:impl}
 
+Ce chapitre décrit l'implémentation concrète du pipeline \AZIZA, depuis l'architecture logicielle jusqu'au déploiement sur PythonAnywhere. Il détaille les modules de la couche déterministe (forme), de la couche sémantique (fond), l'API REST sécurisée, la documentation Swagger, et les choix techniques effectués pour chaque composant.
+
 \section{Architecture logicielle}
 
 Le code source d'\AZIZA est structuré en modules indépendants dans une arborescence claire :
 
-\begin{lstlisting}[caption=Structure du projet AZIZA]
+\begin{treebox}{Structure du projet AZIZA}
+{\footnotesize
+\begin{verbatim}
 AZIZA/
 ├── aziza/
 │   ├── __init__.py
 │   ├── pipeline/
-│   │   ├── complet.py       # Orchestrateur : fusion forme + fond + verrous
-│   │   ├── forme.py         # Evaluation de la forme (/7)
-│   │   ├── fond.py          # Evaluation du fond (/3) via Mistral
-│   │   ├── similarite.py    # Metriques lexicales (LCS, parabolique)
+│   │   ├── complet.py       # Orchestrateur (forme/fond/verrous)
+│   │   ├── forme.py         # Score de forme (/7)
+│   │   ├── fond.py          # Score de fond (/3) via Mistral
+│   │   ├── similarite.py    # Metriques lexicales (LCS)
 │   │   └── seuils_production.json
-│   └── machine_etats.py     # Machine a etats adaptative (3 paliers)
+│   └── machine_etats.py     # Machine a etats (3 paliers)
 ├── demo/
-│   ├── app.py               # Routes HTML + Swagger + rate limiting
+│   ├── app.py               # Routes HTML + Swagger
 │   ├── api.py               # API REST (/api/v1) + auth
 │   ├── static/style.css
 │   ├── templates/           # 4 templates Jinja2
 │   └── data/
 ├── docs/                    # Memoire LaTeX
-├── experiments/             # 7 notebooks Jupyter + figures
-├── tests.py                 # 117 tests unitaires + integration
+├── experiments/             # Notebooks Jupyter + figures
+├── tests.py                 # 117 tests unitaires
 ├── requirements.txt
 ├── .env.example
 └── README.md
-\end{lstlisting}
+\end{verbatim}
+}
+\end{treebox}
 
 \section{Implémentation du pipeline Forme}
 
@@ -97,6 +103,44 @@ Le \textbf{rate limiting} (60 requêtes/min) est implémenté via \texttt{flask-
 
 La documentation interactive est générée automatiquement par \texttt{flasgger} à partir des docstrings YAML des routes. Un correctif a été nécessaire : le paramètre \texttt{headers} doit être défini à \texttt{[]} dans la configuration Swagger pour éviter un \texttt{TypeError} (`NoneType` object is not iterable).
 
+\section{Intégration technique}
+
+L'intégration entre les différents composants d'\AZIZA{} suit une architecture en trois couches : le noyau métier (\texttt{aziza/}), l'API REST (\texttt{demo/api.py}) et l'interface web (\texttt{demo/app.py}). Cette section détaille les points d'intégration entre ces couches.
+
+\subsection{Backend et API}
+
+Le noyau métier (\texttt{aziza/pipeline/complet.py}) expose une fonction unique \texttt{executer\_pipeline(texte, source, mode)} qui orchestre les trois sous-pipelines (forme, fond, verrous). L'API REST (\texttt{demo/api.py}) encapsule cet appel dans la route \texttt{POST /api/v1/evaluer} :
+
+\begin{itemize}
+    \item La requête HTTP transporte le texte de l'apprenant, le texte source et le mode (exercice/test) au format JSON.
+    \item Le header \texttt{X-API-Key} est validé par un décorateur avant toute exécution du pipeline.
+    \item Le rate limiting (60 requêtes/min) protège l'API contre les abus.
+    \item La réponse JSON contient les scores (forme, fond, total), la décision des verrous et le feedback pédagogique.
+\end{itemize}
+
+L'intégration avec \textbf{Mistral AI} s'effectue à deux niveaux :
+
+\begin{itemize}
+    \item \textbf{Évaluation du fond} : \texttt{fond.py} envoie un prompt few-shot avec chaîne de pensée à \texttt{mistral-large-latest} et parse la réponse JSON.
+    \item \textbf{Embedding sémantique} : \texttt{similarite.py} appelle \texttt{mistral-embed} pour calculer la similarité cosinus entre la source et la contraction.
+\end{itemize}
+
+La \textbf{machine à états} (\texttt{machine\_etats.py}) est sollicitée en fin de pipeline pour mettre à jour le palier de l'apprenant en fonction du score total et du mode.
+
+\subsection{Interface Web}
+
+L'interface utilisateur (\texttt{demo/app.py}) est une application Flask monolithique qui intègre les fonctionnalités suivantes :
+
+\begin{itemize}
+    \item \textbf{Formulaire de soumission} : l'utilisateur colle le texte source et sa contraction dans un formulaire HTML. La soumission déclenche une requête \texttt{POST} vers l'API interne.
+    \item \textbf{Affichage des résultats} : les scores (forme, fond, total) sont présentés dans un tableau de bord avec code couleur (vert/rouge) selon les seuils de réussite.
+    \item \textbf{Feedback pédagogique} : le JSON renvoyé par Mistral est parsé et affiché sous forme de carte structurée (erreurs, micro-cours, exemples).
+    \item \textbf{Progression} : en mode test, le palier actuel de l'apprenant et la progression vers le palier suivant sont affichés dynamiquement.
+    \item \textbf{Documentation Swagger} : accessible via \texttt{GET /apidocs/}, générée automatiquement par \texttt{flasgger}.
+\end{itemize}
+
+Les templates Jinja2 (\texttt{demo/templates/}) assurent le rendu côté serveur avec Bootstrap 5 pour le responsive design. Le fichier \texttt{static/style.css} contient les ajustements de style (glassmorphisme, animations). L'ensemble forme une interface cohérente, testée sur les deux terminaux décrits à la section~\ref{sec:ressources_materielles}.
+
 \section{Déploiement}
 
 Le déploiement initial prévu sur HuggingFace Spaces (Docker) a été abandonné suite au passage de Docker Spaces derrière un paywall en juillet 2026. L'application a été redéployée sur \textbf{PythonAnywhere} (gratuit, pas de sleep), accessible à l'adresse :
@@ -112,3 +156,8 @@ La procédure de déploiement inclut :
     \item Configuration manuelle du Web App (WSGI, virtualenv, static files).
     \item Définition des variables d'environnement (\texttt{MISTRAL\_API\_KEY}, \texttt{AZIZA\_API\_KEY}, \texttt{FLASK\_SECRET\_KEY}).
 \end{enumerate}
+
+\subsection*{Synthèse du chapitre}
+
+Ce chapitre a présenté l'implémentation complète d'\AZIZA : l'arborescence modulaire du code, les algorithmes déterministes de la forme (LCS, connecteurs, LanguageTool), la couche sémantique via l'API Mistral avec prompt Few-Shot + CoT, les correctifs techniques apportés (format API Mistral 2026, configuration Swagger), l'API REST sécurisée avec rate limiting et documentation interactive, et le déploiement sur PythonAnywhere. L'ensemble forme un système fonctionnel, testé et accessible en ligne.
+

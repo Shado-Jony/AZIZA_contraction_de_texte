@@ -22,6 +22,22 @@ Trois sous-questions structurent cette problématique :
     \item Comment modéliser dynamiquement la progression d'un apprenant en Contraction de texte et adapter la difficulté en conséquence ?
 \end{enumerate}
 
+\section*{Intérêt de l'étude}
+
+Cette étude présente un triple intérêt — scientifique, pédagogique et social.
+
+\subsection*{Intérêt scientifique}
+
+Sur le plan scientifique, \AZIZA\ propose une architecture hybride originale combinant algorithmes déterministes (LCS, similarité cosinus, analyse syntaxique) et grands modèles de langage (LLM) en configuration Few-Shot avec chaîne de pensée. Cette approche répond à une limitation majeure des systèmes d'évaluation automatique de textes (AES) existants : les LLM seuls hallucinent sur les critères quantitatifs (décompte de mots, plagiat), tandis que les approches purement statistiques ignorent la dimension sémantique. L'expérimentation sur 30 contractions annotées par un expert constitue une contribution reproductible au champ du TALN francophone éducatif.
+
+\subsection*{Intérêt pédagogique}
+
+Sur le plan pédagogique, \AZIZA\ vise à combler un vide criant dans le système éducatif béninois : l'absence d'outil d'entraînement structuré à la Contraction de texte, épreuve coefficientée du Baccalauréat. En offrant un feedback formatif personnalisé (diagnostic, micro-cours, exemple de reformulation) couplé à une modélisation adaptative de la progression, le système permet à l'apprenant de s'entraîner en autonomie et de recevoir une correction immédiate, brisant ainsi le cycle de la rétroaction tardive.
+
+\subsection*{Intérêt social}
+
+Sur le plan social, \AZIZA\ s'inscrit dans une démarche de réduction de la fracture éducative en Afrique francophone. Dans des classes où le ratio élèves/enseignant dépasse 60, la correction individualisée est un luxe inaccessible. Un outil automatisé, déployé sur une plateforme accessible (PythonAnywhere, gratuit), peut démocratiser l'accès à un entraînement de qualité pour des milliers d'élèves, indépendamment de leur situation géographique ou économique.
+
 \section*{Objectifs}
 
 \subsection*{Objectif général}
@@ -39,6 +55,16 @@ Concevoir, implémenter et évaluer expérimentalement \AZIZA, un pipeline NLP h
     \item \textbf{Interface de démonstration :} application Flask avec API REST, Swagger, et déploiement PythonAnywhere.
 \end{enumerate}
 
+\section*{Présentation du lieu de stage}
+
+% À compléter : décrire la structure d'accueil, ses missions, et le contexte du stage.
+
+\vspace{2cm}
+\begin{tcolorbox}[colback=gray!5,colframe=gray!40,title=\textbf{À compléter}]
+Cette section sera renseignée ultérieurement avec les informations relatives au lieu de stage (organisme d'accueil, services concernés, encadrement).
+\end{tcolorbox}
+\vspace{1cm}
+
 \section*{Contributions}
 
 Ce mémoire apporte les contributions suivantes :
@@ -53,4 +79,26 @@ Ce mémoire apporte les contributions suivantes :
 
 \section*{Organisation du mémoire}
 
-Ce mémoire est structuré en cinq chapitres. Le \textbf{Chapitre 1} dresse l'état de l'art sur l'évaluation automatique de textes, les systèmes de tutorat intelligent et le TALN francophone. Le \textbf{Chapitre 2} présente la méthodologie et l'architecture du pipeline hybride. Le \textbf{Chapitre 3} détaille l'implémentation, des décisions techniques aux déploiement. Le \textbf{Chapitre 4} expose les expérimentations et leurs résultats. Le \textbf{Chapitre 5} présente les tests et la validation. Une conclusion générale synthétise les résultats et ouvre sur les perspectives d'évolution.
+Ce mémoire s'articule autour de cinq chapitres, auxquels s'ajoutent une introduction générale, une conclusion et des annexes :
+
+\medskip
+\begin{center}
+\begin{tikzpicture}[node distance=2.5cm]
+    \node (intro) [draw, rounded corners, fill=blue!5, minimum width=10cm, minimum height=0.7cm] {\textbf{Introduction générale} — Contexte, problématique, objectifs et contributions};
+    \node (ch1) [draw, rounded corners, fill=green!5, minimum width=10cm, minimum height=0.7cm, below=0.4cm of intro] {\textbf{Chapitre 1} — État de l'art sur l'AES, les STI et le TALN francophone};
+    \node (ch2) [draw, rounded corners, fill=green!5, minimum width=10cm, minimum height=0.7cm, below=0.4cm of ch1] {\textbf{Chapitre 2} — Méthodologie, architecture du pipeline hybride et conception du corpus};
+    \node (ch3) [draw, rounded corners, fill=green!5, minimum width=10cm, minimum height=0.7cm, below=0.4cm of ch2] {\textbf{Chapitre 3} — Implémentation des modules et déploiement};
+    \node (ch4) [draw, rounded corners, fill=green!5, minimum width=10cm, minimum height=0.7cm, below=0.4cm of ch3] {\textbf{Chapitre 4} — Expérimentations et résultats détaillés};
+    \node (ch5) [draw, rounded corners, fill=green!5, minimum width=10cm, minimum height=0.7cm, below=0.4cm of ch4] {\textbf{Chapitre 5} — Tests et validation};
+    \node (conc) [draw, rounded corners, fill=orange!5, minimum width=10cm, minimum height=0.7cm, below=0.4cm of ch5] {\textbf{Conclusion} — Synthèse, limites et perspectives d'évolution};
+    \draw[->, thick] (intro.south) -- (ch1.north);
+    \draw[->, thick] (ch1.south) -- (ch2.north);
+    \draw[->, thick] (ch2.south) -- (ch3.north);
+    \draw[->, thick] (ch3.south) -- (ch4.north);
+    \draw[->, thick] (ch4.south) -- (ch5.north);
+    \draw[->, thick] (ch5.south) -- (conc.north);
+\end{tikzpicture}
+\end{center}
+\medskip
+
+Le \textbf{Chapitre 1} dresse l'état de l'art sur l'évaluation automatique de textes, les systèmes de tutorat intelligent et le TALN francophone, et positionne \AZIZA\ face aux limites identifiées. Le \textbf{Chapitre 2} présente la méthodologie de constitution du corpus, l'architecture du pipeline hybride, la grille d'évaluation académique et les choix techniques. Le \textbf{Chapitre 3} détaille l'implémentation des modules logiciels, de l'arborescence du code au déploiement sur PythonAnywhere. Le \textbf{Chapitre 4} expose les 7 expériences menées et leurs résultats chiffrés. Le \textbf{Chapitre 5} décrit la stratégie de test et de validation. Une \textbf{conclusion} synthétise les résultats, discute les limites et ouvre sur les perspectives d'évolution.

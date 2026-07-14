@@ -709,6 +709,13 @@ def reset():
     return redirect(url_for("soumission"))
 
 
+# ── ERREURS ──────────────────────────────────────────────────────────────────
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("404.html"), 404
+
+
 # ── LANCEMENT ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":

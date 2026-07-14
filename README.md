@@ -208,10 +208,17 @@ Aziza_contraction_de_texte/
 │   ├── static/
 │   │   └── style.css                # Styles professionnels
 │   ├── templates/
+│   │   ├── base.html                # Template de base (blocs : title, content, extra_head, extra_scripts, nav_extra)
+│   │   ├── 404.html                 # Page d'erreur 404 personnalisée
+│   │   ├── accueil.html             # Page d'accueil
 │   │   ├── soumission.html          # Formulaire d'évaluation
 │   │   ├── resultats.html           # Résultats avec breakdown forme/fond
 │   │   ├── progression.html         # Historique, graphiques Chart.js, radar
-│   │   └── fiche_note.html          # Fiche imprimable/PDF
+│   │   ├── fiche_note.html          # Fiche imprimable/PDF
+│   │   ├── a_propos.html            # Page À propos (captures d'écran de la plateforme)
+│   │   ├── exercices.html           # Exercices interactifs
+│   │   ├── rappel.html              # Rappels pédagogiques
+│   │   └── cours.html               # Cours sur la contraction de texte
 │   └── data/                        # Stockage automatique
 │       ├── historique.json          # Historique des évaluations
 │       └── productions/             # Textes sources + contractions bruts
@@ -249,6 +256,38 @@ La page `/progression` affiche (via Chart.js) :
 - **Radar des compétences** : Lexical, Syntaxe, Orthographe, Sémantique, Connecteurs
 
 ---
+---
+
+## Interface utilisateur
+
+L'interface web d'AZIZA repose sur une architecture Flask avec templates Jinja2 et propose les fonctionnalités suivantes :
+
+### Template de base (`base.html`)
+
+Toutes les pages héritent d'un template commun via `{% extends "base.html" %}`. Celui-ci expose 5 blocs :
+| Bloc | Usage |
+|------|-------|
+| `{% block title %}` | Titre de la page (onglet) |
+| `{% block extra_head %}` | CSS, métadonnées, polices supplémentaires |
+| `{% block content %}` | Contenu principal de la page |
+| `{% block extra_scripts %}` | JavaScript spécifique à la page |
+| `{% block nav_extra %}` | Éléments supplémentaires dans la barre de navigation |
+
+### Favicon
+
+Un favicon est présent sur toutes les pages via `base.html:9` :
+```html
+<link rel="icon" href="{{ url_for('static', filename='figures/logo.png') }}">
+```
+
+### Page 404 personnalisée
+
+Une page d'erreur 404 sur mesure est enregistrée dans `app.py` via `@app.errorhandler(404)` et rend le template `templates/404.html`, garantissant une expérience utilisateur cohérente même en cas d'erreur de navigation.
+
+### Captures d'écran de la plateforme
+
+La page `À propos` (`templates/a_propos.html`) expose les captures d'écran de l'interface (page d'évaluation et page de résultats), permettant à l'utilisateur de visualiser le rendu de l'application avant de l'utiliser.
+
 ---
 
 ## Captures d'écran

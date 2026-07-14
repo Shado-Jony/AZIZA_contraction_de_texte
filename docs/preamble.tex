@@ -40,7 +40,7 @@
 % --- Graphiques et images ---
 \usepackage{graphicx}
 \graphicspath{{figures/}{figures/ch4_eda/}{figures/ch4_forme/}
-              {figures/ch4_fond/}{figures/ch4_global/}{diagrams/}}
+              {figures/ch4_fond/}{figures/ch4_global/}{diagrams/}{plateforme/}}
 
 % --- Listes ---
 \usepackage{enumitem}
@@ -69,6 +69,22 @@
 % --- Encadrés, théorèmes ---
 \usepackage{tcolorbox}
 \tcbuselibrary{most}
+\usetikzlibrary{positioning}
+
+\newtcolorbox{treebox}[1]{%
+  colback=gray!4,
+  colframe=black!25,
+  coltitle=black!80,
+  fonttitle=\bfseries\small,
+  title={#1},
+  arc=1.5mm,
+  left=6mm,
+  right=6mm,
+  top=2mm,
+  bottom=2mm,
+  boxrule=0.4pt,
+  drop fuzzy shadow,
+}
 
 % --- Hyperliens ---
 \usepackage[
@@ -92,13 +108,40 @@
 \renewcommand{\headrulewidth}{0.4pt}
 
 % --- Style des chapitres ---
-\usepackage{titlesec}
-\titleformat{\chapter}[display]
-  {\bfseries\Large}
-  {\chaptername\ \thechapter}
-  {20pt}
-  {\Huge}
-\titlespacing*{\chapter}{0pt}{-20pt}{40pt}
+\makeatletter
+\def\@makechapterhead#1{%
+  \vspace*{30\p@}%
+  {\parindent \z@ \raggedright \normalfont
+   \begin{tikzpicture}
+     \draw[line width=0.3pt] (2.5cm,0) -- (\textwidth,0);
+     \draw[line width=0.3pt] (2.5cm,0) -- (2.5cm,-2em);
+     \node[anchor=base west, text=black!50] at (2.8cm,-0.25cm) {%
+       \sffamily\footnotesize\bfseries\MakeUppercase{\@chapapp}%
+       \hspace{0.5cm}%
+       {\rmfamily\huge\bfseries\thechapter}%
+     };
+   \end{tikzpicture}\par
+   \vspace{1.8cm}%
+   {\bfseries\LARGE #1}\par\nobreak
+   \vspace{0.4cm}%
+   \moveright2.5cm\vbox{\hrule height 0.3pt width \dimexpr\textwidth-2.5cm\relax}\par
+   \vskip 40\p@
+  }}
+
+\def\@makeschapterhead#1{%
+  \vspace*{30\p@}%
+  {\parindent \z@ \raggedright \normalfont
+   \begin{tikzpicture}
+     \draw[line width=0.3pt] (2.5cm,0) -- (\textwidth,0);
+     \draw[line width=0.3pt] (2.5cm,0) -- (2.5cm,-2em);
+   \end{tikzpicture}\par
+   \vspace{1.8cm}%
+   {\bfseries\LARGE #1}\par\nobreak
+   \vspace{0.4cm}%
+   \moveright2.5cm\vbox{\hrule height 0.3pt width \dimexpr\textwidth-2.5cm\relax}\par
+   \vskip 40\p@
+  }}
+\makeatother
 
 % --- Espacement interligne ---
 \usepackage{setspace}

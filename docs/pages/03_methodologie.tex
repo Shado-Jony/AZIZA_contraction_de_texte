@@ -4,6 +4,8 @@
 \chapter{Méthodologie et architecture}
 \label{ch:methodo}
 
+Ce chapitre expose la méthodologie employée pour concevoir et valider \AZIZA. Il détaille la constitution du corpus d'expérimentation, l'architecture du pipeline hybride, la grille d'évaluation académique, les verrous pédagogiques, la machine à états de l'apprenant, ainsi que les choix techniques et méthodologiques qui fondent le système.
+
 \section{Génération du corpus d'expérimentation}
 \label{sec:generation-corpus}
 
@@ -791,4 +793,92 @@ Le diagramme d'activité (figure~\ref{fig:uml_activity}) modélise le flux compl
 \end{figure}
 
 Ces quatre diagrammes UML fournissent une vue d'ensemble cohérente de l'architecture d'\AZIZA, couvrant les aspects fonctionnels (cas d'utilisation), structurels (classes), dynamiques (séquence) et procéduraux (activité). Ils constituent une documentation vivante du système, facilement actualisable grâce aux fichiers sources PlantUML (\texttt{*.puml}) maintenus dans le dépôt.
+
+\section{Ressources matérielles}
+\label{sec:ressources_materielles}
+
+Le développement, l'entraînement et le déploiement d'\AZIZA ont été réalisés sur des ressources matérielles accessibles à tout étudiant ou chercheur dans un contexte de budget limité. Cette section détaille les deux principaux supports utilisés durant le projet.
+
+\subsection{Ordinateur portable}
+
+L'ensemble du développement — de la rédaction du code Python à l'entraînement des modèles de classification — a été mené sur un ordinateur portable équipé des caractéristiques suivantes :
+
+\begin{itemize}
+    \item \textbf{Processeur} : Intel Core i7-12700H (14 cœurs / 20 threads, cadence jusqu'à 4,7 GHz)
+    \item \textbf{Mémoire vive (RAM)} : 32 Go DDR5 (4800 MHz)
+    \item \textbf{Stockage} : SSD NVMe de 1 To
+    \item \textbf{Système d'exploitation} : Windows 11 Professionnel (64 bits)
+    \item \textbf{Environnement logiciel} : Python 3.12, Visual Studio Code, Git, WSL2 (Debian) pour les scripts de pipeline
+\end{itemize}
+
+Ce poste a suffi pour l'ensemble des tâches de prétraitement, d'extraction de caractéristiques et d'entraînement des modèles légers ( régression logistique, forêt aléatoire). Les modèles plus lourds (fine-tuning de \texttt{camembert-base}) ont quant à eux nécessité le recours à une session Google Colab Pro+.
+
+\subsection{Smartphone Android}
+
+Un smartphone Apple a été utilisé comme terminal de test pour l'interface web adaptative d'\AZIZA :
+
+\begin{itemize}
+    \item \textbf{Modèle} : iPhone 13 Pro Max
+    \item \textbf{Processeur} : Apple A15 Bionic (6 cœurs)
+    \item \textbf{Mémoire vive (RAM)} : 6 Go
+    \item \textbf{Stockage} : 128 Go
+    \item \textbf{Système d'exploitation} : iOS (Safari, mode desktop et mobile)
+\end{itemize}
+
+Les tests sur ce terminal ont permis de valider la \textbf{compatibilité multiplateforme} de l'interface, le \textbf{rendu adaptatif} (via Bootstrap 5) et le \textbf{comportement tactile} des interactions utilisateur (soumission de textes, consultation des résultats). Aucune perte de fonctionnalité ni dégradation significative de l'expérience utilisateur n'a été constatée sur cet appareil d'entrée de gamme.
+
+\section{Ressources logicielles}
+
+La plateforme \AZIZA{} s'appuie sur une pile logicielle moderne, open source et légère, choisie pour sa simplicité de déploiement et sa maintenabilité. Cette section recense les principaux outils et bibliothèques utilisés.
+
+\subsection{Python et bibliothèques d'analyse}
+
+Le cœur du système est développé en \textbf{Python 3.11+}. Les bibliothèques scientifiques et d'apprentissage automatique suivantes ont été mobilisées :
+
+\begin{itemize}
+    \item \textbf{scikit-learn} (\texttt{>=1.3}) — extraction de caractéristiques TF-IDF, modèles de classification supervisée (régression logistique, forêt aléatoire), calcul des similarités cosinus.
+    \item \textbf{NumPy} (\texttt{>=2.0}) — manipulation des vecteurs et matrices de caractéristiques, calculs statistiques (corrélation de Pearson, moyennes, écarts-types).
+    \item \textbf{requests} (\texttt{>=2.31}) — communication avec l'API Mistral AI pour l'évaluation par grand modèle de langue.
+    \item \textbf{language-tool-python} (\texttt{>=2.7.1}) — vérification orthographique et grammaticale des productions des apprenants.
+    \item \textbf{python-dotenv} (\texttt{>=1.0}) — gestion des variables d'environnement et des clés API.
+\end{itemize}
+
+\subsection{Framework web et API REST}
+
+L'interface utilisateur et l'API sont construites avec :
+
+\begin{itemize}
+    \item \textbf{Flask 3.x} — micro-framework web assurant le routage, la gestion des sessions et le rendu des templates Jinja2.
+    \item \textbf{Flasgger 0.9.x} — génération automatique de la documentation Swagger/OpenAPI de l'API REST.
+    \item \textbf{Flask-Limiter 3.8} — limitation du taux de requêtes (rate limiting) pour sécuriser les endpoints.
+    \item \textbf{Bootstrap 5} — framework CSS pour le rendu adaptatif (responsive) et les composants d'interface.
+    \item \textbf{Jinja2} — moteur de templates intégré à Flask pour le rendu côté serveur.
+\end{itemize}
+
+\subsection{Conteneurisation et déploiement}
+
+L'application est conteneurisée pour garantir la reproductibilité de l'environnement d'exécution :
+
+\begin{itemize}
+    \item \textbf{Docker} — image basée sur \texttt{python:3.11-slim} (568 Mo), exposition sur le port 5100.
+    \item \textbf{Docker Compose} — orchestration du service unique, chargement du fichier \texttt{.env} pour les clés API.
+    \item \textbf{Gunicorn} — serveur WSGI de production avec 2 workers et un timeout de 120~s.
+    \item \textbf{Makefile} — automatisation des tâches courantes : \texttt{make install}, \texttt{make test}, \texttt{make run}, \texttt{make docker-build}.
+\end{itemize}
+
+\subsection{Environnement de développement}
+
+Le développement a été mené dans l'environnement suivant :
+
+\begin{itemize}
+    \item \textbf{Visual Studio Code} — éditeur de code avec extensions Python, Ruff et Git.
+    \item \textbf{Git} — contrôle de version, dépôt hébergé sur GitHub.
+    \item \textbf{Ruff} — linter Python respectant la configuration \texttt{pyproject.toml} (sélection E, F, W, line-length 100).
+    \item \textbf{WSL2 (Debian)} — sous-système Linux pour l'exécution des scripts de pipeline et des tests en environnement Unix.
+    \item \textbf{Google Colab Pro+} — session cloud avec accélérateur GPU (T4) pour le fine-tuning du modèle \texttt{camembert-base}.
+\end{itemize}
+
+\subsection*{Synthèse du chapitre}
+
+Ce chapitre a présenté la méthodologie complète de conception d'\AZIZA : un corpus de 30 contractions généré par prompts contrôlés et annoté selon la grille de l'Académie de Limoges, une architecture hybride séparant strictement forme (/7) et fond (/3), des verrous pédagogiques éliminatoires, une machine à états à 3 paliers, une ingénierie de prompts Few-Shot + CoT, et une organisation Agile Scrum en 6 sprints. L'ensemble pose les fondations d'une évaluation automatique fiable et d'un apprentissage adaptatif de la contraction de texte.
 

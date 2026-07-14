@@ -167,7 +167,7 @@ Le cahier des charges initial du projet est disponible dans le dépôt GitHub à
 
 \subsection{Machine à états de l'apprenant}
 
-\lstinputlisting[language=Python,caption=Machine à états (machine_etats.py)]{../aziza/machine_etats.py}
+\lstinputlisting[language=Python,caption=Machine à états (machine\_etats.py)]{../aziza/machine_etats.py}
 
 \section{Captures d'écran de l'interface}
 
@@ -175,9 +175,27 @@ Le cahier des charges initial du projet est disponible dans le dépôt GitHub à
 
 L'interface Swagger est accessible à l'adresse \url{https://Jiovany11.pythonanywhere.com/apidocs/} et documente les 8 endpoints de l'API REST \AZIZA.
 
-\subsection{Page de résultats}
+\subsection{Page d'évaluation}
 
-La page de résultats affiche le breakdown complet : scores Forme (/7), Fond (/3), verrous, feedback pédagogique, et progression de l'apprenant.
+La figure~\ref{fig:annexe_evaluation} présente la page de soumission de l'interface web \AZIZA, permettant à l'apprenant de saisir le texte source et sa contraction, puis de choisir le mode d'évaluation (exercice ou test).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{page_evaluation.png}
+\caption{Interface de soumission — page d'évaluation AZIZA}
+\label{fig:annexe_evaluation}
+\end{figure}
+
+\subsection{Page des résultats}
+
+La page de résultats (figure~\ref{fig:annexe_resultats}) affiche le breakdown complet : scores Forme (/7), Fond (/3), verrous pédagogiques, feedback Mistral structuré, et progression de l'apprenant.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{page_resultats.png}
+\caption{Interface des résultats — scores et feedback pédagogique AZIZA}
+\label{fig:annexe_resultats}
+\end{figure}
 
 \section{Structure des dépendances}
 

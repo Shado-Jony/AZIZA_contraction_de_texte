@@ -18,8 +18,8 @@ xelatex -synctex=1 -interaction=nonstopmode -file-line-error $name
 Write-Host "[4/4] xelatex (troisième passe, finalisation)..." -ForegroundColor Yellow
 xelatex -synctex=1 -interaction=nonstopmode -file-line-error $name
 
-# Nettoyage
-$extensions = @("aux","bbl","bcf","blg","idx","ind","lof","lot","out","run.xml","synctex.gz","toc","log")
+# Nettoyage (on garde .toc .lof .lot .log pour inspection)
+$extensions = @("aux","bbl","bcf","blg","idx","ind","out","run.xml","synctex.gz")
 foreach ($ext in $extensions) {
     $file = "$name.$ext"
     if (Test-Path $file) { Remove-Item $file -Force }

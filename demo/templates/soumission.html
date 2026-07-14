@@ -1,339 +1,199 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AZIZA — Soumission</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-</head>
-<body>
-  <nav class="nav-bar">
-    <div class="nav-inner">
-      <img src="{{ url_for('static', filename='figures/logo.png') }}" alt="AZIZA" class="nav-logo">
-      <a href="/soumission" class="nav-brand">AZIZA <span class="nav-version">v2.0</span></a>
-      <span class="header-desc">Évaluation intelligente de la contraction de texte</span>
-      <div class="nav-links">
-        <a href="/cours" class="nav-link">Cours</a>
-        <a href="/rappel" class="nav-link">Rappel</a>
-        <a href="/exercices" class="nav-link">Exercices</a>
-        <a href="/soumission" class="nav-link active">Évaluation</a>
-        <a href="/progression" class="nav-link">Progression</a>
-        <a href="/a-propos" class="nav-link">À propos</a>
-      </div>
-      <div class="nav-right">
-        <button class="btn-theme" type="button" onclick="toggleTheme()" aria-label="Mode sombre/clair" id="themeBtn">☾</button>
-        <a href="/" class="nav-link nav-home">Accueil</a>
-        <button class="nav-toggle" type="button" onclick="toggleNav()" aria-label="Menu">☰</button>
-      </div>
-      <div class="nav-profil">
-        {% if profil %}
-        <span class="badge-palier badge-{{ profil.palier_actuel if profil.palier_actuel else 'decouverte' }}">
-          {{ {'decouverte':'Découverte','consolidation':'Consolidation','maitrise':'Maîtrise'}.get(profil.palier_actuel, profil.palier_actuel) }}
-        </span>
-        <span class="nav-nom">{{ profil.nom }}</span>
-        <form method="POST" action="/reset" class="inline-form">
-          <button type="submit" class="btn-ghost" title="Réinitialiser"></button>
-        </form>
-        {% endif %}
-      </div>
-    </div>
-  </nav>
-
-  <main class="container">
-    <header class="page-header">
-      <h1>Soumettre une contraction</h1>
-      <p class="subtitle">Collez un texte source et la contraction de l'élève pour une évaluation complète.</p>
-      <section class="hero-desc">
-        <p>AZIZA est un assistant intelligent qui note automatiquement les contractions de texte : il analyse la <strong>forme</strong> (vocabulaire, syntaxe, orthographe) et le <strong>fond</strong> (fidélité au texte source), puis délivre un feedback pédagogique détaillé pour s'améliorer.</p>
-      </section>
-    </header>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
+{% extends "base.html" %}
+{% set active_page = 'soumission' %}
+{% block title %}Soumission{% endblock %}
+{% block brand_href %}/soumission{% endblock %}
+{% block nav_extra %}
+<div class="nav-profil">
+  {% if profil %}
+  <span class="badge-palier badge-{{ profil.palier_actuel if profil.palier_actuel else 'decouverte' }}">
+    {{ {'decouverte':'Découverte','consolidation':'Consolidation','maitrise':'Maîtrise'}.get(profil.palier_actuel, profil.palier_actuel) }}
+  </span>
+  <span class="nav-nom">{{ profil.nom }}</span>
+  <form method="POST" action="/reset" class="inline-form">
+    <button type="submit" class="btn-ghost" onclick="return confirm('Réinitialiser votre progression ?')">↺</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}
+{% block content %}
+<main class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    {% for category, msg in messages %}
-    <div class="flash flash-{{ category }}">{{ msg }}</div>
-    {% endfor %}
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
     {% endif %}
-    {% endwith %}
+  {% endwith %}
 
-    {% if not profil or not profil.nom %}
-    <section class="card card-welcome">
-      <h2>Bienvenue sur AZIZA</h2>
-      <p>Assistant Intelligent pour la Zone d'Apprentissage et l'Excellence Académique.</p>
-      <p>Commencez par entrer votre nom pour initialiser votre session de travail.</p>
-      <form method="POST" action="/demarrer" class="form-welcome">
-        <div class="field-row">
-          <input type="text" name="nom" placeholder="Votre nom" required class="input" autofocus>
-          <button type="submit" class="btn btn-primary">Démarrer</button>
-        </div>
-      </form>
-    </section>
-    {% else %}
+  <header class="page-header">
+    <h1>Évaluation d'une contraction</h1>
+    <p class="subtitle">Soumettez votre contraction de texte pour une notation automatique complète.</p>
+  </header>
 
-    <form method="POST" action="/evaluer" class="form-eval">
-      <div class="form-grid">
-        <section class="card card-source">
-          <h2>Texte source</h2>
-          {% if textes %}
-          <div class="field">
-            <label for="source_select">Charger un texte du corpus</label>
-            <select id="source_select" class="input" onchange="chargerSource(this.value)">
-              <option value="">— Choisir un texte —</option>
-              {% for sid, st in textes.items() %}
-              <option value="{{ sid }}" data-contenu="{{ st.contenu[:500]|e }}">{{ st.titre }} ({{ st.nb_mots }} mots)</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="field">
-            <div class="field-row">
-              <button type="button" class="btn btn-secondary" id="btn-modele" onclick="genererModele()" data-no-spinner>
-                Voir un bon résumé
-              </button>
+  <section class="card" style="margin-bottom:1.5rem;">
+    <h2>Comment utiliser AZIZA</h2>
+    <p style="margin-top:.5rem;line-height:1.6;">AZIZA vous permet de vous exercer à la contraction de texte en toute autonomie :</p>
+    <ol style="margin-top:.5rem;padding-left:1.25rem;line-height:2;">
+      <li><strong>Choisissez</strong> un texte source parmi ceux proposés ou saisissez le vôtre.</li>
+      <li><strong>Rédigez</strong> votre contraction (environ ¼ du texte source).</li>
+      <li><strong>Soumettez</strong> votre production pour obtenir une note sur /20, un feedback détaillé et un suivi de progression.</li>
+    </ol>
+  </section>
 
-            </div>
-            <div id="modele-display" class="modele-card" style="display:none;margin-top:.75rem;">
-              <div class="modele-header">
-                <span class="modele-badge">Modèle 10/10</span>
-                <span class="modele-ref" id="modele-ref"></span>
-                <button type="button" class="btn-ghost" onclick="fermerModele()" title="Fermer">✕</button>
-              </div>
-              <div class="modele-texte" id="modele-texte"></div>
-            </div>
-          </div>
-          {% endif %}
-          <div class="field">
-            <label for="texte_source">Ou collez votre texte source</label>
-            <textarea id="texte_source" name="texte_source" class="input textarea" rows="10" placeholder="Collez ici le texte source à contracter..." oninput="autoQuota(this)"></textarea>
-          </div>
-          <div class="field-row">
-            <div class="field">
-              <label for="quota_cible">Quota cible (mots)</label>
-              <input type="number" id="quota_cible" name="quota_cible" class="input input-sm" placeholder="Auto" min="50" max="300">
-              <span class="field-hint">¼ du texte source, calculé automatiquement</span>
-            </div>
-            <div class="field">
-              <label>Mots source</label>
-              <div class="stat-badge" id="source_word_count">0</div>
-            </div>
-          </div>
-        </section>
+  <style>
+    .inline-form { display: inline; }
+    .btn-ghost { background: none; border: 1px solid rgba(255,255,255,.3); color: rgba(255,255,255,.7); border-radius: 4px; padding: .2rem .5rem; cursor: pointer; font-size: .8rem; }
+    .btn-ghost:hover { background: rgba(255,255,255,.1); color: #fff; }
+    .badge-palier { display: inline-block; padding: .15rem .55rem; border-radius: 99px; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; }
+    .badge-decouverte { background: #FFF3E0; color: #E65100; }
+    .badge-consolidation { background: #E3F2FD; color: #1565C0; }
+    .badge-maitrise { background: #E8F5E9; color: #2E7D32; }
+    .nav-nom { color: rgba(255,255,255,.8); font-size: .8rem; font-weight: 500; margin-left: .5rem; }
+    .nav-profil { display: flex; align-items: center; gap: .4rem; margin-left: auto; }
+    textarea { width: 100%; padding: .75rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: .9rem; resize: vertical; background: var(--bg-card); color: var(--text); }
+    textarea:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(63,81,181,.15); }
+    select, input[type="number"] { padding: .5rem .75rem; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: .85rem; background: var(--bg-card); color: var(--text); }
+    .flash { padding: .6rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: .85rem; }
+    .flash-error { background: #FFEBEE; color: #C62828; border: 1px solid #FFCDD2; }
+    .flash-info { background: #E3F2FD; color: #1565C0; border: 1px solid #BBDEFB; }
+    .stat-badge { display: inline-block; padding: .15rem .55rem; border-radius: 99px; font-size: .75rem; font-weight: 600; }
+    .stat-neutral { background: #F5F5F5; color: #666; }
+    .wordcount-ok { background: #E8F5E9; color: #2E7D32; }
+    .wordcount-warn { background: #FFF8E1; color: #F57F17; }
+    .wordcount-err { background: #FFEBEE; color: #C62828; }
+    .btn-evaluer { width: 100%; padding: .85rem; font-size: 1.05rem; font-weight: 700; border: none; border-radius: 8px; background: var(--primary); color: #fff; cursor: pointer; transition: background .15s; }
+    .btn-evaluer:hover { background: var(--primary-dark); }
+  </style>
 
-        <section class="card card-contraction">
-          <h2>Contraction de l'élève</h2>
-          <div class="field">
-            <label for="contraction">Texte produit</label>
-            <textarea id="contraction" name="contraction" class="input textarea" rows="10" placeholder="Collez ici la contraction de l'élève..." oninput="compterMotsContraction(this)"></textarea>
-          </div>
-          <div class="field-row">
-            <div class="field">
-              <label>Mots contraction</label>
-              <div class="stat-badge" id="contraction_word_count">0</div>
-            </div>
-            <div class="field">
-              <label>État quota</label>
-              <div class="stat-badge stat-neutral" id="quota_status">En attente</div>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      {% if profil %}
-      <div class="cycle-info">
-        <div class="cycle-bar">
-          {% for i in range(cycle_max) %}
-          <div class="cycle-dot {{ 'cycle-done' if i < exercices_cycle else 'cycle-empty' }}"></div>
+  <form method="POST" action="/evaluer" id="evalForm">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+      <div>
+        <label style="font-weight:600;font-size:.9rem;display:block;margin-bottom:.5rem;">Texte source</label>
+        <select name="texte_select" style="width:100%;margin-bottom:.5rem;" onchange="chargerSource(this.value)">
+          <option value="">— Choisir un texte du corpus —</option>
+          {% for sid, stitre in textes %}
+          <option value="{{ sid }}">{{ stitre }}</option>
           {% endfor %}
-          <span class="cycle-label">
-            {% if cycle_complet %}
-            🔬 Test de niveau prêt !
-            {% elif exercices_cycle == 0 %}
-            Cycle d'exercices : 0/{{ cycle_max }}
-            {% else %}
-            Exercice {{ exercices_cycle }}/{{ cycle_max }} — encore {{ cycle_max - exercices_cycle }} avant le test
-            {% endif %}
-          </span>
+        </select>
+        <textarea name="texte_source" id="texte_source" rows="12" placeholder="Collez ou saisissez le texte source ici..." required>{{ request.form.get('texte_source', '') }}</textarea>
+      </div>
+      <div>
+        <label style="font-weight:600;font-size:.9rem;display:block;margin-bottom:.5rem;">Votre contraction
+          <span style="font-weight:400;font-size:.75rem;color:var(--gray-500);"> (≈ ¼ du texte source)</span>
+        </label>
+        <textarea name="contraction" id="contraction" rows="12" placeholder="Saisissez votre contraction ici..." required oninput="compterMotsContraction(this)">{{ request.form.get('contraction', '') }}</textarea>
+        <div style="display:flex;gap:.75rem;align-items:center;margin-top:.5rem;flex-wrap:wrap;">
+          <span>Mots : <strong id="contraction_word_count" class="stat-badge stat-neutral">0</strong></span>
+          <span>Quota : <strong id="quota_status" class="stat-badge stat-neutral">En attente</strong></span>
+          <label style="margin-left:auto;font-size:.8rem;">Quota cible :
+            <input type="number" name="quota_cible" id="quota_cible" value="{{ request.form.get('quota_cible', '') }}" style="width:70px;" oninput="checkQuota()">
+          </label>
         </div>
       </div>
+    </div>
+
+    <div style="display:flex;gap:1rem;margin-top:1.5rem;">
+      <button type="submit" name="mode" value="exercise" class="btn-evaluer" style="background:var(--primary);">Évaluer la contraction</button>
+      {% if cycle_complet %}
+      <button type="submit" name="mode" value="test" class="btn-evaluer" style="background:var(--info);flex:0 0 auto;padding:.85rem 1.5rem;font-size:.9rem;">Passer le test de niveau</button>
       {% endif %}
-
-      <div class="actions">
-        <div class="api-status">
-          {% if has_api_key %}
-          <span class="status-dot status-ok"></span> Évaluation du fond active
-          {% else %}
-          <span class="status-dot status-warn"></span> Évaluation du fond désactivée
-          <span class="status-hint">(configurer MISTRAL_API_KEY)</span>
-          {% endif %}
-        </div>
-        <div class="action-right">
-          {% if cycle_complet %}
-          <input type="hidden" name="mode" value="test">
-          <button type="submit" class="btn btn-primary btn-lg pulse-btn">
-            🔬 Passer le test de niveau
-          </button>
-          {% else %}
-          <input type="hidden" name="mode" value="exercise">
-          <button type="submit" class="btn btn-primary btn-lg">
-            Évaluer la contraction
-          </button>
-          {% endif %}
-        </div>
-      </div>
-    </form>
-    {% endif %}
-  </main>
-
-  <footer class="footer">
-    <div class="footer-inner">
-      <div class="footer-contact">
-        <span class="footer-contact-item"><i class="fa-solid fa-house"></i> <a href="/" style="color:inherit;text-decoration:none;">Accueil</a></span>
-        <span class="footer-contact-item"><i class="fa-solid fa-envelope"></i> Jiovanyadn11@gmail.com</span>
-        <span class="footer-contact-item"><i class="fa-solid fa-phone"></i> 🇧🇯 +2290190642645 / +2290144732119</span>
-        <span class="footer-contact-item"><i class="fa-solid fa-location-dot"></i> Abomey-Calavi (Zogbadjè)</span>
-      </div>
-      <span class="footer-author">&copy; 2026 AZIZA Contraction de Texte — ADONON Jiovany</span>
     </div>
-  </footer>
+  </form>
 
-  <div id="aziza-spinner">
-    <div class="az-spinner-box">
-      <div class="az-spinner-ring"><span>AZIZA</span></div>
-      <span class="az-spinner-msg" id="aziza-spinner-msg">Chargement...</span>
+  {% if has_api_key and pipeline_ok %}
+  <section class="card" style="margin-top:1.5rem;">
+    <h2>Générer une contraction modèle</h2>
+    <p style="margin-top:.5rem;color:var(--gray-500);font-size:.85rem;">Laissez AZIZA générer une contraction parfaite du texte source ci-dessus pour vous servir d'exemple.</p>
+    <button type="button" class="btn btn-primary" onclick="genererModele()" id="btn-modele" style="margin-top:.5rem;">Générer un modèle</button>
+    <div id="modele-resultat" style="display:none;margin-top:1rem;padding:1rem;background:var(--bg);border-radius:8px;border:1px solid var(--border);position:relative;">
+      <button type="button" onclick="fermerModele()" style="position:absolute;top:.5rem;right:.75rem;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--gray-500);" data-no-spinner>×</button>
+      <p style="font-size:.8rem;color:var(--gray-500);margin-bottom:.5rem;">Modèle généré — <span id="modele-ref">...</span></p>
+      <div id="modele-texte" style="line-height:1.6;font-size:.9rem;white-space:pre-wrap;"></div>
     </div>
-  </div>
-  <script>
-    function toggleNav() {
-      document.querySelector('.nav-bar').classList.toggle('nav-open');
-    }
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('.nav-bar')) {
-        document.querySelector('.nav-bar')?.classList.remove('nav-open');
-      }
-    });
-
-    const textes = {{ textes|tojson|safe }};
-
-    function chargerSource(sid) {
-      fermerModele();
-      if (!sid || !textes[sid]) return;
-      const t = textes[sid];
-      document.getElementById('texte_source').value = t.contenu;
-      autoQuota({ target: document.getElementById('texte_source') });
-    }
-
-    function genererModele() {
-      const src = document.getElementById('texte_source').value.trim();
-      if (!src) { alert('Collez d\'abord un texte source.'); return; }
-
-      const btn = document.getElementById('btn-modele');
-      const display = document.getElementById('modele-display');
-      btn.disabled = true;
-      showSpinner('Génération du résumé modèle...');
-      display.style.display = 'none';
-
-      fetch('/api/v1/generer-modele', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({texte_source: src}),
-      })
+  </section>
+  {% endif %}
+</main>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+  function chargerSource(sid) {
+    if (!sid) return;
+    fetch('/api/v1/texte-source/' + sid)
       .then(r => r.json())
       .then(data => {
-        hideSpinner();
-        btn.disabled = false;
-        if (data.succes) {
-          document.getElementById('modele-ref').textContent = data.nb_mots + ' mots (quota: ' + data.quota + ')';
-          document.getElementById('modele-texte').textContent = data.texte;
-          display.style.display = 'block';
-        } else {
-          alert('Erreur : ' + (data.erreur || 'Generation echouee'));
+        if (data.texte) {
+          document.getElementById('texte_source').value = data.texte;
+          autoQuota(data.texte);
         }
-      })
-      .catch(err => {
-        hideSpinner();
-        btn.disabled = false;
-        alert('Erreur : ' + err.message);
       });
+  }
+  function autoQuota(texte) {
+    var mots = texte.trim().split(/\s+/).length;
+    var quota = Math.max(20, Math.round(mots / 4));
+    document.getElementById('quota_cible').value = quota;
+    checkQuota();
+  }
+  function compterMotsContraction(el) {
+    var mots = el.value.trim() ? el.value.trim().split(/\s+/).length : 0;
+    document.getElementById('contraction_word_count').textContent = mots;
+    checkQuota();
+  }
+  function checkQuota() {
+    const quota = parseInt(document.getElementById('quota_cible').value) || 0;
+    const mots = parseInt(document.getElementById('contraction_word_count').textContent) || 0;
+    const badge = document.getElementById('quota_status');
+    const wcBadge = document.getElementById('contraction_word_count');
+    if (!quota) {
+      badge.textContent = 'En attente'; badge.className = 'stat-badge stat-neutral';
+      wcBadge.className = 'stat-badge';
+      return;
     }
-
-    function fermerModele() {
-      document.getElementById('modele-display').style.display = 'none';
+    const ecart = Math.abs(mots - quota) / quota * 100;
+    if (ecart <= 5) {
+      badge.textContent = 'Exact'; badge.className = 'stat-badge wordcount-ok';
+      wcBadge.className = 'stat-badge wordcount-ok';
+    } else if (ecart <= 10) {
+      badge.textContent = '\u26A0 Toléré'; badge.className = 'stat-badge wordcount-warn';
+      wcBadge.className = 'stat-badge wordcount-warn';
+    } else {
+      badge.textContent = '\u2717 Hors quota'; badge.className = 'stat-badge wordcount-err';
+      wcBadge.className = 'stat-badge wordcount-err';
     }
-
-    function autoQuota(el) {
-      const txt = el.target ? el.target.value : el;
-      const mots = txt.trim() ? txt.trim().split(/\s+/).length : 0;
-      document.getElementById('source_word_count').textContent = mots;
-      const quota = Math.round(mots / 4);
-      document.getElementById('quota_cible').value = quota || '';
-      checkQuota();
-    }
-
-    function compterMotsContraction(el) {
-      const txt = el.target ? el.target.value : el;
-      const mots = txt.trim() ? txt.trim().split(/\s+/).length : 0;
-      document.getElementById('contraction_word_count').textContent = mots;
-      checkQuota();
-    }
-
-    function showSpinner(msg) {
-      var s = document.getElementById('aziza-spinner');
-      if (msg) document.getElementById('aziza-spinner-msg').textContent = msg;
-      s.classList.add('show');
-    }
-    function hideSpinner() {
-      document.getElementById('aziza-spinner').classList.remove('show');
-    }
-    document.addEventListener('click', function(e) {
-      var btn = e.target.closest('.btn, button, input[type="submit"], input[type="button"]');
-      if (btn && !btn.hasAttribute('data-no-spinner') && btn.type !== 'button') showSpinner();
+  }
+  function genererModele() {
+    const src = document.getElementById('texte_source').value;
+    if (!src) { alert('Veuillez d\'abord saisir un texte source.'); return; }
+    const btn = document.getElementById('btn-modele');
+    btn.disabled = true;
+    showSpinner('Génération du résumé modèle...');
+    fetch('/api/v1/generer-modele', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({texte_source: src}),
+    })
+    .then(r => r.json())
+    .then(data => {
+      hideSpinner();
+      btn.disabled = false;
+      if (data.succes) {
+        document.getElementById('modele-ref').textContent = data.nb_mots + ' mots (quota: ' + data.quota + ')';
+        document.getElementById('modele-texte').textContent = data.texte;
+        document.getElementById('modele-resultat').style.display = 'block';
+        btn.textContent = 'Masquer le modèle';
+      } else {
+        alert('Erreur : ' + (data.erreur || 'Génération échouée'));
+      }
+    })
+    .catch(err => {
+      hideSpinner();
+      btn.disabled = false;
+      alert('Erreur : ' + err.message);
     });
-    hideSpinner();
-    function checkQuota() {
-      const quota = parseInt(document.getElementById('quota_cible').value) || 0;
-      const mots = parseInt(document.getElementById('contraction_word_count').textContent) || 0;
-      const badge = document.getElementById('quota_status');
-      const wcBadge = document.getElementById('contraction_word_count');
-      if (!quota) {
-        badge.textContent = 'En attente'; badge.className = 'stat-badge stat-neutral';
-        wcBadge.className = 'stat-badge';
-        return;
-      }
-      const ecart = Math.abs(mots - quota) / quota * 100;
-      if (ecart <= 5) {
-        badge.textContent = 'Exact'; badge.className = 'stat-badge wordcount-ok';
-        wcBadge.className = 'stat-badge wordcount-ok';
-      } else if (ecart <= 10) {
-        badge.textContent = '\u26A0 Toléré'; badge.className = 'stat-badge wordcount-warn';
-        wcBadge.className = 'stat-badge wordcount-warn';
-      } else {
-        badge.textContent = '\u2717 Hors quota'; badge.className = 'stat-badge wordcount-err';
-        wcBadge.className = 'stat-badge wordcount-err';
-      }
-    }
-  </script>
-  <script>
-    function toggleTheme() {
-      var html = document.documentElement;
-      var btn = document.getElementById('themeBtn');
-      if (html.getAttribute('data-theme') === 'dark') {
-        html.removeAttribute('data-theme');
-        localStorage.setItem('aziza_theme', 'light');
-        if (btn) btn.textContent = '\u263E';
-      } else {
-        html.setAttribute('data-theme', 'dark');
-        localStorage.setItem('aziza_theme', 'dark');
-        if (btn) btn.textContent = '\u2600';
-      }
-    }
-    (function() {
-      var saved = localStorage.getItem('aziza_theme');
-      var btn = document.getElementById('themeBtn');
-      if (saved === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        if (btn) btn.textContent = '\u2600';
-      }
-    })();
-  </script>
-</body>
-</html>
+  }
+  function fermerModele() {
+    document.getElementById('modele-resultat').style.display = 'none';
+    document.getElementById('btn-modele').textContent = 'Générer un modèle';
+    document.getElementById('btn-modele').disabled = false;
+  }
+</script>
+{% endblock %}
