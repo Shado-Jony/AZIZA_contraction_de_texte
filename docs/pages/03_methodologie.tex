@@ -729,7 +729,7 @@ Le diagramme de cas d'utilisation (figure~\ref{fig:uml_use_case}) présente les 
 
 Les cas d'utilisation sont organisés autour du cas central \texttt{Soumettre une contraction} qui inclut obligatoirement l'évaluation de la forme, l'évaluation du fond, l'application des verrous pédagogiques et le calcul de la note finale. Le passage d'un test de niveau déclenche la mise à jour du palier de progression.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{use_case.png}
 \caption{Diagramme de cas d'utilisation du système AZIZA}
@@ -747,7 +747,7 @@ Le diagramme de classes (figure~\ref{fig:uml_classes}) décrit la structure stat
     \item \textbf{EvaluationController} et \textbf{APIEvaluation} : points d'entrée de l'interface web et de l'API REST, qui utilisent le Pipeline et la Machine à états.
 \end{itemize}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{class.png}
 \caption{Diagramme de classes du système AZIZA}
@@ -765,7 +765,7 @@ Le diagramme de séquence (figure~\ref{fig:uml_sequence}) détaille le flot d'in
     \item \textbf{Post-traitement} : la Machine à états met à jour la progression, les résultats sont persistés sur le disque et la page de résultats est affichée à l'apprenant.
 \end{enumerate}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{sequence_evaluation.png}
 \caption{Diagramme de séquence — évaluation d'une contraction}
@@ -783,7 +783,7 @@ Le diagramme d'activité (figure~\ref{fig:uml_activity}) modélise le flux compl
     \item La \textbf{mise à jour de la progression} : en mode test, le calcul de \(M_p\) et la décision de passage au palier supérieur.
 \end{itemize}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.58\textwidth]{activity_evaluation.png}
 \caption{Diagramme d'activité — pipeline d'évaluation AZIZA}
