@@ -1,14 +1,47 @@
 @startuml
+skinparam backgroundColor transparent
+skinparam defaultTextColor #333333
+
+skinparam actor {
+  BorderColor #2C3E50
+  FontColor #2C3E50
+  FontSize 12
+  FontStyle bold
+}
+
+skinparam participant {
+  BorderColor #3F51B5
+  FontColor #ffffff
+  FontSize 11
+  FontStyle bold
+}
+
+skinparam database {
+  BorderColor #5D4037
+  BackgroundColor #EFEBE9
+  FontColor #5D4037
+  FontSize 11
+  FontStyle bold
+}
+
+skinparam sequence {
+  ArrowColor #555555
+  ArrowFontColor #555555
+  ArrowFontSize 10
+  LifeLineBorderColor #999999
+  LifeLineBackgroundColor #dddddd
+}
+
 actor Apprenant as A
-participant "Interface\n(Flask)" as UI
-participant "ProfilApprenant" as PA
-participant "Pipeline" as PL
-participant "FormeEvaluator" as FE
-participant "Similarite\nCalculator" as SC
-participant "FondEvaluator" as FD
-participant "API Mistral\n(LLM + Embed)" as M
-participant "MachineEtats" as ME
-database "Disque\n(JSON / fichiers)" as FS
+participant "Interface\n(Flask)" as UI #3F51B5
+participant "ProfilApprenant" as PA #009688
+participant "Pipeline" as PL #1565C0
+participant "FormeEvaluator" as FE #43A047
+participant "Similarite\nCalculator" as SC #7CB342
+participant "FondEvaluator" as FD #E65100
+participant "API Mistral\n(LLM + Embed)" as M #D32F2F
+participant "MachineEtats" as ME #6A1B9A
+database "Disque\n(JSON / fichiers)" as FS #5D4037
 
 A -> UI : POST /evaluer\n(texte, contraction, quota, mode)
 activate UI
