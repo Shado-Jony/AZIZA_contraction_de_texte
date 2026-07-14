@@ -1,4 +1,37 @@
 @startuml
+skinparam backgroundColor white
+skinparam defaultTextColor #333333
+
+skinparam activity {
+  BorderColor #3F51B5
+  BackgroundColor #E8EAF6
+  FontColor #1A237E
+  FontSize 11
+  FontStyle bold
+}
+
+skinparam activityDiamond {
+  BorderColor #009688
+  BackgroundColor #E0F2F1
+  FontColor #004D40
+  FontSize 11
+  FontStyle bold
+}
+
+skinparam arrow {
+  Color #666666
+  FontColor #666666
+  FontSize 10
+}
+
+skinparam partition {
+  BorderColor #3F51B5
+  BackgroundColor #F5F5FF
+  FontColor #3F51B5
+  FontSize 13
+  FontStyle bold
+}
+
 start
 :Apprenant arrive\nsur /soumission;
 
