@@ -804,6 +804,8 @@ select.input { cursor: pointer; appearance: auto; }
   color: rgba(255,255,255,.7);
 }
 .footer-links { display: flex; gap: 1.25rem; }
+.footer-contact { display: flex; flex-direction: column; gap: .35rem; align-items: center; }
+.footer-contact-item { color: rgba(255,255,255,.6); font-size: .85rem; }
 .footer-link {
   color: rgba(255,255,255,.5);
   font-weight: 500;
