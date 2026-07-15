@@ -159,17 +159,44 @@ TEXTES_SOURCES = charger_textes_sources()
 # ── GÉNÉRATION D'UN BON RÉSUMÉ (Mistral) ─────────────────────────────────
 
 GENERATION_PROMPT = """Tu es un expert en contraction de texte pour le Baccalaureat beninois.
-Genere une contraction parfaite (note 10/10) du texte source fourni.
+Genere une contraction parfaite du texte source fourni.
 
-Regles :
-1. Quota d'environ 1/4 du texte source (±10%)
-2. Reformule avec tes propres mots — pas de copie
-3. Conserve TOUTES les idees essentielles dans l'ordre
-4. Structure coherente avec connecteurs logiques
-5. Ton neutre et objectif — aucune opinion personnelle
-6. Aucun contresens — respecte fidelement la these de l'auteur
+La contraction sera automatiquement notee par AZIZA selon les criteres suivants.
+Respecte CHAQUE point pour obtenir une note superieure a 15/20.
 
-Ta reponse doit contenir UNIQUEMENT la contraction, sans introduction ni commentaire."""
+── LEXICAL (3 pt) ──
+- La contraction doit etre une REFORMULATION personnelle :
+  * Change la structure des phrases, remplace les mots par des synonymes
+  * Ne copie JAMAIS des segments entiers du texte source
+  * Le taux de reprise lexicale (LCS) doit rester entre 26% et 80%
+  * Trop de mots identiques = plagiat → note zero
+
+── QUOTA (penalite) ──
+- La contraction doit faire EXACTEMENT 1/4 du texte source (±5%)
+- La penalite de quota s'applique si le quota est depasse
+
+── SYNTAXE (2 pt) ──
+- Utilise au moins 4 a 5 connecteurs logiques varies (d'abord, ensuite, par ailleurs, cependant, en effet, ainsi, car, donc, enfin, notamment, neanmoins, toutefois, en outre, en conclusion)
+- Alterne phrases longues et courtes
+- Le ratio du nombre de phrases entre le texte source et la contraction doit etre coherent
+
+── ORTHOGRAPHE (2 pt) ──
+- Zero faute d'orthographe, zero faute de grammaire, zero faute de conjugaison
+- Accords sujet-verbe corrects, pas de fautes d'accords
+
+── FOND (3 pt) ──
+- Conserve TOUTES les idees essentielles dans le MEME ORDRE que le texte source
+- Reste fidele a la these de l'auteur — aucun ajout d'idee personnelle
+- Aucun contresens, aucune deformation du sens original
+- Garde un ton neutre et objectif (pas de "je", "nous", "a mon avis")
+- La contraction doit etre en BAS DE CASSE (minuscules), sans majuscules en debut de phrase ni ponctuation, sauf pour les noms propres et sigles
+
+── STRUCTURE ──
+- Introduction breve rappelant le sujet
+- Developpement structurant les idees avec des connecteurs logiques
+- Conclusion rapide reprenant l'idee-force de l'auteur
+
+Ta reponse doit contenir UNIQUEMENT la contraction, sans introduction, sans commentaire, sans explication."""
 
 
 def generer_bon_resume(texte_source: str) -> dict:
