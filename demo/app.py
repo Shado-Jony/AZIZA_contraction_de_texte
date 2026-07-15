@@ -442,7 +442,7 @@ def soumission():
     """
     profil = get_profil()
     from aziza.machine_etats import CYCLE_EXERCICES
-    return render_template("soumission.html", textes=TEXTES_SOURCES,
+    return render_template("soumission.html", textes=[(sid, d["titre"]) for sid, d in TEXTES_SOURCES.items()],
                            profil=profil.to_dict() if profil.nom else None,
                            has_api_key=bool(MISTRAL_API_KEY),
                            pipeline_ok=PIPELINE_OK,
