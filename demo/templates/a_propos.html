@@ -88,7 +88,7 @@
         <li>Fiche d'évaluation imprimable</li>
       </ul>
     </section>
-    <button class="lock-btn" onclick="unlockSection('boxFonctionnalites')" aria-label="Déverrouiller"><i class="fa-solid fa-lock"></i></button>
+    <button class="lock-btn" onclick="unlockSection('boxFonctionnalites')" data-no-spinner aria-label="Déverrouiller"><i class="fa-solid fa-lock"></i></button>
   </div>
 
   <section class="card" style="margin-bottom:1.5rem;">
@@ -96,14 +96,14 @@
     <p style="margin-top:.75rem;line-height:1.7;">Pages principales de la plateforme d'évaluation AZIZA :</p>
     <div style="display:flex;flex-wrap:wrap;gap:1.5rem;margin-top:1rem;">
       <div style="flex:1;min-width:280px;">
-        <a href="{{ url_for('static', filename='../docs/plateforme/page_evaluation.png') }}" target="_blank">
-          <img src="{{ url_for('static', filename='../docs/plateforme/page_evaluation.png') }}" alt="Page d'évaluation" style="width:100%;border:1px solid var(--border);border-radius:8px;">
+        <a href="{{ url_for('static', filename='page_evaluation.png') }}" target="_blank">
+          <img src="{{ url_for('static', filename='page_evaluation.png') }}" alt="Page d'évaluation" style="width:100%;border:1px solid var(--border);border-radius:8px;">
         </a>
         <p style="text-align:center;margin-top:.5rem;font-size:.8rem;color:var(--gray-500);">Page d'évaluation</p>
       </div>
       <div style="flex:1;min-width:280px;">
-        <a href="{{ url_for('static', filename='../docs/plateforme/page_resultats.png') }}" target="_blank">
-          <img src="{{ url_for('static', filename='../docs/plateforme/page_resultats.png') }}" alt="Page de résultats" style="width:100%;border:1px solid var(--border);border-radius:8px;">
+        <a href="{{ url_for('static', filename='page_resultats.png') }}" target="_blank">
+          <img src="{{ url_for('static', filename='page_resultats.png') }}" alt="Page de résultats" style="width:100%;border:1px solid var(--border);border-radius:8px;">
         </a>
         <p style="text-align:center;margin-top:.5rem;font-size:.8rem;color:var(--gray-500);">Page de résultats</p>
       </div>
@@ -122,7 +122,7 @@
         <span class="tag">NLTK</span>
       </div>
     </section>
-    <button class="lock-btn" onclick="unlockSection('boxTechnologies')" aria-label="Déverrouiller"><i class="fa-solid fa-lock"></i></button>
+    <button class="lock-btn" onclick="unlockSection('boxTechnologies')" data-no-spinner aria-label="Déverrouiller"><i class="fa-solid fa-lock"></i></button>
   </div>
 </main>
 
