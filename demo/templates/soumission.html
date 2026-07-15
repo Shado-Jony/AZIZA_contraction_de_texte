@@ -40,6 +40,30 @@
     </ol>
   </section>
 
+  {% if profil %}
+  <section class="card" style="margin-bottom:1.5rem;{% if cycle_complet %}border-color:#2E7D32;background:#F1F8E9;{% endif %}">
+    <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+      <div style="flex:1;">
+        <h2 style="font-size:1rem;">Cycle d'exercices</h2>
+        <p style="margin-top:.25rem;font-size:.85rem;color:var(--gray-500);">
+          {% if cycle_complet %}
+            <strong style="color:#2E7D32;">✓ 3/3 exercices complétés</strong>
+            — Vous pouvez passer le <strong>test de niveau</strong> ci-dessous.
+          {% else %}
+            Exercice <strong>{{ exercices_cycle }}/{{ cycle_max }}</strong> réalisé{{ 's' if exercices_cycle > 1 else '' }}
+            — le test de niveau sera disponible après {{ cycle_max }} exercices.
+          {% endif %}
+        </p>
+      </div>
+      <div style="display:flex;gap:.35rem;">
+        {% for i in range(cycle_max) %}
+        <span style="display:inline-block;width:28px;height:28px;border-radius:50%;text-align:center;line-height:28px;font-size:.75rem;font-weight:700;{{ 'background:#2E7D32;color:#fff;' if i < exercices_cycle else 'background:#E0E0E0;color:#999;' }}">{{ i + 1 }}</span>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
   <style>
     .inline-form { display: inline; }
     .btn-ghost { background: none; border: 1px solid rgba(255,255,255,.3); color: rgba(255,255,255,.7); border-radius: 4px; padding: .2rem .5rem; cursor: pointer; font-size: .8rem; }

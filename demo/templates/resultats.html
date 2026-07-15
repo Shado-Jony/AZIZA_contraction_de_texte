@@ -45,7 +45,7 @@
     <div class="card">
       <h2>Fond <span style="font-weight:400;font-size:.85rem;color:var(--gray-500);">/3</span></h2>
       <div class="sub-score"><span>Score brut</span><span class="sub-val">{{ "%.2f"|format(r.score_fond_brut) }} / 3</span></div>
-      <div class="sub-score"><span>Score calibré</span><span class="sub-val">{{ "%.2f"|format(r.score_fond_calibre) }} / 3</span></div>
+      <div class="sub-score"><span>Score calibré</span><span class="sub-val">{{ "%.2f"|format(r.get('score_fond_calibre', r.score_fond_brut)) }} / 3</span></div>
       <div class="sub-score"><span>Similitude sémantique</span><span class="sub-val">{{ "%.0f"|format(r.score_semantique * 100) }}%</span></div>
       {% if r.contresens_detecte %}<div class="sub-score" style="color:#D32F2F;"><span>⚠ Contresens détecté</span></div>{% endif %}
       {% if r.subjectivite_detectee %}<div class="sub-score" style="color:#E65100;"><span>⚠ Subjectivité détectée</span></div>{% endif %}
