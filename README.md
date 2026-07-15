@@ -6,7 +6,7 @@
 
 **Version 2.0** — Pipeline NLP hybride d'évaluation automatique avec correction forme/fond, verrous pédagogiques, et interface web Flask.
 
-AZIZA (Zone d'Apprentissage et l'Excellence Académique) est un moteur IA conçu pour noter automatiquement les épreuves de contraction de texte du Baccalauréat béninois. Il combine des métriques lexicales classiques, une analyse linguistique outillée (LanguageTool), et un LLM (Mistral AI) pour une évaluation en deux axes : **Forme (/7)** et **Fond (/3)**, fusionnés en une note finale **/10**.
+AZIZA (Zone d'Apprentissage et l'Excellence Académique) est un assistant intelligent conçu pour permettre aux apprenants de s'exercer à la contraction de texte et de recevoir un feedback formatif en temps réel, afin de mieux se préparer au Baccalauréat béninois. Il combine des métriques lexicales classiques, une analyse linguistique outillée (LanguageTool), et un LLM (Mistral AI) pour une évaluation en deux axes : **Forme (/7)** et **Fond (/3)**, fusionnés en une note finale **/10**.
 
 ---
 
