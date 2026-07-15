@@ -22,16 +22,27 @@
     {% endif %}
   {% endwith %}
 
-  <div style="text-align:center;margin-bottom:2rem;">
-    <div class="score-ring" id="scoreRing">
-      <svg viewBox="0 0 120 120" class="ring-svg">
-        <circle cx="60" cy="60" r="52" fill="none" stroke="#e0e0e0" stroke-width="10"/>
-        <circle id="scoreCircle" cx="60" cy="60" r="52" fill="none" stroke="{{ '#4CAF50' if r.score_global_20 >= 14 else '#FF9800' if r.score_global_20 >= 10 else '#F44336' }}" stroke-width="10" stroke-dasharray="326.7" stroke-dashoffset="326.7" stroke-linecap="round" transform="rotate(-90,60,60)"/>
-        <text x="60" y="50" text-anchor="middle" font-size="28" font-weight="800" fill="var(--text)">{{ "%.1f"|format(r.score_global_20) }}</text>
-        <text x="60" y="72" text-anchor="middle" font-size="12" fill="var(--gray-500)">/ 20</text>
-      </svg>
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div style="display:flex;align-items:center;gap:2rem;flex-wrap:wrap;">
+      <div class="score-ring" id="scoreRing" style="flex-shrink:0;">
+        <svg viewBox="0 0 120 120" class="ring-svg">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="#e0e0e0" stroke-width="10"/>
+          <circle id="scoreCircle" cx="60" cy="60" r="52" fill="none" stroke="{{ '#4CAF50' if r.score_global_20 >= 14 else '#FF9800' if r.score_global_20 >= 10 else '#F44336' }}" stroke-width="10" stroke-dasharray="326.7" stroke-dashoffset="326.7" stroke-linecap="round" transform="rotate(-90,60,60)"/>
+          <text x="60" y="50" text-anchor="middle" font-size="28" font-weight="800" fill="var(--text)">{{ "%.1f"|format(r.score_global_20) }}</text>
+          <text x="60" y="72" text-anchor="middle" font-size="12" fill="var(--gray-500)">/ 20</text>
+        </svg>
+      </div>
+      <div style="flex:1;min-width:180px;">
+        <h2 style="margin-bottom:.25rem;">Note finale</h2>
+        <p style="margin-bottom:.25rem;font-size:.85rem;color:var(--gray-500);">
+          Palier : <strong>{{ r.palier_actuel|capitalize if r.palier_actuel else '—' }}</strong>
+        </p>
+        <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:.5rem;">
+          <div><span style="font-size:.8rem;color:var(--gray-500);">Forme</span><br><strong style="font-size:1.1rem;">{{ "%.2f"|format(r.score_forme) }} <span style="font-weight:400;font-size:.8rem;color:var(--gray-500);">/7</span></strong></div>
+          <div><span style="font-size:.8rem;color:var(--gray-500);">Fond</span><br><strong style="font-size:1.1rem;">{{ "%.2f"|format(r.score_fond) }} <span style="font-weight:400;font-size:.8rem;color:var(--gray-500);">/3</span></strong></div>
+        </div>
+      </div>
     </div>
-    <p style="margin-top:.25rem;font-size:.85rem;color:var(--gray-500);">Note finale — {{ r.palier_actuel|capitalize if r.palier_actuel else '—' }}</p>
   </div>
 
   <div class="form-grid">
