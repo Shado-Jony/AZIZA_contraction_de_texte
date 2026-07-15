@@ -1,6 +1,40 @@
 {% extends "base.html" %}
 {% set active_page = 'exercices' %}
 {% block title %}Exercices{% endblock %}
+{% block extra_head %}
+<style>
+  .quiz-q {
+    padding: 1rem 1.25rem;
+    margin-bottom: .75rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-card);
+    transition: background .2s, border-color .2s;
+  }
+  .quiz-q p { margin-bottom: .6rem; }
+  .quiz-q label {
+    display: block;
+    padding: .5rem .75rem;
+    margin-bottom: .35rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background .15s;
+    border: 1px solid transparent;
+  }
+  .quiz-q label:hover { background: rgba(63,81,181,.06); border-color: rgba(63,81,181,.15); }
+  .quiz-q input[type="radio"] { margin-right: .5rem; }
+  .quiz-juste { background: #d4edda !important; border-color: #c3e6cb !important; }
+  .quiz-juste label { border-color: transparent !important; }
+  .quiz-faux { background: #f8d7da !important; border-color: #f5c6cb !important; }
+  .quiz-faux label { border-color: transparent !important; }
+  .quiz-faux label input[type="radio"]:checked + .rep-label,
+  .quiz-faux input[type="radio"]:checked ~ .rep-label { color: #721c24; font-weight:700; }
+  .quiz-result { padding: .75rem 1rem; border-radius: 8px; font-weight:600; text-align:center; }
+  .quiz-reussi { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+  .quiz-echoue { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+  .quiz-correct-answer { font-size: .8rem; color: #155724; font-weight:400; margin-top:.25rem; display:block; }
+</style>
+{% endblock %}
 {% block content %}
 <main class="container">
   <header class="page-header">
@@ -67,14 +101,20 @@
 {% block extra_scripts %}
 <script>
   var REPONSES = [1, 2, 1, 1, 1];
-  function chargerProgression() {
-    var stats = document.querySelector('.stat-badge');
-  }
+  var REPONSES_TEXTE = [
+    'Le quart du texte original',
+    'Conserver les idées essentielles sans les déformer',
+    'La Forme (/7)',
+    'Supprimer les éléments superflus',
+    'Verrou plagiat'
+  ];
   function corrigerQuiz() {
     var ok = 0;
     for (var i = 0; i < REPONSES.length; i++) {
       var sel = document.querySelector('input[name="q' + i + '"]:checked');
       var qDiv = document.querySelectorAll('.quiz-q')[i];
+      var olds = qDiv.querySelector('.quiz-correct-answer');
+      if (olds) olds.remove();
       qDiv.classList.remove('quiz-juste', 'quiz-faux');
       if (sel) {
         if (parseInt(sel.value) === REPONSES[i]) {
@@ -82,9 +122,17 @@
           qDiv.classList.add('quiz-juste');
         } else {
           qDiv.classList.add('quiz-faux');
+          var hint = document.createElement('span');
+          hint.className = 'quiz-correct-answer';
+          hint.textContent = 'Réponse correcte : ' + REPONSES_TEXTE[i];
+          qDiv.querySelector('p').after(hint);
         }
       } else {
         qDiv.classList.add('quiz-faux');
+        var hint = document.createElement('span');
+        hint.className = 'quiz-correct-answer';
+        hint.textContent = 'Réponse correcte : ' + REPONSES_TEXTE[i];
+        qDiv.querySelector('p').after(hint);
       }
     }
     var result = document.getElementById('quizResult');
@@ -92,10 +140,10 @@
     result.className = 'quiz-result';
     if (ok === REPONSES.length) {
       result.classList.add('quiz-reussi');
-      result.innerHTML = 'Félicitations ! Vous avez toutes les bonnes réponses. Vous êtes prêt pour les exercices.';
+      result.innerHTML = '✓ Félicitations ! Vous avez toutes les bonnes réponses. Vous êtes prêt pour les exercices.';
     } else {
       result.classList.add('quiz-echoue');
-      result.innerHTML = '❌ ' + ok + ' / ' + REPONSES.length + ' réponses correctes. Révisez le cours puis réessayez.';
+      result.innerHTML = '✗ ' + ok + ' / ' + REPONSES.length + ' réponses correctes. Révisez le cours puis réessayez.';
     }
   }
 </script>
