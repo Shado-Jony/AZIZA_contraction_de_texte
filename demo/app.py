@@ -421,6 +421,13 @@ def a_propos():
     return render_template("a_propos.html")
 
 
+@app.route("/api/v1/texte-source/<sid>")
+def api_texte_source(sid):
+    if sid not in TEXTES_SOURCES:
+        return {"erreur": "Texte introuvable"}, 404
+    return {"texte": TEXTES_SOURCES[sid]["contenu"]}
+
+
 @app.route("/exercices")
 def exercices():
     """Page d'exercices."""
