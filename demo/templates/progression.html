@@ -58,6 +58,20 @@
   </section>
   {% endif %}
 
+  {% if historique %}
+  <section class="card" style="margin-bottom:1.5rem;">
+    <h2>Évolution Forme &amp; Fond</h2>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <canvas id="chartForme"></canvas>
+      </div>
+      <div class="chart-card">
+        <canvas id="chartFond"></canvas>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
   {% if dernier %}
   <section class="card" style="margin-bottom:1.5rem;">
     <h2>Profil de compétences</h2>
@@ -197,6 +211,82 @@
         }
       }
     });
+  })();
+  {% endif %}
+  {% if historique %}
+  (function() {
+    var data = {{ historique_json|safe }};
+    var labels = data.map(function(h) { return h.timestamp ? h.timestamp.slice(5, 10) : ''; });
+    (function() {
+      var ctx = document.getElementById('chartForme').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Forme /7',
+            data: data.map(function(h) { return h.score_forme; }),
+            borderColor: '#4CAF50',
+            backgroundColor: 'rgba(76,175,80,0.1)',
+            fill: true,
+            tension: 0.3,
+            pointBackgroundColor: '#4CAF50',
+            pointRadius: 4,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          scales: {
+            y: { min: 0, max: 7, ticks: { stepSize: 1, font: { size: 10 } } },
+            x: { ticks: { font: { size: 9 }, maxTicksLimit: 8 } }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) { return 'Forme: ' + ctx.parsed.y + ' /7'; }
+              }
+            }
+          }
+        }
+      });
+    })();
+    (function() {
+      var ctx = document.getElementById('chartFond').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Fond /3',
+            data: data.map(function(h) { return h.score_fond; }),
+            borderColor: '#FF9800',
+            backgroundColor: 'rgba(255,152,0,0.1)',
+            fill: true,
+            tension: 0.3,
+            pointBackgroundColor: '#FF9800',
+            pointRadius: 4,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          scales: {
+            y: { min: 0, max: 3, ticks: { stepSize: 0.5, font: { size: 10 } } },
+            x: { ticks: { font: { size: 9 }, maxTicksLimit: 8 } }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) { return 'Fond: ' + ctx.parsed.y + ' /3'; }
+              }
+            }
+          }
+        }
+      });
+    })();
   })();
   {% endif %}
 </script>
