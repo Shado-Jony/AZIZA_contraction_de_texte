@@ -179,7 +179,29 @@ https://Jiovany11.pythonanywhere.com
    - **Environment variables** : `MISTRAL_API_KEY`, `AZIZA_API_KEY`, `FLASK_SECRET_KEY`
 6. **Reload** → votre app est en ligne
 
-### Mise à jour
+### Déploiement ngrok (exposition temporaire)
+
+Pour exposer l'instance locale via Internet (test mobile, démo rapide, partage) :
+
+1. Téléchargez ngrok depuis [ngrok.com/download](https://ngrok.com/download)
+2. Créez un compte et récupérez votre token d'authentification
+3. Authentifiez-vous :
+   ```bash
+   ngrok config add-authtoken VOTRE_TOKEN
+   ```
+4. Lancez l'application Flask :
+   ```bash
+   python demo/app.py
+   ```
+5. Dans un autre terminal, créez le tunnel :
+   ```bash
+   ngrok http 5100
+   ```
+   L'URL publique (ex. `https://xxxx-xxx-xx-xxx-xx.ngrok-free.app`) s'affiche dans le terminal.
+
+**Remarque :** La version gratuite de ngrok affiche une page d'avertissement que les visiteurs doivent traverser, et l'URL change à chaque redémarrage de ngrok.
+
+### Mise à jour (PythonAnywhere)
 
 ```bash
 cd ~/Aziza_contraction_de_texte && git pull
