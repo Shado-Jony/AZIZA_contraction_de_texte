@@ -762,6 +762,7 @@ select.input { cursor: pointer; appearance: auto; }
   gap: 1.5rem;
   margin-bottom: 1.5rem;
 }
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
 .chart-full { grid-column: 1 / -1; }
 .chart-card canvas { max-height: 220px; max-width: 100%; }
 @media (max-width: 800px) { .chart-grid { grid-template-columns: 1fr; } }

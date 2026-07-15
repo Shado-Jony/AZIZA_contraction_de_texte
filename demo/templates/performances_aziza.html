@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+{% set active_page = 'performances' %}
+{% block title %}Performances AZIZA{% endblock %}
+{% block brand_href %}/{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  .perf-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .perf-stat { text-align: center; padding: 1rem; background: var(--primary-lt); border-radius: var(--radius); }
+  .perf-stat-value { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+  .perf-stat-label { font-size: .78rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: .3px; }
+  .perf-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  .perf-table th, .perf-table td { padding: .6rem .5rem; text-align: left; border-bottom: 1px solid var(--gray-200); }
+  .perf-table th { font-weight: 600; color: var(--gray-500); font-size: .75rem; text-transform: uppercase; letter-spacing: .3px; }
+  .perf-table .perf-id { font-weight: 700; font-family: monospace; }
+  .perf-table .perf-score { font-weight: 600; }
+  .perf-table .perf-aziza { color: var(--primary); }
+  .perf-table .perf-expert { color: var(--accent); }
+  .perf-table input[type="number"] { width: 65px; padding: .3rem .4rem; border: 1px solid var(--gray-300); border-radius: var(--radius-sm); font-size: .85rem; text-align: center; }
+  .perf-table input[type="number"]:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 2px var(--primary-lt); }
+  .badge-quality { display: inline-block; padding: .1rem .5rem; border-radius: 99px; font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; }
+  .badge-bonne { background: #E8F5E9; color: #2E7D32; }
+  .badge-moyenne { background: #FFF3E0; color: #E65100; }
+  .badge-mauvaise { background: #FFEBEE; color: #D32F2F; }
+  .perf-source-link { cursor: pointer; color: var(--primary); text-decoration: underline; font-size: .8rem; }
+  .perf-source-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1000; align-items: center; justify-content: center; }
+  .perf-source-modal.show { display: flex; }
+  .perf-source-content { background: var(--card-bg); border-radius: var(--radius); padding: 1.5rem; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; }
+  .perf-source-content pre { white-space: pre-wrap; font-size: .82rem; line-height: 1.6; margin-top: .75rem; color: var(--gray-700); }
+  .perf-lock-overlay { text-align: center; padding: 3rem 1rem; }
+  .perf-lock-overlay .lock-icon { font-size: 3rem; color: var(--gray-400); margin-bottom: 1rem; }
+  .perf-pwd-form { display: flex; gap: .5rem; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 1rem; }
+  .perf-pwd-form input[type="password"] { padding: .5rem .75rem; border: 1px solid var(--gray-300); border-radius: var(--radius-sm); font-size: .9rem; width: 200px; }
+  .perf-pwd-form .btn { padding: .5rem 1.25rem; }
+  .perf-pwd-error { color: var(--danger); font-size: .85rem; margin-top: .5rem; display: none; }
+  .perf-save-status { font-size: .85rem; margin-top: .5rem; }
+  @media (max-width: 800px) { .perf-table { font-size: .78rem; } .perf-table input[type="number"] { width: 55px; } }
+</style>
+{% endblock %}
+{% block content %}
+<main class="container">
+  <header class="page-header">
+    <h1>Performances AZIZA</h1>
+    <p class="subtitle">Analyse comparative des évaluations automatiques vs expert.</p>
+  </header>
+
+  {% set perf_list = performances %}
+
+  <div class="perf-summary" id="perfSummary">
+    <div class="perf-stat"><div class="perf-stat-value">{{ perf_list|length }}</div><div class="perf-stat-label">Évaluations</div></div>
+    <div class="perf-stat"><div class="perf-stat-value" style="color:var(--primary);" id="avgAziza">—</div><div class="perf-stat-label">Moyenne AZIZA /20</div></div>
+    <div class="perf-stat"><div class="perf-stat-value" style="color:var(--accent);" id="avgExpert">—</div><div class="perf-stat-label">Moyenne Expert /20</div></div>
+    <div class="perf-stat"><div class="perf-stat-value" style="color:var(--gray-500);" id="ecartAzizaExpert">—</div><div class="perf-stat-label">Écart AZIZA−Expert</div></div>
+  </div>
+
+  <section class="card" style="margin-bottom:1.5rem;">
+    <h2>Note finale — AZIZA vs Expert</h2>
+    <div class="chart-card" style="margin-top:.75rem;">
+      <canvas id="chartFinale"></canvas>
+    </div>
+  </section>
+
+  <section class="card" style="margin-bottom:1.5rem;">
+    <h2>Détail Forme &amp; Fond — AZIZA vs Expert</h2>
+    <div class="chart-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:.75rem;">
+      <div class="chart-card">
+        <canvas id="chartForme"></canvas>
+      </div>
+      <div class="chart-card">
+        <canvas id="chartFond"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-bottom:1.5rem;">
+    <h2>Évaluation experte</h2>
+    <p style="font-size:.85rem;color:var(--gray-500);margin-bottom:.75rem;">
+      Saisissez les notes de l'expert pour chaque contraction. Le mot de passe est requis.
+    </p>
+    <div id="perfLock" class="perf-lock-overlay">
+      <div class="lock-icon">🔒</div>
+      <p style="font-weight:600;margin-bottom:.5rem;">Mode expert protégé</p>
+      <p style="font-size:.85rem;color:var(--gray-500);margin-bottom:1rem;">Entrez le code pour évaluer les contractions.</p>
+      <div class="perf-pwd-form">
+        <input type="password" id="perfPwdInput" placeholder="Mot de passe" autocomplete="off">
+        <button class="btn btn-primary" onclick="unlockPerf()">Déverrouiller</button>
+      </div>
+      <div id="perfPwdError" class="perf-pwd-error">Code incorrect.</div>
+    </div>
+    <div id="perfTableWrap" style="display:none;">
+      <div style="overflow-x:auto;">
+        <table class="perf-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Qualité</th>
+              <th>Source</th>
+              <th colspan="2" style="text-align:center;color:var(--primary);">AZIZA</th>
+              <th colspan="2" style="text-align:center;color:var(--accent);">Expert</th>
+              <th></th>
+            </tr>
+            <tr>
+              <th></th><th></th><th></th>
+              <th style="font-size:.7rem;text-align:center;color:var(--primary);">F/7</th>
+              <th style="font-size:.7rem;text-align:center;color:var(--primary);">Fd/3</th>
+              <th style="font-size:.7rem;text-align:center;color:var(--accent);">F/7</th>
+              <th style="font-size:.7rem;text-align:center;color:var(--accent);">Fd/3</th>
+              <th style="font-size:.7rem;text-align:center;">Finale /20</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in perf_list %}
+            {% set qual = ['bonne','bonne','bonne','moyenne','moyenne','moyenne','moyenne','mauvaise','mauvaise','mauvaise'] %}
+            <tr>
+              <td class="perf-id">{{ p.id_texte }}</td>
+              <td><span class="badge-quality badge-{{ qual[loop.index0] }}">{{ qual[loop.index0] }}</span></td>
+              <td><span class="perf-source-link" onclick="showSource('{{ p.id_texte }}')">Voir</span></td>
+              <td class="perf-score perf-aziza" style="text-align:center;">{{ "%.2f"|format(p.note_forme_aziza|float) }}</td>
+              <td class="perf-score perf-aziza" style="text-align:center;">{{ "%.2f"|format(p.note_fond_aziza|float) }}</td>
+              <td style="text-align:center;"><input type="number" step="0.01" min="0" max="7" id="fe_{{ p.id_texte }}" value="{{ p.note_forme_expert if p.note_forme_expert else '' }}" oninput="calcExpertFinale('{{ p.id_texte }}')"></td>
+              <td style="text-align:center;"><input type="number" step="0.01" min="0" max="3" id="fd_{{ p.id_texte }}" value="{{ p.note_fond_expert if p.note_fond_expert else '' }}" oninput="calcExpertFinale('{{ p.id_texte }}')"></td>
+              <td style="text-align:center;font-weight:700;" id="finale_{{ p.id_texte }}">{{ "%.2f"|format(p.note_finale_expert|float) if p.note_finale_expert else '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:1rem;align-items:center;margin-top:1rem;">
+        <button class="btn btn-primary" onclick="saveAllExpert()">💾 Enregistrer toutes les notes</button>
+        <span id="perfSaveStatus" class="perf-save-status"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-bottom:1.5rem;">
+    <h2>Contractions</h2>
+    <div style="overflow-x:auto;margin-top:.75rem;">
+      <table class="perf-table">
+        <thead><tr><th>ID</th><th>Qualité</th><th>Note AZIZA /20</th><th>Note Expert /20</th><th>Contraction</th></tr></thead>
+        <tbody>
+          {% for p in perf_list %}
+          {% set qual = ['bonne','bonne','bonne','moyenne','moyenne','moyenne','moyenne','mauvaise','mauvaise','mauvaise'] %}
+          <tr>
+            <td class="perf-id">{{ p.id_texte }}</td>
+            <td><span class="badge-quality badge-{{ qual[loop.index0] }}">{{ qual[loop.index0] }}</span></td>
+            <td class="perf-score perf-aziza">{{ "%.2f"|format(p.note_finale_aziza|float) }}</td>
+            <td class="perf-score perf-expert">{{ "%.2f"|format(p.note_finale_expert|float) if p.note_finale_expert else '—' }}</td>
+            <td style="font-size:.78rem;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.contraction[:120] }}…</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<div class="perf-source-modal" id="perfSourceModal" onclick="if(event.target===this)closeSource()">
+  <div class="perf-source-content">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
+      <h3 style="margin:0;">Texte source <span id="perfSourceId" style="font-weight:400;font-size:.85rem;color:var(--gray-500);"></span></h3>
+      <button class="btn btn-sm" onclick="closeSource()">✕</button>
+    </div>
+    <pre id="perfSourceText">Chargement…</pre>
+  </div>
+</div>
+
+<script>
+var PERF_PWD = 'cdtaziza2026';
+
+function unlockPerf() {
+  var input = document.getElementById('perfPwdInput');
+  var error = document.getElementById('perfPwdError');
+  if (input.value === PERF_PWD) {
+    document.getElementById('perfLock').style.display = 'none';
+    document.getElementById('perfTableWrap').style.display = 'block';
+    sessionStorage.setItem('perf_unlocked', '1');
+  } else {
+    error.style.display = 'block';
+  }
+}
+if (sessionStorage.getItem('perf_unlocked') === '1') {
+  document.getElementById('perfLock').style.display = 'none';
+  document.getElementById('perfTableWrap').style.display = 'block';
+}
+
+function calcExpertFinale(id) {
+  var fe = parseFloat(document.getElementById('fe_' + id).value) || 0;
+  var fd = parseFloat(document.getElementById('fd_' + id).value) || 0;
+  var finale = (fe + fd) * 2;
+  document.getElementById('finale_' + id).textContent = finale.toFixed(2);
+}
+
+function saveAllExpert() {
+  var rows = [{% for p in perf_list %}'{{ p.id_texte }}'{% if not loop.last %},{% endif %}{% endfor %}];
+  var status = document.getElementById('perfSaveStatus');
+  status.textContent = 'Enregistrement…';
+  status.style.color = 'var(--gray-500)';
+  var saved = 0, errors = 0;
+  function saveNext(i) {
+    if (i >= rows.length) {
+      var msg = saved + ' enregistrée' + (saved > 1 ? 's' : '');
+      if (errors) msg += ', ' + errors + ' erreur' + (errors > 1 ? 's' : '');
+      status.textContent = '✅ ' + msg + '.';
+      status.style.color = 'var(--success)';
+      return;
+    }
+    var id = rows[i];
+    var fe = parseFloat(document.getElementById('fe_' + id).value);
+    var fd = parseFloat(document.getElementById('fd_' + id).value);
+    if (isNaN(fe) || isNaN(fd)) {
+      errors++;
+      saveNext(i + 1);
+      return;
+    }
+    fetch('/performances/enregistrer', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ id_texte: id, note_forme: fe, note_fond: fd })
+    }).then(function(r) { return r.json(); }).then(function(d) {
+      if (d.succes) saved++; else errors++;
+      saveNext(i + 1);
+    }).catch(function() { errors++; saveNext(i + 1); });
+  }
+  saveNext(0);
+}
+
+function showSource(sid) {
+  document.getElementById('perfSourceId').textContent = '(' + sid + ')';
+  document.getElementById('perfSourceText').textContent = 'Chargement…';
+  document.getElementById('perfSourceModal').classList.add('show');
+  fetch('/performances/texte-source/' + sid).then(function(r) { return r.json(); }).then(function(d) {
+    document.getElementById('perfSourceText').textContent = d.texte || 'Erreur de chargement.';
+  });
+}
+function closeSource() {
+  document.getElementById('perfSourceModal').classList.remove('show');
+}
+
+var perfData = {{ performances|tojson|safe }};
+document.addEventListener('DOMContentLoaded', function() {
+  var ids = perfData.map(function(p) { return p.id_texte; });
+  var azizaFinale = perfData.map(function(p) { return parseFloat(p.note_finale_aziza); });
+  var expertFinale = perfData.map(function(p) { return p.note_finale_expert ? parseFloat(p.note_finale_expert) : null; });
+
+  new Chart(document.getElementById('chartFinale').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ids,
+      datasets: [
+        { label: 'AZIZA', data: azizaFinale, backgroundColor: 'rgba(63,81,181,0.75)', borderRadius: 4 },
+        { label: 'Expert', data: expertFinale, backgroundColor: 'rgba(0,150,136,0.75)', borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      scales: {
+        y: { min: 0, max: 20, ticks: { stepSize: 5 } },
+        x: { ticks: { font: { size: 10 } } }
+      },
+      plugins: {
+        tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + ctx.parsed.y + '/20'; } } }
+      }
+    }
+  });
+
+  var azizaForme = perfData.map(function(p) { return parseFloat(p.note_forme_aziza); });
+  var expertForme = perfData.map(function(p) { return p.note_forme_expert ? parseFloat(p.note_forme_expert) : null; });
+  new Chart(document.getElementById('chartForme').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ids,
+      datasets: [
+        { label: 'AZIZA', data: azizaForme, backgroundColor: 'rgba(63,81,181,0.75)', borderRadius: 4 },
+        { label: 'Expert', data: expertForme, backgroundColor: 'rgba(0,150,136,0.75)', borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      scales: {
+        y: { min: 0, max: 7, ticks: { stepSize: 1 } },
+        x: { ticks: { font: { size: 10 } } }
+      },
+      plugins: {
+        tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + ctx.parsed.y + '/7'; } } }
+      }
+    }
+  });
+
+  var azizaFond = perfData.map(function(p) { return parseFloat(p.note_fond_aziza); });
+  var expertFond = perfData.map(function(p) { return p.note_fond_expert ? parseFloat(p.note_fond_expert) : null; });
+  new Chart(document.getElementById('chartFond').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ids,
+      datasets: [
+        { label: 'AZIZA', data: azizaFond, backgroundColor: 'rgba(63,81,181,0.75)', borderRadius: 4 },
+        { label: 'Expert', data: expertFond, backgroundColor: 'rgba(0,150,136,0.75)', borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      scales: {
+        y: { min: 0, max: 3, ticks: { stepSize: 0.5 } },
+        x: { ticks: { font: { size: 10 } } }
+      },
+      plugins: {
+        tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + ctx.parsed.y + '/3'; } } }
+      }
+    }
+  });
+
+  var azizaVals = perfData.map(function(p) { return parseFloat(p.note_finale_aziza); });
+  var azizaAvg = azizaVals.reduce(function(a,b) { return a + b; }, 0) / azizaVals.length;
+  document.getElementById('avgAziza').textContent = azizaAvg.toFixed(1);
+
+  var expertVals = perfData.filter(function(p) { return p.note_finale_expert && p.note_finale_expert !== ''; }).map(function(p) { return parseFloat(p.note_finale_expert); });
+  if (expertVals.length) {
+    var expertAvg = expertVals.reduce(function(a,b) { return a + b; }, 0) / expertVals.length;
+    document.getElementById('avgExpert').textContent = expertAvg.toFixed(1);
+    document.getElementById('ecartAzizaExpert').textContent = (azizaAvg - expertAvg).toFixed(1);
+  }
+});
+</script>
+{% endblock %}

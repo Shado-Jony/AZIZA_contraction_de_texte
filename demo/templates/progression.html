@@ -5,11 +5,7 @@
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
-  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-  .chart-full { grid-column: 1 / -1; }
   .chart-card .card { height: 100%; }
-  .chart-card canvas { max-height: 220px; max-width: 100%; }
-  @media (max-width: 800px) { .chart-grid { grid-template-columns: 1fr; } }
 </style>
 {% endblock %}
 {% block nav_extra %}
