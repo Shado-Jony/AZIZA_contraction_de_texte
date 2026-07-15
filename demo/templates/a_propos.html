@@ -1,6 +1,52 @@
 {% extends "base.html" %}
 {% set active_page = 'a-propos' %}
 {% block title %}À propos{% endblock %}
+{% block extra_head %}
+<style>
+  .locked-box {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+  .locked-box .blur-wrap {
+    filter: blur(8px);
+    pointer-events: none;
+    user-select: none;
+    transition: filter 0.4s ease;
+  }
+  .locked-box.unlocked .blur-wrap {
+    filter: blur(0);
+    pointer-events: auto;
+    user-select: auto;
+  }
+  .lock-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    background: var(--accent, #2563eb);
+    color: #fff;
+    border: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    font-size: 1.3rem;
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease, background 0.2s;
+  }
+  .lock-btn:hover {
+    background: var(--accent-hover, #1d4ed8);
+  }
+  .locked-box.unlocked .lock-btn {
+    opacity: 0;
+    pointer-events: none;
+  }
+</style>
+{% endblock %}
 {% block content %}
 <main class="container">
   <header class="page-header">
@@ -30,17 +76,20 @@
     </div>
   </section>
 
-  <section class="card" style="margin-bottom:1.5rem;">
-    <h2>Fonctionnalités</h2>
-    <ul style="margin-top:.75rem;padding-left:1.25rem;line-height:1.9;">
-      <li>Évaluation à double axe : <strong>Forme (/7)</strong> et <strong>Fond (/3)</strong></li>
-      <li>Analyse lexicale : taux de reprise lexicale, ratio type/token, densité verbale</li>
-      <li>Génération de modèle de contraction via LLM (Mistral AI)</li>
-      <li>Progression par paliers : Découverte → Consolidation → Maîtrise</li>
-      <li>Statistiques détaillées et visualisations graphiques</li>
-      <li>Fiche d'évaluation imprimable</li>
-    </ul>
-  </section>
+  <div class="locked-box" id="boxFonctionnalites">
+    <section class="card blur-wrap" style="margin-bottom:0;">
+      <h2>Fonctionnalités</h2>
+      <ul style="margin-top:.75rem;padding-left:1.25rem;line-height:1.9;">
+        <li>Évaluation à double axe : <strong>Forme (/7)</strong> et <strong>Fond (/3)</strong></li>
+        <li>Analyse lexicale : taux de reprise lexicale, ratio type/token, densité verbale</li>
+        <li>Génération de modèle de contraction via LLM (Mistral AI)</li>
+        <li>Progression par paliers : Découverte → Consolidation → Maîtrise</li>
+        <li>Statistiques détaillées et visualisations graphiques</li>
+        <li>Fiche d'évaluation imprimable</li>
+      </ul>
+    </section>
+    <button class="lock-btn" onclick="unlockSection('boxFonctionnalites')" aria-label="Déverrouiller"><i class="fa-solid fa-lock"></i></button>
+  </div>
 
   <section class="card" style="margin-bottom:1.5rem;">
     <h2>Captures d'écran</h2>
@@ -61,16 +110,30 @@
     </div>
   </section>
 
-  <section class="card">
-    <h2>Technologies utilisées</h2>
-    <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.75rem;">
-      <span class="tag">Python / Flask</span>
-      <span class="tag">Mistral AI (LLM)</span>
-      <span class="tag">Chart.js</span>
-      <span class="tag">HTML / CSS</span>
-      <span class="tag">JavaScript</span>
-      <span class="tag">NLTK</span>
-    </div>
-  </section>
+  <div class="locked-box" id="boxTechnologies">
+    <section class="card blur-wrap" style="margin-bottom:0;">
+      <h2>Technologies utilisées</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.75rem;">
+        <span class="tag">Python / Flask</span>
+        <span class="tag">Mistral AI (LLM)</span>
+        <span class="tag">Chart.js</span>
+        <span class="tag">HTML / CSS</span>
+        <span class="tag">JavaScript</span>
+        <span class="tag">NLTK</span>
+      </div>
+    </section>
+    <button class="lock-btn" onclick="unlockSection('boxTechnologies')" aria-label="Déverrouiller"><i class="fa-solid fa-lock"></i></button>
+  </div>
 </main>
+
+<script>
+function unlockSection(id) {
+  var pwd = prompt("Entrez le mot de passe pour déverrouiller cette section :");
+  if (pwd === "Jiovany11@Pancrace9@aziza") {
+    document.getElementById(id).classList.add("unlocked");
+  } else if (pwd !== null) {
+    alert("Mot de passe incorrect.");
+  }
+}
+</script>
 {% endblock %}
