@@ -537,6 +537,7 @@ def evaluer():
         "label_plagiat": resultat.get("label_plagiat", "original"),
         "zone_quota": resultat.get("zone_quota", "hors_quota"),
         "palier_actuel": resultat["palier_actuel"],
+        "est_test": est_test,
         "mp": resultat.get("mp", 0),
         "contresens": resultat["contresens"],
         "subjectivite_detectee": resultat.get("subjectivite_detectee", False),
@@ -673,7 +674,9 @@ def progression():
     }
     return render_template("progression.html", historique=historique, profil=profil.to_dict(),
                            statut=statut, stats=stats, palier_labels=labels, palier_couleurs=couleurs,
-                           historique_json=json.dumps(historique, ensure_ascii=False))
+                           historique_json=json.dumps(historique, ensure_ascii=False),
+                           historique_mp=statut.get("historique_mp", []),
+                           dernier=stats["dernier"])
 
 
 @app.route("/demarrer", methods=["POST"])

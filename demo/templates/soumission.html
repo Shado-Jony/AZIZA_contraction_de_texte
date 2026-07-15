@@ -66,7 +66,7 @@
   </style>
 
   <form method="POST" action="/evaluer" id="evalForm">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+    <div class="form-grid">
       <div>
         <label style="font-weight:600;font-size:.9rem;display:block;margin-bottom:.5rem;">Texte source</label>
         <select name="texte_select" style="width:100%;margin-bottom:.5rem;" onchange="chargerSource(this.value)">
@@ -92,7 +92,7 @@
       </div>
     </div>
 
-    <div style="display:flex;gap:1rem;margin-top:1.5rem;">
+    <div style="display:flex;gap:1rem;margin-top:1.5rem;flex-wrap:wrap;">
       <button type="submit" name="mode" value="exercise" class="btn-evaluer" style="background:var(--primary);">Évaluer la contraction</button>
       {% if cycle_complet %}
       <button type="submit" name="mode" value="test" class="btn-evaluer" style="background:var(--info);flex:0 0 auto;padding:.85rem 1.5rem;font-size:.9rem;">Passer le test de niveau</button>
@@ -108,7 +108,7 @@
     <div id="modele-resultat" style="display:none;margin-top:1rem;padding:1rem;background:var(--bg);border-radius:8px;border:1px solid var(--border);position:relative;">
       <button type="button" onclick="fermerModele()" style="position:absolute;top:.5rem;right:.75rem;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--gray-500);" data-no-spinner>×</button>
       <p style="font-size:.8rem;color:var(--gray-500);margin-bottom:.5rem;">Modèle généré — <span id="modele-ref">...</span></p>
-      <div id="modele-texte" style="line-height:1.6;font-size:.9rem;white-space:pre-wrap;"></div>
+      <div id="modele-texte" style="line-height:1.6;font-size:.9rem;white-space:pre-wrap;overflow-wrap:break-word;word-break:break-word;"></div>
     </div>
   </section>
   {% endif %}

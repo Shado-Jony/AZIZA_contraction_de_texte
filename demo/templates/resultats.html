@@ -24,7 +24,7 @@
 
   <div style="text-align:center;margin-bottom:2rem;">
     <div class="score-ring" id="scoreRing">
-      <svg viewBox="0 0 120 120" style="width:140px;height:140px;">
+      <svg viewBox="0 0 120 120" class="ring-svg">
         <circle cx="60" cy="60" r="52" fill="none" stroke="#e0e0e0" stroke-width="10"/>
         <circle id="scoreCircle" cx="60" cy="60" r="52" fill="none" stroke="{{ '#4CAF50' if r.score_global_20 >= 14 else '#FF9800' if r.score_global_20 >= 10 else '#F44336' }}" stroke-width="10" stroke-dasharray="326.7" stroke-dashoffset="326.7" stroke-linecap="round" transform="rotate(-90,60,60)"/>
         <text x="60" y="50" text-anchor="middle" font-size="28" font-weight="800" fill="var(--text)">{{ "%.1f"|format(r.score_global_20) }}</text>
@@ -34,7 +34,7 @@
     <p style="margin-top:.25rem;font-size:.85rem;color:var(--gray-500);">Note finale — {{ r.palier_actuel|capitalize if r.palier_actuel else '—' }}</p>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+  <div class="form-grid">
     <div class="card">
       <h2>Forme <span style="font-weight:400;font-size:.85rem;color:var(--gray-500);">/7</span></h2>
       <div class="sub-score"><span>Lexical</span><span class="sub-val">{{ "%.2f"|format(r.score_lexical) }} / 3</span></div>
@@ -134,7 +134,7 @@
     <button type="button" onclick="fermerModeleResultat()" style="position:absolute;top:.75rem;right:.75rem;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--gray-500);" data-no-spinner>×</button>
     <h2>Modèle de contraction</h2>
     <p style="margin-top:.5rem;font-size:.8rem;color:var(--gray-500);">Modèle généré — <span id="modele-ref-resultat">...</span></p>
-    <div id="modele-texte-resultat" style="margin-top:.75rem;line-height:1.7;font-size:.9rem;white-space:pre-wrap;"></div>
+    <div id="modele-texte-resultat" style="margin-top:.75rem;line-height:1.7;font-size:.9rem;white-space:pre-wrap;overflow-wrap:break-word;word-break:break-word;"></div>
   </div>
   {% endif %}
 
