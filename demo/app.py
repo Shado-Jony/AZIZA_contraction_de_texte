@@ -89,7 +89,7 @@ except ImportError as e:
 
 
 def quota_depuis_source(txt):
-    return max(1, round(len(txt.split()) / 4))
+    return max(1, round(len(txt.replace("'", " ").split()) / 4))
 
 
 # Fallback classes si le pipeline n'est pas disponible
@@ -143,7 +143,7 @@ def charger_textes_sources():
         textes[sid] = {"id": sid,
                        "contenu": fpath.read_text(encoding="utf-8").strip(),
                        "titre": sid, "nb_mots": 0}
-        textes[sid]["nb_mots"] = len(textes[sid]["contenu"].split())
+        textes[sid]["nb_mots"] = len(textes[sid]["contenu"].replace("'", " ").split())
     csv_path = TEXTES_DIR / "textes_sources.csv"
     if csv_path.exists():
         import csv as csv_mod
@@ -202,7 +202,7 @@ Ta reponse doit contenir UNIQUEMENT la contraction, sans introduction, sans comm
 def generer_bon_resume(texte_source: str) -> dict:
     if not MISTRAL_API_KEY:
         return {"succes": False, "erreur": "API Mistral non configuree"}
-    nb_mots_src = len(texte_source.split())
+    nb_mots_src = len(texte_source.replace("'", " ").split())
     quota = max(1, round(nb_mots_src / 4))
     user_content = f"TEXTE SOURCE :\n\"\"\"\n{texte_source[:2000]}\n\"\"\"\n\nQuota cible : {quota} mots."
     payload = {
@@ -225,7 +225,7 @@ def generer_bon_resume(texte_source: str) -> dict:
             resp.raise_for_status()
             data = resp.json()
             texte = data["choices"][0]["message"]["content"].strip()
-            nb_mots = len(texte.split())
+            nb_mots = len(texte.replace("'", " ").split())
             return {"succes": True, "texte": texte, "nb_mots": nb_mots, "quota": quota}
         except Exception as e:
             print(f"[AZIZA][WARN] generer_bon_resume tentative {attempt}/3 : {e}")
@@ -303,7 +303,7 @@ def sauvegarder_production(session_id, texte_source, contraction, resultat):
 # ── PIPELINE ─────────────────────────────────────────────────────────────────
 
 def evaluer_avec_pipeline(texte_source, contraction, quota, profil, est_test=False):
-    nb_mots = len(contraction.split())
+    nb_mots = len(contraction.replace("'", " ").split())
 
     if not PIPELINE_OK:
         return _fallback_result(texte_source, contraction, quota, nb_mots, profil,
@@ -704,6 +704,65 @@ def progression():
                            historique_json=json.dumps(historique, ensure_ascii=False),
                            historique_mp=statut.get("historique_mp", []),
                            dernier=stats["dernier"])
+
+
+# ── PERFORMANCES AZIZA ────────────────────────────────────────────────────────
+
+PERF_CSV = PROJECT_ROOT / "data" / "performances" / "data_performances.csv"
+
+
+def lire_performances():
+    if not PERF_CSV.exists():
+        return []
+    import csv as _csv
+    with open(PERF_CSV, encoding="utf-8-sig") as f:
+        return list(_csv.DictReader(f))
+
+
+def ecrire_performances(rows):
+    import csv as _csv
+    fieldnames = [
+        "id_texte", "contraction",
+        "note_forme_expert", "note_fond_expert", "note_finale_expert",
+        "note_forme_aziza", "note_fond_aziza", "note_finale_aziza",
+    ]
+    PERF_CSV.parent.mkdir(parents=True, exist_ok=True)
+    with open(PERF_CSV, "w", newline="", encoding="utf-8-sig") as f:
+        writer = _csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+@app.route("/performances")
+def performances():
+    perf = lire_performances()
+    return render_template("performances_aziza.html", performances=perf)
+
+
+@app.route("/performances/enregistrer", methods=["POST"])
+def performances_enregistrer():
+    data = request.get_json(silent=True)
+    if not data or "id_texte" not in data:
+        return {"succes": False, "erreur": "Donnees invalides"}, 400
+    rows = lire_performances()
+    for r in rows:
+        if r["id_texte"] == data["id_texte"]:
+            r["note_forme_expert"] = str(data.get("note_forme", ""))
+            r["note_fond_expert"] = str(data.get("note_fond", ""))
+            nf = (float(data.get("note_forme", 0)) + float(data.get("note_fond", 0))) * 2
+            r["note_finale_expert"] = str(round(nf, 2))
+            ecrire_performances(rows)
+            return {"succes": True}
+    return {"succes": False, "erreur": "Texte non trouve"}, 404
+
+
+@app.route("/performances/texte-source/<sid>")
+def performances_texte_source(sid):
+    from pathlib import Path as _P
+    p = TEXTES_DIR / f"{sid}.txt"
+    if not p.exists():
+        return {"erreur": "Texte introuvable"}, 404
+    return {"texte": p.read_text(encoding="utf-8").strip()}
 
 
 @app.route("/demarrer", methods=["POST"])

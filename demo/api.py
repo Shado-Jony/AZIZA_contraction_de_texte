@@ -120,9 +120,9 @@ def evaluer():
     quota_str = body.get("quota_cible")
     quota_cible = int(quota_str) if quota_str and str(quota_str).isdigit() else None
 
-    nb_mots = len(contraction.split())
+    nb_mots = len(contraction.replace("'", " ").split())
     if quota_cible is None:
-        quota_cible = max(1, round(len(texte_source.split()) / 4))
+        quota_cible = max(1, round(len(texte_source.replace("'", " ").split()) / 4))
 
     try:
         res = evaluer_complet(texte_source, contraction, quota_cible, nb_mots)

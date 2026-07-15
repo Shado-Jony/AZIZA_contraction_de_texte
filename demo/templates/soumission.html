@@ -152,13 +152,13 @@
       });
   }
   function autoQuota(texte) {
-    var mots = texte.trim().split(/\s+/).length;
+    var mots = texte.trim().split(/[\s']+/).length;
     var quota = Math.max(20, Math.round(mots / 4));
     document.getElementById('quota_cible').value = quota;
     checkQuota();
   }
   function compterMotsContraction(el) {
-    var mots = el.value.trim() ? el.value.trim().split(/\s+/).length : 0;
+    var mots = el.value.trim() ? el.value.trim().split(/[\s']+/).length : 0;
     document.getElementById('contraction_word_count').textContent = mots;
     checkQuota();
   }
