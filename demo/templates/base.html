@@ -75,6 +75,7 @@
       var btn = e.target.closest('.btn, .btn-hero, button, input[type="submit"], input[type="button"]');
       if (btn && !btn.hasAttribute('data-no-spinner') && btn.type !== 'button') showSpinner();
     });
+    window.addEventListener('pageshow', function() { hideSpinner(); });
     hideSpinner();
     function toggleTheme() {
       var html = document.documentElement;
