@@ -89,6 +89,13 @@
       </ul>
     </section>
     <button class="lock-btn" onclick="unlockSection('boxFonctionnalites')" data-no-spinner aria-label="Déverrouiller"><i class="fa-solid fa-lock"></i></button>
+    <div style="position:absolute;bottom:.75rem;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:.4rem;align-items:center;background:var(--card-bg);padding:.35rem .6rem;border-radius:var(--radius-sm);box-shadow:var(--shadow);">
+      <div style="position:relative;">
+        <input type="password" id="pwdFonctionnalites" placeholder="Code" style="padding:.3rem .4rem;padding-right:1.8rem;font-size:.8rem;border:1px solid var(--gray-300);border-radius:4px;width:110px;">
+        <span onclick="togglePwd('pwdFonctionnalites',this)" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:.85rem;color:var(--gray-500);user-select:none;">👁️</span>
+      </div>
+      <button class="btn btn-sm" onclick="verifierCode('boxFonctionnalites','pwdFonctionnalites')" data-no-spinner style="padding:.25rem .6rem;font-size:.8rem;">OK</button>
+    </div>
   </div>
 
   <section class="card" style="margin-bottom:1.5rem;">
@@ -123,17 +130,33 @@
       </div>
     </section>
     <button class="lock-btn" onclick="unlockSection('boxTechnologies')" data-no-spinner aria-label="Déverrouiller"><i class="fa-solid fa-lock"></i></button>
+    <div style="position:absolute;bottom:.75rem;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:.4rem;align-items:center;background:var(--card-bg);padding:.35rem .6rem;border-radius:var(--radius-sm);box-shadow:var(--shadow);">
+      <div style="position:relative;">
+        <input type="password" id="pwdTechnologies" placeholder="Code" style="padding:.3rem .4rem;padding-right:1.8rem;font-size:.8rem;border:1px solid var(--gray-300);border-radius:4px;width:110px;">
+        <span onclick="togglePwd('pwdTechnologies',this)" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:.85rem;color:var(--gray-500);user-select:none;">👁️</span>
+      </div>
+      <button class="btn btn-sm" onclick="verifierCode('boxTechnologies','pwdTechnologies')" data-no-spinner style="padding:.25rem .6rem;font-size:.8rem;">OK</button>
+    </div>
   </div>
 </main>
 
 <script>
-function unlockSection(id) {
-  var pwd = prompt("Entrez le mot de passe pour déverrouiller cette section :");
-  if (pwd === "Jiovany11@Pancrace9@aziza") {
-    document.getElementById(id).classList.add("unlocked");
-  } else if (pwd !== null) {
+var PERF_PWD_APROPOS = 'Jiovany11@Pancrace9@aziza';
+function togglePwd(id, el) {
+  var inp = document.getElementById(id);
+  if (inp.type === 'password') { inp.type = 'text'; el.textContent = '🙈'; }
+  else { inp.type = 'password'; el.textContent = '👁️'; }
+}
+function verifierCode(boxId, inputId) {
+  var val = document.getElementById(inputId).value;
+  if (val === PERF_PWD_APROPOS) {
+    document.getElementById(boxId).classList.add("unlocked");
+  } else {
     alert("Mot de passe incorrect.");
   }
+}
+function unlockSection(id) {
+  document.getElementById(id).classList.add("unlocked");
 }
 </script>
 {% endblock %}

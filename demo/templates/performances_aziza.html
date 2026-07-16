@@ -82,7 +82,10 @@
       <p style="font-weight:600;margin-bottom:.5rem;">Mode expert protégé</p>
       <p style="font-size:.85rem;color:var(--gray-500);margin-bottom:1rem;">Entrez le code pour évaluer les contractions.</p>
       <div class="perf-pwd-form">
-        <input type="password" id="perfPwdInput" placeholder="Mot de passe" autocomplete="off">
+        <div style="position:relative;display:inline-block;">
+          <input type="password" id="perfPwdInput" placeholder="Mot de passe" autocomplete="off" style="padding-right:2.2rem;">
+          <span onclick="togglePwd('perfPwdInput',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:1.1rem;color:var(--gray-500);user-select:none;">👁️</span>
+        </div>
         <button class="btn btn-primary" onclick="unlockPerf()" data-no-spinner>Déverrouiller</button>
       </div>
       <div id="perfPwdError" class="perf-pwd-error">Code incorrect.</div>
@@ -177,6 +180,12 @@
 
 <script>
 var PERF_PWD = 'cdtaziza2026';
+
+function togglePwd(id, el) {
+  var inp = document.getElementById(id);
+  if (inp.type === 'password') { inp.type = 'text'; el.textContent = '🙈'; }
+  else { inp.type = 'password'; el.textContent = '👁️'; }
+}
 
 function unlockPerf() {
   var input = document.getElementById('perfPwdInput');
