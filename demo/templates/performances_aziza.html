@@ -136,7 +136,7 @@
     <h2>Contractions</h2>
     <div style="overflow-x:auto;margin-top:.75rem;">
       <table class="perf-table">
-        <thead><tr><th>ID</th><th>Qualité</th><th>Note AZIZA /20</th><th>Note Expert /20</th><th>Contraction</th></tr></thead>
+        <thead><tr><th>ID</th><th>Qualité</th><th>Note AZIZA /20</th><th>Note Expert /20</th><th>Contraction</th><th></th></tr></thead>
         <tbody>
           {% for p in perf_list %}
           {% set qual = ['bonne','bonne','bonne','moyenne','moyenne','moyenne','moyenne','mauvaise','mauvaise','mauvaise'] %}
@@ -145,7 +145,8 @@
             <td><span class="badge-quality badge-{{ qual[loop.index0] }}">{{ qual[loop.index0] }}</span></td>
             <td class="perf-score perf-aziza">{{ "%.2f"|format(p.note_finale_aziza|float) }}</td>
             <td class="perf-score perf-expert">{{ "%.2f"|format(p.note_finale_expert|float) if p.note_finale_expert else '—' }}</td>
-            <td style="font-size:.78rem;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.contraction[:120] }}…</td>
+            <td style="font-size:.78rem;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.contraction[:100] }}…</td>
+            <td><span class="perf-source-link" onclick="showContraction('{{ loop.index0 }}')">Voir</span></td>
           </tr>
           {% endfor %}
         </tbody>
@@ -153,6 +154,16 @@
     </div>
   </section>
 </main>
+
+<div class="perf-source-modal" id="perfContractionModal" onclick="if(event.target===this)closeContraction()">
+  <div class="perf-source-content">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
+      <h3 style="margin:0;">Contraction <span id="perfContractionId" style="font-weight:400;font-size:.85rem;color:var(--gray-500);"></span></h3>
+      <button class="btn btn-sm" onclick="closeContraction()">✕</button>
+    </div>
+    <pre id="perfContractionText" style="white-space:pre-wrap;font-size:.85rem;line-height:1.6;margin-top:.5rem;">Chargement…</pre>
+  </div>
+</div>
 
 <div class="perf-source-modal" id="perfSourceModal" onclick="if(event.target===this)closeSource()">
   <div class="perf-source-content">
@@ -234,6 +245,15 @@ function showSource(sid) {
 }
 function closeSource() {
   document.getElementById('perfSourceModal').classList.remove('show');
+}
+function showContraction(idx) {
+  var p = perfData[idx];
+  document.getElementById('perfContractionId').textContent = '(' + p.id_texte + ')';
+  document.getElementById('perfContractionText').textContent = p.contraction;
+  document.getElementById('perfContractionModal').classList.add('show');
+}
+function closeContraction() {
+  document.getElementById('perfContractionModal').classList.remove('show');
 }
 
 var perfData = {{ performances|tojson|safe }};
