@@ -200,6 +200,66 @@
       </div>
     </section>
 
+    <section class="card" style="margin-bottom:1rem;">
+      <h2>Feedback détaillé — Forme</h2>
+      {% set lex = r.score_lexical|float %}
+      {% set syn = r.score_syntaxe|float %}
+      {% set ort = r.score_orthographe|float %}
+      {% if lex < 1 %}{% set lex_lbl = 'Très mal' %}{% set lex_msg = 'Le vocabulaire est très pauvre ou inadapté. Travaille à enrichir ton lexique : lis davantage et utilise un dictionnaire des synonymes.' %}
+      {% elif lex < 2 %}{% set lex_lbl = 'Passable' %}{% set lex_msg = 'Le lexique est acceptable mais manque de variété. Essaie d\'utiliser des synonymes et d\'éviter les répétitions.' %}
+      {% elif lex < 2.5 %}{% set lex_lbl = 'Bien' %}{% set lex_msg = 'Bon usage du vocabulaire. Tu peux encore gagner en précision et en richesse lexicale.' %}
+      {% else %}{% set lex_lbl = 'Excellent' %}{% set lex_msg = 'Très belle maîtrise du lexique. La variété et la pertinence des termes sont au rendez-vous.' %}
+      {% endif %}
+      {% if syn < 0.5 %}{% set syn_lbl = 'Très mal' %}{% set syn_msg = 'La syntaxe est très faible : phrases trop longues ou mal structurées. Entraîne-toi à construire des phrases simples et claires.' %}
+      {% elif syn < 1 %}{% set syn_lbl = 'Passable' %}{% set syn_msg = 'La syntaxe est correcte mais manque de fluidité. Varie la structure de tes phrases et utilise des connecteurs logiques.' %}
+      {% elif syn < 1.5 %}{% set syn_lbl = 'Bien' %}{% set syn_msg = 'Bonne qualité syntaxique. Tu maîtrises les structures de base ; travaille encore l\'enchaînement des idées.' %}
+      {% else %}{% set syn_lbl = 'Excellent' %}{% set syn_msg = 'Syntaxe de grande qualité : phrases équilibrées, connecteurs variés, rythme maîtrisé.' %}
+      {% endif %}
+      {% if ort < 0.5 %}{% set ort_lbl = 'Très mal' %}{% set ort_msg = 'Trop de fautes d\'orthographe. Relis-toi attentivement et utilise un correcteur orthographique pour progresser.' %}
+      {% elif ort < 1 %}{% set ort_lbl = 'Passable' %}{% set ort_msg = 'Quelques fautes d\'orthographe persistent. Révise les règles de base (accords, conjugaisons).' %}
+      {% elif ort < 1.5 %}{% set ort_lbl = 'Bien' %}{% set ort_msg = 'Peu de fautes. Ton orthographe est correcte, encore un effort sur les cas difficiles.' %}
+      {% else %}{% set ort_lbl = 'Excellent' %}{% set ort_msg = 'Orthographe irréprochable. Tu témoignes d\'une très bonne maîtrise de la langue.' %}
+      {% endif %}
+      <div class="fb-forme-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-top:.75rem;">
+        <div class="fb-item">
+          <div><strong>Lexique</strong> <span class="fb-badge fb-{{ 'tresmal' if lex < 1 else 'passable' if lex < 2 else 'bien' if lex < 2.5 else 'excellent' }}" style="font-size:.6rem;font-weight:700;padding:.15rem .45rem;border-radius:99px;text-transform:uppercase;">{{ lex_lbl }}</span></div>
+          <div style="font-size:.75rem;color:var(--gray-500);margin:.25rem 0;">{{ "%.2f"|format(lex) }} / 3</div>
+          <p style="font-size:.8rem;line-height:1.5;margin:0;">{{ lex_msg }}</p>
+        </div>
+        <div class="fb-item">
+          <div><strong>Syntaxe</strong> <span class="fb-badge fb-{{ 'tresmal' if syn < 0.5 else 'passable' if syn < 1 else 'bien' if syn < 1.5 else 'excellent' }}" style="font-size:.6rem;font-weight:700;padding:.15rem .45rem;border-radius:99px;text-transform:uppercase;">{{ syn_lbl }}</span></div>
+          <div style="font-size:.75rem;color:var(--gray-500);margin:.25rem 0;">{{ "%.2f"|format(syn) }} / 2</div>
+          <p style="font-size:.8rem;line-height:1.5;margin:0;">{{ syn_msg }}</p>
+        </div>
+        <div class="fb-item">
+          <div><strong>Orthographe</strong> <span class="fb-badge fb-{{ 'tresmal' if ort < 0.5 else 'passable' if ort < 1 else 'bien' if ort < 1.5 else 'excellent' }}" style="font-size:.6rem;font-weight:700;padding:.15rem .45rem;border-radius:99px;text-transform:uppercase;">{{ ort_lbl }}</span></div>
+          <div style="font-size:.75rem;color:var(--gray-500);margin:.25rem 0;">{{ "%.2f"|format(ort) }} / 2 · {{ r.nb_fautes }} faute(s)</div>
+          <p style="font-size:.8rem;line-height:1.5;margin:0;">{{ ort_msg }}</p>
+          {% if r.fautes_details and r.fautes_details|length > 0 %}
+          <ul style="margin:.35rem 0 0 0;padding:0;list-style:none;font-size:.75rem;">
+            {% for faute in r.fautes_details %}
+            <li style="padding:.15rem 0;border-bottom:1px solid var(--gray-200);">{{ faute.message }}{% if faute.suggestion %} → <strong>{{ faute.suggestion }}</strong>{% endif %}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+      </div>
+      <style>
+        .fb-item { background:var(--gray-50); padding:.6rem .8rem; border-radius:var(--radius-sm); }
+        .fb-tresmal { background:#FFEBEE; color:#D32F2F; }
+        .fb-passable { background:#FFF3E0; color:#E65100; }
+        .fb-bien { background:#E3F2FD; color:#1565C0; }
+        .fb-excellent { background:#E8F5E9; color:#2E7D32; }
+        @media print {
+          .fb-item { border:1px solid #ddd; break-inside:avoid; }
+          .fb-tresmal { background:#FFEBEE; }
+          .fb-passable { background:#FFF3E0; }
+          .fb-bien { background:#E3F2FD; }
+          .fb-excellent { background:#E8F5E9; }
+        }
+      </style>
+    </section>
+
     <div class="fiche-textes">
       <div class="fiche-texte-box">
         <h3>📄 Texte source</h3>

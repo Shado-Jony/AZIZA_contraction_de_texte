@@ -63,6 +63,52 @@
     </div>
   </div>
 
+  <div class="card" style="margin-top:1.5rem;">
+    <h2>Feedback détaillé — Forme</h2>
+    <div class="fb-forme-grid">
+      {% set lex = r.score_lexical|float %}
+      {% set syn = r.score_syntaxe|float %}
+      {% set ort = r.score_orthographe|float %}
+      {% if lex < 1 %}{% set lex_lbl = 'Très mal' %}{% set lex_cls = 'fb-tresmal' %}{% set lex_msg = 'Le vocabulaire est très pauvre ou inadapté. Travaille à enrichir ton lexique : lis davantage et utilise un dictionnaire des synonymes.' %}
+      {% elif lex < 2 %}{% set lex_lbl = 'Passable' %}{% set lex_cls = 'fb-passable' %}{% set lex_msg = 'Le lexique est acceptable mais manque de variété. Essaie d\'utiliser des synonymes et d\'éviter les répétitions.' %}
+      {% elif lex < 2.5 %}{% set lex_lbl = 'Bien' %}{% set lex_cls = 'fb-bien' %}{% set lex_msg = 'Bon usage du vocabulaire. Tu peux encore gagner en précision et en richesse lexicale.' %}
+      {% else %}{% set lex_lbl = 'Excellente' %}{% set lex_cls = 'fb-excellent' %}{% set lex_msg = 'Très belle maîtrise du lexique. La variété et la pertinence des termes sont au rendez-vous.' %}
+      {% endif %}
+      {% if syn < 0.5 %}{% set syn_lbl = 'Très mal' %}{% set syn_cls = 'fb-tresmal' %}{% set syn_msg = 'La syntaxe est très faible : phrases trop longues ou mal structurées. Entraîne-toi à construire des phrases simples et claires.' %}
+      {% elif syn < 1 %}{% set syn_lbl = 'Passable' %}{% set syn_cls = 'fb-passable' %}{% set syn_msg = 'La syntaxe est correcte mais manque de fluidité. Varie la structure de tes phrases et utilise des connecteurs logiques.' %}
+      {% elif syn < 1.5 %}{% set syn_lbl = 'Bien' %}{% set syn_cls = 'fb-bien' %}{% set syn_msg = 'Bonne qualité syntaxique. Tu maîtrises les structures de base ; travaille encore l\'enchaînement des idées.' %}
+      {% else %}{% set syn_lbl = 'Excellente' %}{% set syn_cls = 'fb-excellent' %}{% set syn_msg = 'Syntaxe de grande qualité : phrases équilibrées, connecteurs variés, rythme maîtrisé.' %}
+      {% endif %}
+      {% if ort < 0.5 %}{% set ort_lbl = 'Très mal' %}{% set ort_cls = 'fb-tresmal' %}{% set ort_msg = 'Trop de fautes d\'orthographe. Relis-toi attentivement et utilise un correcteur orthographique pour progresser.' %}
+      {% elif ort < 1 %}{% set ort_lbl = 'Passable' %}{% set ort_cls = 'fb-passable' %}{% set ort_msg = 'Quelques fautes d\'orthographe persistent. Révise les règles de base (accords, conjugaisons).' %}
+      {% elif ort < 1.5 %}{% set ort_lbl = 'Bien' %}{% set ort_cls = 'fb-bien' %}{% set ort_msg = 'Peu de fautes. Ton orthographe est correcte, encore un effort sur les cas difficiles.' %}
+      {% else %}{% set ort_lbl = 'Excellente' %}{% set ort_cls = 'fb-excellent' %}{% set ort_msg = 'Orthographe irréprochable. Tu témoignes d\'une très bonne maîtrise de la langue.' %}
+      {% endif %}
+      <div class="fb-item">
+        <div class="fb-head"><span class="fb-label">Lexique</span><span class="fb-badge {{ lex_cls }}">{{ lex_lbl }}</span></div>
+        <div class="fb-score">Score : <strong>{{ "%.2f"|format(lex) }} / 3</strong></div>
+        <p class="fb-msg">{{ lex_msg }}</p>
+      </div>
+      <div class="fb-item">
+        <div class="fb-head"><span class="fb-label">Syntaxe</span><span class="fb-badge {{ syn_cls }}">{{ syn_lbl }}</span></div>
+        <div class="fb-score">Score : <strong>{{ "%.2f"|format(syn) }} / 2</strong></div>
+        <p class="fb-msg">{{ syn_msg }}</p>
+      </div>
+      <div class="fb-item">
+        <div class="fb-head"><span class="fb-label">Orthographe</span><span class="fb-badge {{ ort_cls }}">{{ ort_lbl }}</span></div>
+        <div class="fb-score">Score : <strong>{{ "%.2f"|format(ort) }} / 2</strong> · Fautes : <strong>{{ r.nb_fautes }}</strong></div>
+        <p class="fb-msg">{{ ort_msg }}</p>
+        {% if r.fautes_details and r.fautes_details|length > 0 %}
+        <ul class="fb-fautes">
+          {% for faute in r.fautes_details %}
+          <li><span class="fb-faute-msg">{{ faute.message }}</span>{% if faute.suggestion %} → <span class="fb-faute-sug">{{ faute.suggestion }}</span>{% endif %}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
   {% if r.verrou_plagiat %}
   <div class="card" style="margin-top:1.5rem;border-color:#D32F2F;background:#FFEBEE;">
     <h2 style="color:#D32F2F;">🔒 Verrou plagiat</h2>
@@ -161,6 +207,22 @@
     .badge-maitrise { background:#E8F5E9; color:#2E7D32; }
     .nav-nom { color:rgba(255,255,255,.8); font-size:.8rem; font-weight:500; margin-left:.5rem; }
     .nav-profil { display:flex; align-items:center; gap:.4rem; margin-left:auto; }
+    .fb-forme-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; margin-top:.75rem; }
+    @media (max-width:800px) { .fb-forme-grid { grid-template-columns:1fr; } }
+    .fb-item { background:var(--gray-50); padding:.75rem 1rem; border-radius:var(--radius-sm); }
+    .fb-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:.3rem; }
+    .fb-label { font-weight:700; font-size:.9rem; color:var(--gray-700); }
+    .fb-badge { font-size:.65rem; font-weight:700; padding:.2rem .55rem; border-radius:99px; text-transform:uppercase; letter-spacing:.3px; }
+    .fb-tresmal { background:#FFEBEE; color:#D32F2F; }
+    .fb-passable { background:#FFF3E0; color:#E65100; }
+    .fb-bien { background:#E3F2FD; color:#1565C0; }
+    .fb-excellent { background:#E8F5E9; color:#2E7D32; }
+    .fb-score { font-size:.78rem; color:var(--gray-500); margin-bottom:.4rem; }
+    .fb-msg { font-size:.82rem; line-height:1.5; color:var(--gray-700); }
+    .fb-fautes { margin:.4rem 0 0 0; padding:0; list-style:none; font-size:.78rem; }
+    .fb-fautes li { padding:.2rem 0; border-bottom:1px solid var(--gray-200); }
+    .fb-faute-msg { color:var(--gray-600); }
+    .fb-faute-sug { color:var(--accent); font-weight:600; }
   </style>
 </main>
 {% endblock %}
