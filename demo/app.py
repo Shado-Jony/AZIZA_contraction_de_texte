@@ -30,13 +30,14 @@ def arrondir_025(score: float) -> float:
     """Arrondit un score au 0.25 le plus proche."""
     return round(score * 4) / 4
 
-from demo.api import api_bp, limiter  # noqa: E402
+from demo.api import api_bp  # noqa: E402
+from demo.api_admin import admin_bp  # noqa: E402
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "aziza-dev-key-change-in-production")
 
 app.register_blueprint(api_bp)
-limiter.init_app(app)
+app.register_blueprint(admin_bp)
 
 swagger_config = {
     "title": "AZIZA API",
@@ -281,6 +282,15 @@ def save_profil(profil):
         "nb_tests": profil.nb_tests, "historique_mp": profil.historique_mp,
         "exercices_cycle": profil.exercices_cycle,
     }
+    session.modified = True
+
+def _sync_palier_session(profil):
+    historique = lire_historique()
+    if historique:
+        dernier_palier = historique[-1].get("palier_actuel")
+        if dernier_palier and dernier_palier != profil.palier_actuel:
+            profil.palier_actuel = dernier_palier
+            save_profil(profil)
 
 
 # ── ZONE QUOTA ──────────────────────────────────────────────────────────────
@@ -371,7 +381,7 @@ def evaluer_avec_pipeline(texte_source, contraction, quota, profil, est_test=Fal
             "score_global":       score_global,
             "score_global_20":    score_global_20,
             "score_global_pct":   score_global_pct,
-            "palier_actuel":      profil.palier_actuel,
+            "palier_actuel":      cycle_result["palier_apres"] if cycle_result else profil.palier_actuel,
             "mp":                 cycle_result["mp"] if cycle_result else (profil.historique_mp[-1] if profil.historique_mp else 0),
             "palier_suivant":     statut.get("palier_suivant"),
             "est_test":           est_test,
@@ -482,6 +492,7 @@ def soumission():
           description: Page HTML du formulaire
     """
     profil = get_profil()
+    _sync_palier_session(profil)
     from aziza.machine_etats import CYCLE_EXERCICES
     return render_template("soumission.html", textes=[(sid, d["titre"]) for sid, d in TEXTES_SOURCES.items()],
                            profil=profil.to_dict() if profil.nom else None,
@@ -553,6 +564,7 @@ def evaluer():
     prod_dir = sauvegarder_production(session_id, texte_source, contraction, resultat)
     resultat["production_dir"] = prod_dir
     save_profil(profil)
+    session.modified = True
 
     historique = lire_historique()
     historique.append({
@@ -643,6 +655,7 @@ def resultats(session_id):
         return redirect(url_for("soumission"))
 
     profil = get_profil()
+    _sync_palier_session(profil)
     labels = {"decouverte": "Decouverte", "consolidation": "Consolidation", "maitrise": "Maitrise"}
     return render_template("resultats.html", r=resultat, profil=profil.to_dict(),
                            palier_label=labels.get(resultat["palier_actuel"], resultat["palier_actuel"]),
@@ -696,6 +709,7 @@ def progression():
     """
     historique = lire_historique()
     profil = get_profil()
+    _sync_palier_session(profil)
     labels = {"decouverte": "Decouverte", "consolidation": "Consolidation", "maitrise": "Maitrise"}
     couleurs = {"decouverte": "#e74c3c", "consolidation": "#f39c12", "maitrise": "#2ecc71"}
     machine = MachineEtats(profil)

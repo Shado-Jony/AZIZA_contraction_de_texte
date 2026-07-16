@@ -81,7 +81,7 @@ Une fois l'application lancée :
 http://localhost:5100/apidocs
 ```
 
-Interface Swagger UI interactive — 8 endpoints documentés :
+Interface Swagger UI interactive :
 
 | Endpoint | Méthode | Auth | Description |
 |----------|---------|------|-------------|
@@ -92,41 +92,116 @@ Interface Swagger UI interactive — 8 endpoints documentés :
 | `/progression` | GET | — | Tableau de bord et historique |
 | `/demarrer` | POST | — | Initialisation session élève |
 | **`/api/v1/health`** | GET | — | Healthcheck public |
-| **`/api/v1/evaluer`** | POST | `X-API-Key` | API REST — évaluation JSON (60 req/min) |
+| **`/api/v1/evaluer`** | POST | `X-API-Key` | API REST — évaluation JSON (token client requis) |
+| **`/admin/tokens`** | GET | `X-API-Key` | Admin — lister les tokens clients (clé maître) |
+| **`/admin/tokens`** | POST | `X-API-Key` | Admin — créer un token client (clé maître) |
+| **`/admin/tokens/<token>/plan`** | PATCH | `X-API-Key` | Admin — changer le plan d'un token |
+| **`/admin/tokens/<token>`** | DELETE | `X-API-Key` | Admin — désactiver un token |
 
 ---
 
 ## API REST
 
-L'API REST expose les endpoints suivants (avec Swagger sur `/apidocs`) :
+Le système utilise un **système de tokens multi-clients avec plans** :
+
+| Plan | Requêtes/jour | Usage |
+|------|:------------:|-------|
+| **Free** | 100 | Test et démo |
+| **Basic** | 500 | Petite structure |
+| **Pro** | 5 000 | Établissement scolaire |
+| **Illimité** | ∞ | Partenaire institutionnel |
+
+Chaque client reçoit un **token unique** (UUID hex) qui lui sert de clé API.  
+Le quota se réinitialise automatiquement chaque jour.
+
+### Gestion des tokens (admin)
+
+Les endpoints admin sont protégés par la **clé maître** (`AZIZA_API_KEY` dans `.env`).
+
+Remplacer `URL_BASE` par :
+- **Local** : `http://localhost:5100`
+- **PythonAnywhere** : `https://Jiovany11.pythonanywhere.com`
+
+**Terminal (Linux/Mac — curl) :**
+```bash
+# Créer un token
+curl -X POST URL_BASE/admin/tokens \
+  -H "X-API-Key: votre-cle-maitre" \
+  -H "Content-Type: application/json" \
+  -d '{"client_name": "Ecole ABC", "plan": "pro"}'
+
+# Lister les tokens
+curl URL_BASE/admin/tokens -H "X-API-Key: votre-cle-maitre"
+```
+
+**PowerShell (Windows) :**
+```powershell
+$url     = "URL_BASE/admin/tokens"
+$headers = @{ "X-API-Key" = "votre-cle-maitre"; "Content-Type" = "application/json" }
+
+# Créer un token
+$body = @{ client_name = "Ecole ABC"; plan = "pro" } | ConvertTo-Json
+Invoke-RestMethod -Uri $url -Method Post -Headers $headers -Body $body
+
+# Lister les tokens
+Invoke-RestMethod -Uri $url -Method Get -Headers $headers
+```
+
+**Python (tous OS) :**
+```python
+import requests
+URL_BASE = "URL_BASE"  # localhost:5100 ou l'URL PythonAnywhere
+h = {"X-API-Key": "votre-cle-maitre"}
+r = requests.post(f"{URL_BASE}/admin/tokens", headers=h,
+                  json={"client_name": "Ecole ABC", "plan": "pro"})
+print(r.json())
+```
 
 ### POST /api/v1/evaluer
 
-Évalue une contraction via JSON — nécessite une clé API dans le header `X-API-Key`.
+Évalue une contraction via JSON — nécessite un **token client** dans le header `X-API-Key`.
 
+**Terminal (curl) :**
 ```bash
-curl -X POST http://localhost:5100/api/v1/evaluer \
+curl -X POST URL_BASE/api/v1/evaluer \
+  -H "X-API-Key: token-du-client" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: aziza-api-key-2026" \
   -d '{"texte_source": "Texte à contracter.", "contraction": "Texte produit."}'
 ```
 
-Sous **Windows PowerShell** utiliser `curl.exe` :
-```powershell
-curl.exe -X POST http://localhost:5100/api/v1/evaluer -H "Content-Type: application/json" -H "X-API-Key: aziza-api-key-2026" -d '{\"texte_source\": \"Texte.\", \"contraction\": \"Ma contraction.\"}'
-```
-
-Ou en Python :
-```bash
-python -c "import requests; r=requests.post('http://localhost:5100/api/v1/evaluer', headers={'X-API-Key': 'aziza-api-key-2026'}, json={'texte_source': 'Texte.', 'contraction': 'Ma contraction.'}); print(r.json())"
+**Python (tous OS) :**
+```python
+import requests
+r = requests.post("URL_BASE/api/v1/evaluer",
+    headers={"X-API-Key": "token-du-client"},
+    json={"texte_source": "Texte à contracter.", "contraction": "Texte produit."})
+print(r.json())
 ```
 
 **Réponse (200) :**
 ```json
-{"succes": true, "note_finale": 4.33, "score_forme": 1.83, "score_fond": 2.5, ...}
+{
+  "succes": true,
+  "note_finale": 4.33,
+  "score_forme": 1.83,
+  "score_fond": 2.5,
+  "...": "...",
+  "quota_plan": {
+    "plan": "pro",
+    "limite": 5000,
+    "utilise": 1,
+    "restant": 4999
+  }
+}
 ```
 
-**Rate limiting :** 60 requêtes/min. Header `X-API-Key` obligatoire.
+**Réponses d'erreur :**
+
+| Status | Raison |
+|--------|--------|
+| **401** | Token invalide ou manquant |
+| **403** | Token désactivé |
+| **429** | Quota journalier épuisé (Retour le JJ/MM/AAAA) |
 
 ### GET /api/v1/health
 
@@ -225,8 +300,10 @@ Aziza_contraction_de_texte/
 │   └── machine_etats.py             # Machine à états adaptative (3 paliers)
 │
 ├── demo/                            # Interface web Flask
-│   ├── app.py                       # Routes HTML + Swagger + rate limiting
-│   ├── api.py                       # API REST (/api/v1/evaluer, /health) + auth
+│   ├── app.py                       # Routes HTML + Swagger
+│   ├── api.py                       # API REST (/api/v1/evaluer, /health) + token auth
+│   ├── api_admin.py                 # Administration des tokens clients
+│   ├── token_manager.py             # Gestion des tokens (SQLite + plans + quota)
 │   ├── static/
 │   │   └── style.css                # Styles professionnels
 │   ├── templates/
@@ -243,6 +320,7 @@ Aziza_contraction_de_texte/
 │   │   └── cours.html               # Cours sur la contraction de texte
 │   └── data/                        # Stockage automatique
 │       ├── historique.json          # Historique des évaluations
+│       ├── tokens.db                # Base SQLite des tokens clients
 │       └── productions/             # Textes sources + contractions bruts
 │
 ├── .github/workflows/
@@ -263,7 +341,7 @@ Clé API Mistral déjà intégrée dans `aziza/pipeline/fond.py`. Pour la surcha
 
 ```ini
 MISTRAL_API_KEY=votre_cle_api_mistral    # Remplace la clé hardcodée
-AZIZA_API_KEY=aziza-api-key-2026         # Clé pour l'API REST /api/v1/evaluer
+AZIZA_API_KEY=aziza-api-key-2026         # Clé maître pour l'administration des tokens
 FLASK_SECRET_KEY=une_cle_secrete_unique   # Changez en production
 FLASK_ENV=production                      # development / production
 FLASK_PORT=5100                           # Port d'écoute
@@ -348,7 +426,7 @@ Rapport de synthèse : `experiments/resultats/forme_et_fond/rapport_synthese.md`
 | **LanguageTool** | Correction orthographique distante |
 | **scikit-learn** | TF-IDF, similarité cosinus |
 | **flasgger** | Documentation Swagger/OpenAPI |
-| **flask-limiter** | Rate limiting API REST (60 req/min) |
+| **SQLite** | Stockage des tokens API clients + quotas |
 | **Chart.js** | Graphiques de progression (CDN) |
 | **GitHub Actions** | CI/CD (optionnel) |
 | **PythonAnywhere** | Hébergement gratuit |

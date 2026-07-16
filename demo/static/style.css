@@ -1099,10 +1099,9 @@ select.input { cursor: pointer; appearance: auto; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
   background: var(--card-bg);
   border-radius: 20px;
-  padding: 2rem 2.5rem 1.5rem;
+  padding: 2rem;
   box-shadow: 0 8px 40px rgba(0,0,0,.2);
 }
 
@@ -1131,13 +1130,6 @@ select.input { cursor: pointer; appearance: auto; }
 }
 @keyframes az-anti-spin {
   to { transform: rotate(-360deg); }
-}
-
-.az-spinner-msg {
-  font-size: .85rem;
-  color: var(--gray-500);
-  font-weight: 500;
-  white-space: nowrap;
 }
 
 @media print { #aziza-spinner { display: none !important; } }

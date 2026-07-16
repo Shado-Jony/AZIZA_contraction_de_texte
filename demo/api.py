@@ -2,108 +2,47 @@
 demo/api.py — API REST AZIZA v2.0
 ==================================
 Blueprints :
-  POST /api/v1/evaluer  → JSON complet d'évaluation (clé API requise)
+  POST /api/v1/evaluer  → JSON complet d'évaluation (token requis)
   GET  /api/v1/health   → {"status": "ok"}
 """
 
-import os
 import sys
 from pathlib import Path
 
-from flask import Blueprint, request, jsonify
-from flask_limiter import Limiter
+from flask import Blueprint, request, jsonify, g
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from aziza.pipeline.complet import evaluer_complet
+from demo.token_manager import validate_token, increment_usage
 
 api_bp = Blueprint("api", __name__, url_prefix="/api/v1")
 
 
-def _rate_key():
-    return request.headers.get("X-API-Key", request.remote_addr)
-
-
-limiter = Limiter(key_func=_rate_key)
-
-AZIZA_API_KEY = os.environ.get(
-    "AZIZA_API_KEY", "aziza-api-key-2026"
-)
-
-
-def require_api_key():
-    key = request.headers.get("X-API-Key", "")
-    if key != AZIZA_API_KEY:
-        return jsonify({"error": "Unauthorized", "message": "Clé API invalide ou manquante."}), 401
+def require_token():
+    token = request.headers.get("X-API-Key", "")
+    result = validate_token(token)
+    if not result["ok"]:
+        return result
+    g.api_token = token
+    g.api_client = result["client_name"]
+    g.api_plan = result["plan"]
+    g.api_limit = result["limit"]
+    g.api_used = result["used"]
+    g.api_remaining = result["remaining"]
     return None
 
 
 @api_bp.route("/health", methods=["GET"])
 def health():
-    """Healthcheck public de l'API.
-    ---
-    get:
-      summary: Vérifie que l'API est opérationnelle
-      responses:
-        200:
-          description: API en ligne
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: ok
-    """
     return jsonify({"status": "ok", "version": "2.0.0"})
 
 
 @api_bp.route("/evaluer", methods=["POST"])
-@limiter.limit("60/minute")
 def evaluer():
-    """Évalue une contraction de texte via l'API REST.
-    ---
-    post:
-      summary: Évalue une contraction (JSON)
-      description: >
-        Pipeline complet forme /7 + fond /3 + verrous.
-        Nécessite un header X-API-Key valide.
-        Limité à 60 requêtes/min.
-      security:
-        - ApiKeyAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [texte_source, contraction]
-              properties:
-                texte_source:
-                  type: string
-                  description: Texte source à contracter
-                contraction:
-                  type: string
-                  description: Texte produit par l'élève
-                quota_cible:
-                  type: integer
-                  description: Nombre de mots cible (optionnel)
-      responses:
-        200:
-          description: Résultat complet de l'évaluation
-          content:
-            application/json:
-              schema:
-                type: object
-        401:
-          description: Clé API invalide
-        429:
-          description: Trop de requêtes (rate limit)
-    """
-    auth = require_api_key()
+    auth = require_token()
     if auth:
-        return auth
+        return jsonify({"error": auth["error"]}), auth["status"]
 
     body = request.get_json(silent=True)
     if not body:
@@ -127,6 +66,8 @@ def evaluer():
     try:
         res = evaluer_complet(texte_source, contraction, quota_cible, nb_mots)
         note_finale = res["note_finale"]
+
+        increment_usage(g.api_token)
 
         return jsonify({
             "succes": True,
@@ -157,6 +98,12 @@ def evaluer():
             "feedback_erreur": res["feedback_erreur"],
             "feedback_micro_cours": res["feedback_micro_cours"],
             "feedback_exemple": res["feedback_exemple"],
+            "quota_plan": {
+                "plan": g.api_plan,
+                "limite": g.api_limit,
+                "utilise": g.api_used,
+                "restant": g.api_remaining,
+            },
         })
     except Exception as e:
         return jsonify({

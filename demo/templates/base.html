@@ -50,7 +50,6 @@
   <div id="aziza-spinner">
     <div class="az-spinner-box">
       <div class="az-spinner-ring"><span>AZIZA</span></div>
-      <span class="az-spinner-msg" id="aziza-spinner-msg">Chargement...</span>
     </div>
   </div>
 
@@ -63,10 +62,8 @@
         document.querySelector('.nav-bar')?.classList.remove('nav-open');
       }
     });
-    function showSpinner(msg) {
-      var s = document.getElementById('aziza-spinner');
-      if (msg) document.getElementById('aziza-spinner-msg').textContent = msg;
-      s.classList.add('show');
+    function showSpinner() {
+      document.getElementById('aziza-spinner').classList.add('show');
     }
     function hideSpinner() {
       document.getElementById('aziza-spinner').classList.remove('show');
