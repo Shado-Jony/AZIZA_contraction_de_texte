@@ -162,41 +162,48 @@ GENERATION_PROMPT = """Tu es un expert en contraction de texte pour le Baccalaur
 Genere une contraction parfaite du texte source fourni.
 
 La contraction sera automatiquement notee par AZIZA selon les criteres suivants.
-Respecte CHAQUE point pour obtenir une note superieure a 15/20.
+Respecte CHAQUE point pour obtenir une note superieure ou egale a 16/20.
 
-── LEXICAL (3 pt) ──
-- La contraction doit etre une REFORMULATION personnelle :
-  * Change la structure des phrases, remplace les mots par des synonymes
-  * Ne copie JAMAIS des segments entiers du texte source
-  * Le taux de reprise lexicale (LCS) doit rester entre 26% et 80%
-  * Trop de mots identiques = plagiat → note zero
+── REGLES GENERALES ──
+- Ecris en francais correct, avec majuscules et ponctuation normales.
+- La contraction doit faire EXACTEMENT 1/4 du texte source (±5%).
+- Reformule ENTIEREMENT chaque idee : ne recopie jamais un segment mot pour mot.
+- Conserve TOUTES les idees essentielles dans le MEME ORDRE que le texte source.
+- Reste fidele a la these de l'auteur : aucun ajout personnel, aucun contresens.
+- Garde un ton neutre et objectif (pas de "je", "nous", "a mon avis").
 
-── QUOTA (penalite) ──
-- La contraction doit faire EXACTEMENT 1/4 du texte source (±5%)
-- La penalite de quota s'applique si le quota est depasse
+── LEXIQUE (3 points) ──
+- Utilise un vocabulaire riche et varie : synonymes, reformulations.
+- Evite les repetitions d'un meme mot dans une meme phrase ou un meme paragraphe.
+- Le taux de reprise lexicale (LCS) doit rester entre 26 % et 80 %.
+- Trop de segments identiques au texte source = zero.
 
-── SYNTAXE (2 pt) ──
-- Utilise au moins 4 a 5 connecteurs logiques varies (d'abord, ensuite, par ailleurs, cependant, en effet, ainsi, car, donc, enfin, notamment, neanmoins, toutefois, en outre, en conclusion)
-- Alterne phrases longues et courtes
-- Le ratio du nombre de phrases entre le texte source et la contraction doit etre coherent
+── SYNTAXE (2 points) ──
+- Utilise au moins 4 a 5 connecteurs logiques varies parmi :
+  d'abord, ensuite, par ailleurs, cependant, en effet, ainsi, car,
+  donc, enfin, notamment, neanmoins, toutefois, en outre, en conclusion.
+- Alterne phrases longues et courtes pour un rythme agreable.
+- Veille a ce que le nombre de phrases soit coherent avec le texte source.
 
-── ORTHOGRAPHE (2 pt) ──
-- Zero faute d'orthographe, zero faute de grammaire, zero faute de conjugaison
-- Accords sujet-verbe corrects, pas de fautes d'accords
+── ORTHOGRAPHE (2 points) ──
+- Zero faute d'orthographe, de grammaire ou de conjugaison.
+- Accords sujet-verbe corrects, accords des participes passes corrects.
 
-── FOND (3 pt) ──
-- Conserve TOUTES les idees essentielles dans le MEME ORDRE que le texte source
-- Reste fidele a la these de l'auteur — aucun ajout d'idee personnelle
-- Aucun contresens, aucune deformation du sens original
-- Garde un ton neutre et objectif (pas de "je", "nous", "a mon avis")
-- La contraction doit etre en BAS DE CASSE (minuscules), sans majuscules en debut de phrase ni ponctuation, sauf pour les noms propres et sigles
+── FOND (3 points) ──
+- Degage la these et les arguments principaux de l'auteur.
+- Chaque paragraphe correspond a une idee cle du texte source.
+- Ne rien inventer, ne rien omettre d'essentiel.
 
-── STRUCTURE ──
-- Introduction breve rappelant le sujet
-- Developpement structurant les idees avec des connecteurs logiques
-- Conclusion rapide reprenant l'idee-force de l'auteur
+── STRUCTURE ATTENDUE ──
+1. Phrase d'accroche presentant le theme et la position de l'auteur.
+2. Developpement : 2 a 3 paragraphes articules par des connecteurs logiques,
+   chacun reprenant une idee majeure du texte source.
+3. Phrase de conclusion qui synthetise l'idee-force de l'auteur.
 
-Ta reponse doit contenir UNIQUEMENT la contraction, sans introduction, sans commentaire, sans explication."""
+Ta reponse doit contenir UNIQUEMENT la contraction, sans introduction,
+sans commentaire, sans explication. Signale la fin par '===' sur une ligne."""
+
+
 
 
 def generer_bon_resume(texte_source: str) -> dict:
