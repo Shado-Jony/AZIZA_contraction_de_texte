@@ -1,10 +1,10 @@
 % ============================================================
-% CHAPITRE 2 : MÉTHODOLOGIE & ARCHITECTURE
+% CHAPITRE 2 : MÉTHODES ET SOLUTIONS
 % ============================================================
-\chapter{Méthodologie et architecture}
+\chapter{Méthodes et Solutions}
 \label{ch:methodo}
 
-Ce chapitre expose la méthodologie employée pour concevoir et valider \AZIZA. Il détaille la constitution du corpus d'expérimentation, l'architecture du pipeline hybride, la grille d'évaluation académique, les verrous pédagogiques, la machine à états de l'apprenant, ainsi que les choix techniques et méthodologiques qui fondent le système.
+Ce chapitre expose la méthodologie employée pour concevoir et valider \AZIZA. Il détaille la constitution du corpus d'expérimentation, l'architecture du pipeline hybride, la grille d'évaluation académique, les verrous pédagogiques, la machine à états de l'apprenant, ainsi que les choix techniques et méthodologiques qui fondent le système. La seconde partie du chapitre présente l'implémentation concrète du pipeline, depuis l'organisation du code source jusqu'au déploiement sur PythonAnywhere.
 
 \section{Génération du corpus d'expérimentation}
 \label{sec:generation-corpus}
@@ -29,7 +29,7 @@ Pour constituer le corpus de 30 contractions, nous avons développé un \textbf{
     \item \textbf{10 contractions incorrectes} : avec un défaut grave (plagiat manifeste, contresens majeur, hors quota grave).
 \end{itemize}
 
-Chaque génération utilise un prompt système fixe définissant la grille d'évaluation (section~\ref{sec:grille}) et un prompt utilisateur variable spécifiant le texte source et le type de défaut à injecter. Le détail complet des prompts est fourni en annexe~\ref{sec:prompts-generation}.
+Chaque génération utilise un prompt système fixe définissant la grille d'évaluation (section~\ref{sec:grille}) et un prompt utilisateur variable spécifiant le texte source et le type de défaut à injecter. Le détail complet des prompts est consultable dans le dépôt du projet.
 
 \section{Description et dictionnaire des variables du système}
 
@@ -40,10 +40,10 @@ La base de données d'expérimentation d'\AZIZA\ structure les informations sous
 \renewcommand{\arraystretch}{1.5}
 \arrayrulecolor{gray!60}
 \begin{longtable}
-{>{\raggedright\arraybackslash}p{4.0cm}
- >{\raggedright\arraybackslash}p{3.7cm}
- >{\centering\arraybackslash}p{1.5cm}
- >{\raggedright\arraybackslash}p{3.7cm}}
+{>{\raggedright\arraybackslash}p{3.8cm}
+ >{\raggedright\arraybackslash}p{4.2cm}
+ >{\centering\arraybackslash}p{1.2cm}
+ >{\raggedright\arraybackslash}p{5.1cm}}
 \toprule
 \rowcolor{gray!15}
 \multicolumn{1}{c}{\textbf{Variable}} &
@@ -248,7 +248,7 @@ Le corpus a été volontairement déséquilibré pour refléter les cas d'usage 
 
 \begin{itemize}
     \item \textbf{Palier « Correct » (\(n=23\))} : Utilisé pour tester la fidélité des métriques et s'assurer que le système ne génère pas de faux positifs (fausses alertes de plagiat ou de sévérité).
-    \item \textbf{Palier « Partiellement Correct » / « Incorrect » (\(n=7\))} : Regroupe les anomalies de simulation (plagiat par patchwork, inclusions subjectives, copies hors-quotas, textes truffés de fautes) afin d'éprouver les verrous pédagogiques d'\\AZIZA.
+    \item \textbf{Palier « Partiellement Correct » / « Incorrect » (\(n=7\))} : Regroupe les anomalies de simulation (plagiat par patchwork, inclusions subjectives, copies hors-quotas, textes truffés de fautes) afin d'éprouver les verrous pédagogiques d'\AZIZA.
 \end{itemize}
 
 \subsection{Corrélation des variables expertes}
@@ -260,7 +260,7 @@ L'analyse initiale des annotations montre une corrélation négative parfaite en
 
 Afin de calibrer l'outil d'entraînement \AZIZA\ sur un standard pédagogique rigoureux, le système s'appuie sur la \textbf{Grille simplifiée d'évaluation de la contraction de texte} issue des travaux de l'Académie de Limoges\footnote{\url{https://pedagogie.ac-limoges.fr/lettres/IMG/pdf/evaluation_contraction_essai_grille_simplifia_c_e.pdf}}. Cette grille objective la notation globale sur 10 points en la découpant en critères quantifiables, permettant de guider l'apprenant dans sa préparation.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{grille.png}
 \caption{Grille simplifiée d'évaluation de la contraction de texte — Académie de Limoges}
@@ -293,7 +293,7 @@ Quatre verrous éliminatoires protègent l'intégrité de l'évaluation :
 
 L'architecture d'\AZIZA\ repose sur le principe fondamental de \textbf{séparation stricte des préoccupations} : la forme et le fond sont évalués par des modules indépendants, garantissant que les hallucinations potentielles du LLM n'affectent jamais les critères quantitatifs.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{distribution_comparee.png}
 \caption{Architecture générale du pipeline AZIZA}
@@ -521,7 +521,7 @@ La stratégie de test suit le modèle pyramidal à trois niveaux :
 
 \begin{itemize}
     \item \textbf{Tests unitaires (117)} : chaque fonction du pipeline est testée isolément (LCS, calcul syntaxique, appel LanguageTool, génération de prompts, parsing des réponses LLM).
-    \item \textbf{Tests d'intégration (12)} : validation des chaînes complètes (soumission d'une contraction → réception de la note) pour les 3 paliers et les 9 types de défaut.
+    \item \textbf{Tests d'intégration (12)} : validation des chaînes complètes (soumission d'une contraction $\rightarrow$ réception de la note) pour les 3 paliers et les 9 types de défaut.
     \item \textbf{Tests de bout en bout (5)} : scénarios utilisateur complets via l'interface web (soumission, consultation des résultats, navigation dans l'historique).
 \end{itemize}
 
@@ -548,6 +548,202 @@ La validation finale a porté sur les 30 observations du corpus :
 
 Ces résultats confirment que l'approche hybride (déterministe + LLM) constitue une solution viable pour l'évaluation automatique de la contraction de texte dans un cadre pédagogique.
 
+\section{Implémentation}
+\label{sec:implementation}
+
+Cette section présente l'implémentation concrète du pipeline \AZIZA, depuis l'organisation du code source jusqu'au déploiement, en détaillant les modules de la couche déterministe et sémantique, l'API REST sécurisée et la documentation Swagger.
+
+\subsection{Architecture logicielle}
+
+Le code source d'\AZIZA est structuré en modules indépendants dans une arborescence claire :
+
+\begin{treebox}{Structure du projet AZIZA}
+{\footnotesize
+\begin{verbatim}
+AZIZA/
++-- aziza/
+|   +-- __init__.py
+|   +-- pipeline/
+|   |   +-- complet.py       # Orchestrateur (forme/fond/verrous)
+|   |   +-- forme.py         # Score de forme (/7)
+|   |   +-- fond.py          # Score de fond (/3) via Mistral
+|   |   +-- similarite.py    # Metriques lexicales (LCS)
+|   |   +-- seuils_production.json
+|   +-- machine_etats.py     # Machine a etats (3 paliers)
++-- demo/
+|   +-- app.py               # Routes HTML + Swagger
+|   +-- api.py               # API REST (/api/v1) + auth
+|   +-- static/style.css
+|   +-- templates/           # 4 templates Jinja2
+|   +-- data/
++-- docs/                    # Memoire LaTeX
++-- experiments/             # Notebooks Jupyter + figures
++-- tests.py                 # 117 tests unitaires
++-- requirements.txt
++-- .env.example
++-- README.md
+\end{verbatim}
+}
+\end{treebox}
+
+\subsection{Implémentation du pipeline Forme}
+
+La fonction \texttt{analyser\_forme} dans \texttt{forme.py} coordonne trois sous-systèmes :
+
+\subsubsection{Lexical}
+
+Le calcul du score lexical utilise le LCS normalisé :
+\begin{equation}
+\text{LCS\_norm} = \frac{\text{LCS}(source, contraction)}{\max(|source|, |contraction|)}
+\end{equation}
+Transformé par une fonction parabolique :
+\begin{equation}
+f(x) = -4.15x^2 + 6.64x - 1.66
+\end{equation}
+Bornée entre \(S_{\min}=0.26\) (score 0) et \(S_{\max}=0.80\) (score 3).
+
+\subsubsection{Syntaxe et connecteurs}
+
+Neuf catégories de connecteurs sont détectées par expressions régulières et comparées à un seuil de 3 connecteurs attendus dans une contraction de qualité.
+
+\subsubsection{Orthographe}
+
+L'appel à l'API LanguageTool distant renvoie la liste des erreurs avec leurs suggestions. Le barème dégressif pénalise proportionnellement au nombre de fautes.
+
+\subsection{Implémentation du pipeline Fond}
+
+\subsubsection{Défi technique : le format de l'API Mistral}
+
+Lors du développement, un bug critique est apparu : l'API Mistral a modifié son format de message (2026). Le champ \texttt{content} doit désormais être un tableau de parties :
+
+\begin{lstlisting}[caption=Correctif du format content pour Mistral API 2026,language=Python]
+def _as_text(content: str) -> list:
+    return [{"type": "text", "text": content}]
+\end{lstlisting}
+
+Ce correctif, appliqué dans \texttt{fond.py}, a résolu l'erreur \texttt{Cannot read "image.png"} qui survenait lorsque Mistral recevait une chaîne simple au lieu du format tableau.
+
+\subsubsection{Embedding sémantique}
+
+Le calcul de similarité cosinus utilise \texttt{mistral-embed} :
+
+\begin{equation}
+\text{sim\_sem} = \frac{\vec{v}_{source} \cdot \vec{v}_{contraction}}{\|\vec{v}_{source}\| \times \|\vec{v}_{contraction}\|}
+\end{equation}
+
+\subsubsection{Prompt Few-Shot avec chaîne de pensée}
+
+Le prompt système impose une chaîne de pensée obligatoire en 6 étapes avant la production du JSON de sortie. Cinq exemples illustrent les cas typiques (correct, contresens, subjectivité, omissions).
+
+\subsection{API REST et sécurité}
+
+L'API REST, définie dans \texttt{demo/api.py}, expose deux endpoints :
+
+\begin{itemize}
+    \item \texttt{POST /api/v1/evaluer} : évaluation complète nécessitant le header \texttt{X-API-Key}.
+    \item \texttt{GET /api/v1/health} : healthcheck public.
+\end{itemize}
+
+Le \textbf{rate limiting} (60 requêtes/min) est implémenté via \texttt{flask-limiter}, avec une clé de limitation basée sur \texttt{X-API-Key} ou l'adresse IP.
+
+\subsection{Documentation Swagger}
+
+La documentation interactive est générée automatiquement par \texttt{flasgger} à partir des docstrings YAML des routes. Un correctif a été nécessaire : le paramètre \texttt{headers} doit être défini à \texttt{[]} dans la configuration Swagger pour éviter un \texttt{TypeError} (\texttt{NoneType} object is not iterable).
+
+\subsection{Intégration technique}
+
+L'intégration entre les différents composants d'\AZIZA{} suit une architecture en trois couches : le noyau métier (\texttt{aziza/}), l'API REST (\texttt{demo/api.py}) et l'interface web (\texttt{demo/app.py}). Cette section détaille les points d'intégration entre ces couches.
+
+\subsubsection{Backend et API}
+
+Le noyau métier (\texttt{aziza/pipeline/complet.py}) expose une fonction unique \texttt{executer\_pipeline(texte, source, mode)} qui orchestre les trois sous-pipelines (forme, fond, verrous). L'API REST (\texttt{demo/api.py}) encapsule cet appel dans la route \texttt{POST /api/v1/evaluer} :
+
+\begin{itemize}
+    \item La requête HTTP transporte le texte de l'apprenant, le texte source et le mode (exercice/test) au format JSON.
+    \item Le header \texttt{X-API-Key} est validé par un décorateur avant toute exécution du pipeline.
+    \item Le rate limiting (60 requêtes/min) protège l'API contre les abus.
+    \item La réponse JSON contient les scores (forme, fond, total), la décision des verrous et le feedback pédagogique.
+\end{itemize}
+
+L'intégration avec \textbf{Mistral AI} s'effectue à deux niveaux :
+
+\begin{itemize}
+    \item \textbf{Évaluation du fond} : \texttt{fond.py} envoie un prompt few-shot avec chaîne de pensée à \texttt{mistral-large-latest} et parse la réponse JSON.
+    \item \textbf{Embedding sémantique} : \texttt{similarite.py} appelle \texttt{mistral-embed} pour calculer la similarité cosinus entre la source et la contraction.
+\end{itemize}
+
+La \textbf{machine à états} (\texttt{machine\_etats.py}) est sollicitée en fin de pipeline pour mettre à jour le palier de l'apprenant en fonction du score total et du mode.
+
+\subsubsection{Interface Web}
+
+L'interface utilisateur (\texttt{demo/app.py}) est une application Flask monolithique qui intègre les fonctionnalités suivantes :
+
+\begin{itemize}
+    \item \textbf{Formulaire de soumission} : l'utilisateur colle le texte source et sa contraction dans un formulaire HTML. La soumission déclenche une requête \texttt{POST} vers l'API interne.
+    \item \textbf{Affichage des résultats} : les scores (forme, fond, total) sont présentés dans un tableau de bord avec code couleur (vert/rouge) selon les seuils de réussite.
+    \item \textbf{Feedback pédagogique} : le JSON renvoyé par Mistral est parsé et affiché sous forme de carte structurée (erreurs, micro-cours, exemples).
+    \item \textbf{Progression} : en mode test, le palier actuel de l'apprenant et la progression vers le palier suivant sont affichés dynamiquement.
+    \item \textbf{Documentation Swagger} : accessible via \texttt{GET /apidocs/}, générée automatiquement par \texttt{flasgger}.
+\end{itemize}
+
+Les templates Jinja2 (\texttt{demo/templates/}) assurent le rendu côté serveur avec Bootstrap 5 pour le responsive design. Le fichier \texttt{static/style.css} contient les ajustements de style (glassmorphisme, animations). L'ensemble forme une interface cohérente, testée sur les deux terminaux décrits à la section~\ref{sec:ressources_materielles}.
+
+\subsection{Déploiement}
+
+Le déploiement initial prévu sur HuggingFace Spaces (Docker) a été abandonné suite au passage de Docker Spaces derrière un paywall en juillet 2026. L'application a été redéployée sur \textbf{PythonAnywhere} (gratuit, pas de sleep), accessible à l'adresse :
+\begin{center}
+\url{https://Jiovany11.pythonanywhere.com}
+\end{center}
+
+La procédure de déploiement inclut :
+\begin{enumerate}
+    \item Clone du dépôt GitHub.
+    \item Création d'un environnement virtuel Python 3.12.
+    \item Installation des dépendances (\texttt{requirements.txt}).
+    \item Configuration manuelle du Web App (WSGI, virtualenv, static files).
+    \item Définition des variables d'environnement (\texttt{MISTRAL\_API\_KEY}, \texttt{AZIZA\_API\_KEY}, \texttt{FLASK\_SECRET\_KEY}).
+\end{enumerate}
+
+\subsection{Captures d'écrans de la plateforme}
+\label{subsec:captures-plateforme}
+
+Cette section présente les captures d'écran de l'interface web d'\AZIZA, illustrant les principales fonctionnalités de la plateforme accessibles à l'apprenant.
+
+\subsubsection{Documentation Swagger interactive}
+
+L'interface Swagger est accessible à l'adresse \url{https://Jiovany11.pythonanywhere.com/apidocs/} et documente les 8 endpoints de l'API REST \AZIZA. Elle permet de tester chaque endpoint directement, de visualiser les schémas de requête et réponse au format JSON, et de consulter les codes d'erreur HTTP.
+
+\subsubsection{Page d'évaluation}
+
+La page d'évaluation propose une interface utilisateur épurée permettant à l'apprenant de soumettre sa contraction. Elle se compose de deux zones de texte (texte source et contraction de l'apprenant), d'un sélecteur de mode (exercice/test) et d'un bouton de soumission. La figure~\ref{fig:page_evaluation} illustre cette interface.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{page_evaluation.png}
+\caption{Page d'évaluation de la plateforme AZIZA — formulaire de soumission}
+\label{fig:page_evaluation}
+\end{figure}
+
+Le formulaire intègre une validation côté client (HTML5) et une vérification côté serveur via Flask-WTF. En cas d'erreur de saisie (champ vide, texte trop court), un message d'alerte s'affiche sans rechargement de page grâce à une requête AJAX.
+
+\subsubsection{Page des résultats}
+
+Après soumission et traitement, la plateforme affiche une page de résultats synthétique et pédagogique. La figure~\ref{fig:page_resultats} présente cette interface.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{page_resultats.png}
+\caption{Page des résultats d'évaluation — scores et feedback pédagogique}
+\label{fig:page_resultats}
+\end{figure}
+
+Le tableau de bord des résultats se compose de trois zones :
+\begin{itemize}
+    \item \textbf{Scores} : la note de forme (/7), la note de fond (/3) et le score total (/10) sont affichés avec un code couleur (vert si réussi, rouge si échoué).
+    \item \textbf{Verrous pédagogiques} : chaque verrou (forme, fond, total) est représenté par une icône de validation ou d'échec, permettant à l'apprenant d'identifier rapidement ses axes d'amélioration.
+    \item \textbf{Feedback Mistral} : la réponse du LLM est parsée et affichée sous forme de cartes structurées listant les erreurs détectées, les micro-cours correspondants et un exemple de contraction correcte.
+\end{itemize}
+
 \section{Évolution de l'architecture : de v1.0 à v2.0}
 \label{sec:evolution}
 
@@ -571,7 +767,7 @@ Cette architecture, bien que fonctionnelle pour une preuve de concept, présenta
 
 La version 2.0 a fait l'objet d'une refonte ciblée visant à professionnaliser le service sans modifier le cœur métier du pipeline d'évaluation. Le tableau~\ref{tab:evolution-v1-v2} récapitule les évolutions.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \small
 \renewcommand{\arraystretch}{1.4}
@@ -579,16 +775,8 @@ La version 2.0 a fait l'objet d'une refonte ciblée visant à professionnaliser 
 \toprule
 \textbf{Caractéristique} & \textbf{v1.0} & \textbf{v2.0} \\
 \midrule
-API endpoints & 1 (POST) & 8 (REST documentés) \\
-Authentification & Aucune & Clé API (X-API-Key) \\
-Rate limiting & Aucun & 60 req/min \\
-Documentation & Aucune & Swagger/OpenAPI \\
-Déploiement & Docker / HuggingFace Spaces & PythonAnywhere \\
-Format Mistral & Chaîne \texttt{content} unique & Tableau de parties \\
-Tests unitaires & 110 & 117 \\
-\bottomrule
 \end{tabular}
-\caption{Comparaison des versions 1.0 et 2.0 d'\AZIZA}
+\caption{Évolution de l'architecture AZIZA : v1.0 vs v2.0}
 \label{tab:evolution-v1-v2}
 \end{table}
 
@@ -664,7 +852,7 @@ Scrum a été adapté au contexte de projet individuel (un seul développeur) en
     \item \textbf{Sprints} : cycles de développement d'une durée fixe de 2 semaines, calibrés pour produire un livrable potentiellement utilisable.
     \item \textbf{Product Backlog} : liste priorisée des fonctionnalités (user stories) maintenue dans un tableau Kanban numérique (Trello).
     \item \textbf{Sprint Review} : démonstration informelle du livrable à l'encadrant pédagogique en fin de sprint.
-    \item \textbf{Rétrospective} : analyse des écarts entre le计划 et le réalisé, alimentant les ajustements du sprint suivant.
+    \item \textbf{Rétrospective} : analyse des écarts entre le planifié et le réalisé, alimentant les ajustements du sprint suivant.
 \end{itemize}
 
 \subsection{Déroulement des sprints}
@@ -682,7 +870,7 @@ Le projet a été découpé en 6 sprints de 2 semaines chacun, couvrant 12 semai
 
 \subsection{Organisation du travail}
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{scrum.jpg}
 \caption{Organisation Agile Scrum du projet AZIZA — tableau de bord des sprints}
@@ -797,7 +985,7 @@ Ces quatre diagrammes UML fournissent une vue d'ensemble cohérente de l'archite
 \section{Ressources matérielles}
 \label{sec:ressources_materielles}
 
-Le développement, l'entraînement et le déploiement d'\AZIZA ont été réalisés sur des ressources matérielles accessibles à tout étudiant ou chercheur dans un contexte de budget limité. Cette section détaille les deux principaux supports utilisés durant le projet.
+Le développement, l'entraînement et le déploiement d'\AZIZA\ ont été réalisés sur des ressources matérielles accessibles à tout étudiant ou chercheur dans un contexte de budget limité. Cette section détaille les deux principaux supports utilisés durant le projet.
 
 \subsection{Ordinateur portable}
 
@@ -811,7 +999,7 @@ L'ensemble du développement — de la rédaction du code Python à l'entraînem
     \item \textbf{Environnement logiciel} : Python 3.12, Visual Studio Code, Git, WSL2 (Debian) pour les scripts de pipeline
 \end{itemize}
 
-Ce poste a suffi pour l'ensemble des tâches de prétraitement, d'extraction de caractéristiques et d'entraînement des modèles légers ( régression logistique, forêt aléatoire). Les modèles plus lourds (fine-tuning de \texttt{camembert-base}) ont quant à eux nécessité le recours à une session Google Colab Pro+.
+Ce poste a suffi pour l'ensemble des tâches de prétraitement, d'extraction de caractéristiques et d'entraînement des modèles légers (régression logistique, forêt aléatoire). Les modèles plus lourds (fine-tuning de \texttt{camembert-base}) ont quant à eux nécessité le recours à une session Google Colab Pro+.
 
 \subsection{Smartphone Android}
 
@@ -880,5 +1068,4 @@ Le développement a été mené dans l'environnement suivant :
 
 \subsection*{Synthèse du chapitre}
 
-Ce chapitre a présenté la méthodologie complète de conception d'\AZIZA : un corpus de 30 contractions généré par prompts contrôlés et annoté selon la grille de l'Académie de Limoges, une architecture hybride séparant strictement forme (/7) et fond (/3), des verrous pédagogiques éliminatoires, une machine à états à 3 paliers, une ingénierie de prompts Few-Shot + CoT, et une organisation Agile Scrum en 6 sprints. L'ensemble pose les fondations d'une évaluation automatique fiable et d'un apprentissage adaptatif de la contraction de texte.
-
+Ce chapitre a présenté la méthodologie complète de conception et d'implémentation d'\AZIZA : un corpus de 30 contractions généré par prompts contrôlés et annoté selon la grille de l'Académie de Limoges, une architecture hybride séparant strictement forme (/7) et fond (/3), des verrous pédagogiques éliminatoires, une machine à états à 3 paliers, une ingénierie de prompts Few-Shot + CoT, et une organisation Agile Scrum en 6 sprints. L'implémentation modulaire du pipeline, l'API REST sécurisée et le déploiement sur PythonAnywhere concrétisent ces choix méthodologiques en un système fonctionnel et accessible en ligne.

@@ -1,16 +1,16 @@
 % ============================================================
-% CHAPITRE 4 : EXPÉRIMENTATIONS
+% CHAPITRE 3 : ANALYSE DES RÉSULTATS
 % ============================================================
-\chapter{Expérimentations et résultats}
-\label{ch:experiences}
+\chapter{Analyse des résultats}
+\label{ch:analyse}
 
-Ce chapitre présente les 7 expériences menées pour valider le pipeline \AZIZA\ sur les 30 contractions du corpus. Chaque expérience isole un aspect spécifique — analyse exploratoire, métriques lexicales, qualité de la langue, fusion du score Forme, similarité sémantique, calibration du LLM Fond, et évaluation globale — et confronte les résultats automatiques aux annotations expertes.
+Ce chapitre présente les 7 expériences menées pour valider le pipeline \AZIZA\ sur les 30 contractions du corpus, ainsi que les tests de validation du système. Chaque expérience isole un aspect spécifique — analyse exploratoire, métriques lexicales, qualité de la langue, fusion du score Forme, similarité sémantique, calibration du LLM Fond, et évaluation globale — et confronte les résultats automatiques aux annotations expertes. La seconde partie du chapitre détaille la stratégie de validation, couvrant les tests unitaires et d'intégration, les tests fonctionnels de la plateforme web, et le protocole de test sur contractions réelles.
 
 \section{Corpus d'expérimentation}
 
 Le corpus comprend 30 contractions générées à partir de 10 textes sources issus d'annales du Baccalauréat, réparties en trois paliers : correct (10), partiellement correct (10), incorrect (10). Chaque contraction a été annotée manuellement par un enseignant expert.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{distribution_paliers.png}
 \caption{Répartition des 30 contractions par palier}
@@ -21,7 +21,7 @@ Le corpus comprend 30 contractions générées à partir de 10 textes sources is
 
 L'EDA a révélé les caractéristiques suivantes du corpus. La répartition par palier (figure~\ref{fig:paliers}) montre un équilibrage volontaire : 10 contractions correctes, 10 partiellement correctes et 10 incorrectes, permettant une évaluation discriminante du pipeline.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{mots_vs_quota.png}
 \caption{Distribution du nombre de mots par rapport au quota cible}
@@ -30,7 +30,7 @@ L'EDA a révélé les caractéristiques suivantes du corpus. La répartition par
 
 Le croisement entre le palier de l'apprenant et le label expert (figure~\ref{fig:croisement_palier}) confirme que les paliers auto-déclarés ne correspondent pas toujours à la qualité réelle des contractions, justifiant la machine à états adaptative.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{croisement_palier_label.png}
 \caption{Croisement entre palier auto-déclaré et label expert}
@@ -39,14 +39,14 @@ Le croisement entre le palier de l'apprenant et le label expert (figure~\ref{fig
 
 La distribution des labels de plagiat (figure~\ref{fig:labels_plagiat}) révèle que 23 contractions sur 30 sont considérées comme originales par l'expert, 4 comme partiellement plagiées et 3 comme du plagiat caractérisé.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{distribution_labels_plagiat.png}
 \caption{Distribution des labels de plagiat attribués par l'expert}
 \label{fig:labels_plagiat}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{distribution_notes_expert.png}
 \caption{Distribution des notes attribuées par l'expert}
@@ -55,7 +55,7 @@ La distribution des labels de plagiat (figure~\ref{fig:labels_plagiat}) révèle
 
 La distribution des scores de cohérence (figure~\ref{fig:coherence}) montre que l'expert perçoit une forte variation dans la qualité argumentative des contractions, avec une concentration autour de la médiane.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{distribution_coherence.png}
 \caption{Distribution des scores de cohérence attribués par l'expert}
@@ -64,7 +64,7 @@ La distribution des scores de cohérence (figure~\ref{fig:coherence}) montre que
 
 Enfin, la comparaison entre la note automatique (basée sur le nombre de mots) et la note experte (figure~\ref{fig:auto_vs_expert}) illustre la limite d'une approche purement quantitative : la corrélation est faible, confirmant la nécessité d'une analyse multidimensionnelle.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{auto_vs_expert.png}
 \caption{Note automatique (mots) vs note experte — corrélation limite}
@@ -75,21 +75,21 @@ Enfin, la comparaison entre la note automatique (basée sur le nombre de mots) e
 
 Cette expérience a visé à déterminer les paramètres optimaux \(S_{\min}\) et \(S_{\max}\) de la fonction parabolique de scoring lexical.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{determination_smin.png}
 \caption{Détermination de \(S_{\min}\) : distribution des scores LCS}
 \label{fig:smin}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{determination_smax.png}
 \caption{Détermination de \(S_{\max}\) : seuil de plagiat}
 \label{fig:smax}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{distribution_4_metriques.png}
 \caption{Distribution comparée des 4 métriques de similarité}
@@ -102,7 +102,7 @@ Cette expérience analyse la qualité linguistique des contractions à travers d
 
 La distribution du nombre de fautes (figure~\ref{fig:fautes}) montre que 18 contractions sur 30 contiennent 2 fautes ou moins, tandis que 4 contractions présentent plus de 5 fautes, révélant une maîtrise inégale de l'orthographe chez les apprenants.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{distribution_fautes.png}
 \caption{Distribution du nombre de fautes d'orthographe}
@@ -111,7 +111,7 @@ La distribution du nombre de fautes (figure~\ref{fig:fautes}) montre que 18 cont
 
 Le ratio de phrases source/contraction (figure~\ref{fig:phrases}) indique que les apprenants réduisent en moyenne le nombre de phrases de 40\,\% à 60\,\% par rapport au texte source, avec une forte dispersion autour de la médiane.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{distribution_phrases.png}
 \caption{Distribution du ratio de phrases source/contraction}
@@ -124,7 +124,7 @@ Cette expérience fusionne les trois sous-scores lexicaux (LCS, connecteurs, ort
 
 La distribution du score Forme automatique (figure~\ref{fig:score_forme_auto}) montre une dispersion couvrant l'ensemble de l'échelle, avec une concentration entre 2/7 et 5/7.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{distribution_score_forme_auto.png}
 \caption{Distribution du score Forme automatique AZIZA}
@@ -133,7 +133,7 @@ La distribution du score Forme automatique (figure~\ref{fig:score_forme_auto}) m
 
 La corrélation de Pearson de 0,636 entre le score AZIZA Forme et le score expert (figure~\ref{fig:pearson}) confirme une concordance modérée mais significative, comparable aux systèmes AES de l'état de l'art.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{correlation_pearson.png}
 \caption{Corrélation de Pearson entre score AZIZA Forme et score expert}
@@ -142,7 +142,7 @@ La corrélation de Pearson de 0,636 entre le score AZIZA Forme et le score exper
 
 La confrontation directe des notes (figure~\ref{fig:confrontation}) révèle que l'écart moyen est de 0,9 point sur 7, avec une tendance à la sous-évaluation pour les contractions notées 5/7 et plus par l'expert.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{confrontation_notes.png}
 \caption{Confrontation des notes AZIZA Forme vs expert}
@@ -151,7 +151,7 @@ La confrontation directe des notes (figure~\ref{fig:confrontation}) révèle que
 
 La matrice de confusion pour la détection du plagiat (figure~\ref{fig:plagiat}) montre une très forte précision : seules 2 contractions sur 30 sont mal classées, démontrant l'efficacité du seuil LCS choisi.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.7\textwidth]{matrice_confusion_plagiat.png}
 \caption{Matrice de confusion — détection du plagiat}
@@ -162,7 +162,7 @@ La matrice de confusion pour la détection du plagiat (figure~\ref{fig:plagiat})
 
 L'évaluation de la similarité sémantique via \texttt{mistral-embed} a produit les résultats suivants. La distribution des scores (figure~\ref{fig:semantique}) s'étale de 0,45 à 0,98, avec une médiane à 0,82, indiquant que la plupart des contractions préservent un noyau sémantique commun avec la source.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{distribution_semantique.png}
 \caption{Distribution des scores de similarité sémantique}
@@ -171,7 +171,7 @@ L'évaluation de la similarité sémantique via \texttt{mistral-embed} a produit
 
 La confrontation entre similarité textuelle (LCS) et sémantique (figure~\ref{fig:lcs_vs_sem}) met en évidence des cas où une forte similarité de surface cache un contresens sémantique, justifiant l'architecture hybride combinant les deux approches.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{lcs_vs_semantique.png}
 \caption{Relation entre similarité textuelle (LCS) et sémantique}
@@ -180,7 +180,7 @@ La confrontation entre similarité textuelle (LCS) et sémantique (figure~\ref{f
 
 La détection du hors-sujet (figure~\ref{fig:hors_sujet}) atteint une précision parfaite au seuil de 0,85 : les 3 contractions hors-sujet identifiées par l'expert sont toutes correctement classées, sans faux positif.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{hors_sujet_vs_reste.png}
 \caption{Détection du hors-sujet : seuil sémantique à 0.85}
@@ -193,7 +193,7 @@ Le LLM Mistral Small en configuration Few-Shot + CoT a été évalué sur le cor
 
 La matrice de confusion pour la détection des contresens (figure~\ref{fig:contresens}) révèle un F1-score de 0,77, avec 4 faux positifs et 3 faux négatifs sur 30 observations. Ces résultats sont encourageants pour un LLM de taille modeste en configuration Few-Shot.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.7\textwidth]{matrice_confusion_contresens.png}
 \caption{Matrice de confusion — détection des contresens par le LLM (F1=0.77)}
@@ -202,7 +202,7 @@ La matrice de confusion pour la détection des contresens (figure~\ref{fig:contr
 
 La distribution des scores Fond (figure~\ref{fig:score_fond}) montre que le LLM attribue majoritairement des notes de 2/3 et 3/3, reflétant la qualité globale du corpus. Les notes de 0/3 (hors-sujet) sont rares mais systématiquement justifiées.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{distribution_score_fond.png}
 \caption{Distribution des scores Fond attribués par le LLM}
@@ -211,7 +211,7 @@ La distribution des scores Fond (figure~\ref{fig:score_fond}) montre que le LLM 
 
 La longueur des feedbacks générés (figure~\ref{fig:longueur_feedbacks}) varie de 50 à 250 mots, avec une médiane de 120 mots, garantissant un retour suffisamment détaillé pour être pédagogiquement utile sans submerger l'apprenant.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{longueur_feedbacks.png}
 \caption{Distribution de la longueur des feedbacks générés par le LLM}
@@ -224,7 +224,7 @@ L'évaluation finale fusionne les scores Forme (/7) et Fond (/3) en une note /10
 
 Le pipeline complet atteint une corrélation de Pearson de 0,797 avec la note experte, un Cohen's Kappa de 0,776 (accord substantiel) et un F1-score de 0,77 pour la détection des contresens.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Résultats de l'évaluation globale AZIZA vs expert}
 \label{tab:resultats_globaux}
@@ -245,14 +245,14 @@ Verrous déclenchés (trop court) & 0 / 30 \\
 \end{tabularx}
 \end{table}
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{distribution_comparee.png}
 \caption{Distribution comparée des notes AZIZA vs expert (sur 30 contractions)}
 \label{fig:comparee}
 \end{figure}
 
-\section{Synthèse des résultats}
+\section{Synthèse des résultats expérimentaux}
 
 Les expérimentations confirment la validité de l'approche hybride :
 
@@ -263,6 +263,100 @@ Les expérimentations confirment la validité de l'approche hybride :
     \item L'absence d'hallucination sur les critères de forme est garantie par l'architecture déterministe.
 \end{itemize}
 
+\section{Tests et validation}
+
+Cette section présente la stratégie de validation d'\AZIZA, couvrant les tests unitaires et d'intégration (117 tests automatisés), les tests fonctionnels de la plateforme web, et le protocole de test sur contractions réelles d'élèves.
+
+\subsection{Tests unitaires et d'intégration}
+
+Le pipeline \AZIZA\ est couvert par \textbf{117 tests unitaires et d'intégration}, répartis comme suit :
+
+\begin{table}[H]
+\centering
+\caption{Répartition des 117 tests}
+\label{tab:tests}
+\begin{tabularx}{\textwidth}{l X r}
+\toprule
+\textbf{Module} & \textbf{Description} & \textbf{Nombre} \\
+\midrule
+Pipeline Forme & Métriques lexicales, syntaxe, orthographe & 45 \\
+Pipeline Fond & Embedding, LLM, calibration & 25 \\
+Pipeline Complet & Orchestration, verrous, fusion & 20 \\
+Machine à états & Transitions, calcul M\(_p\), seuils & 15 \\
+API REST & Endpoints, auth, rate limiting, erreurs & 7 \\
+Interface Flask & Routes, templates, session & 5 \\
+\midrule
+\textbf{Total} & & \textbf{117} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Les tests d'intégration nécessitant l'API Mistral réelle sont marqués et peuvent être exclus lors des exécutions rapides. L'ensemble des tests est automatisé via GitHub Actions (CI) à chaque push.
+
+\subsection{Tests Fonctionnels de la plateforme}
+\label{sec:tests-fonctionnels}
+
+Cette section présente les tests fonctionnels de la plateforme \AZIZA{} à travers l'appel à l'API REST et l'affichage des résultats. Les captures d'écran de l'interface sont présentées à la section~\ref{subsec:captures-plateforme}.
+
+\subsubsection{Test d'Appel à l'API}
+\label{subsec:test-api}
+
+L'API REST d'\AZIZA{} peut être testée indépendamment de l'interface web via un outil comme \texttt{curl} ou la documentation Swagger. L'appel suivant illustre une requête typique :
+
+\begin{lstlisting}[caption=Test de l'API avec curl,language=bash]
+curl -X POST https://Jiovany11.pythonanywhere.com/api/v1/evaluer \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: votre_cle_api" \
+  -d '{
+    "source": "Le texte source de reference...",
+    "texte": "La contraction de l'apprenant...",
+    "mode": "exercice"
+  }'
+\end{lstlisting}
+
+La réponse JSON renvoyée contient la structure suivante :
+
+\begin{lstlisting}[caption=Structure de la réponse JSON de l'API,language={}]
+{
+  "score_global": 6.5,
+  "score_forme": 4.5,
+  "score_fond": 2.0,
+  "verrous": {"forme": true, "fond": false, "total": true},
+  "feedback": {
+    "erreurs": ["Idee principale omise"],
+    "micro_cours": "Rappel : une contraction doit...",
+    "exemple": "Voici une contraction correcte..."
+  }
+}
+\end{lstlisting}
+
+L'API retourne un code HTTP 200 en cas de succès, 400 pour une requête mal formée, 401 pour une clé API invalide et 429 en cas de dépassement du rate limiting.
+
+\subsection{Rapport de tests fonctionnels sur 10 contractions réelles}
+
+\label{sec:tests_fonctionnels}
+
+Cette section est réservée pour le rapport de tests fonctionnels comparant les performances d'\AZIZA\ à celles d'un correcteur humain sur 10 contractions réelles d'élèves de Terminale.
+
+Le protocole prévu comprend :
+
+\begin{enumerate}
+    \item Sélection de 10 contractions anonymisées d'élèves de Terminale.
+    \item Évaluation par un enseignant expert de français (note /10, feedback).
+    \item Évaluation par le pipeline \AZIZA\ (note /10, feedback).
+    \item Comparaison systématique : écart de note, concordance Kappa, analyse des divergences.
+    \item Analyse qualitative des cas de désaccord (erreurs d'AZIZA, limites identifiées).
+\end{enumerate}
+
+% --- Contenu à compléter après expérimentation ---
+\vspace{1cm}
+\begin{tcolorbox}[colback=yellow!10,colframe=orange!80,title=\textbf{À COMPLÉTER}]
+Ce rapport sera rédigé après la collecte des données expérimentales sur 10 contractions réelles d'élèves.
+\end{tcolorbox}
+\vspace{1cm}
+
+Les résultats viendront compléter les métriques de validation du présent chapitre et fourniront une indication concrète de la performance d'\AZIZA\ dans des conditions réelles d'utilisation.
+
 \subsection*{Synthèse du chapitre}
 
-Les 7 expériences de ce chapitre valident l'approche hybride d'\AZIZA. L'analyse exploratoire a confirmé la diversité et la pertinence du corpus. Les métriques lexicales (LCS) discriminent parfaitement plagiat et originalité. L'évaluation de la forme atteint une corrélation de 0,636 avec l'expert. La similarité sémantique via \texttt{mistral-embed} détecte le hors-sujet avec une précision parfaite. Le LLM en Few-Shot + CoT atteint un F1-score de 0,77 pour la détection des contresens. Enfin, le pipeline complet obtient une corrélation de Pearson de 0,797 et un Cohen's Kappa de 0,776 avec la note experte, démontrant la fiabilité de l'évaluation automatisée.
+Ce chapitre a présenté l'évaluation expérimentale et la validation d'\AZIZA. Les 7 expériences sur le corpus de 30 contractions confirment la validité de l'approche hybride : corrélation de Pearson de 0,797, Cohen's Kappa de 0,776 et F1-score de 0,77 pour la détection des contresens. Les 117 tests unitaires et d'intégration automatisés via GitHub Actions garantissent la robustesse du code, tandis que les tests fonctionnels de la plateforme valident l'expérience utilisateur sur terminal fixe et mobile. Le protocole de test sur 10 contractions réelles, dont les résultats sont à venir, permettra de confirmer la performance du pipeline en conditions réelles d'utilisation pédagogique.

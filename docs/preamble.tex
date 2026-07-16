@@ -34,6 +34,17 @@
 % --- Coupures et typographie ---
 \usepackage{microtype}
 
+% --- Contrôle des veuves/orphelines ---
+\widowpenalty=10000
+\clubpenalty=10000
+\setlength{\floatsep}{18pt plus 4pt minus 4pt}
+\setlength{\textfloatsep}{24pt plus 6pt minus 6pt}
+
+% --- Contrôle des flotteurs ---
+\setcounter{totalnumber}{6}
+\setcounter{topnumber}{4}
+\setcounter{bottomnumber}{4}
+
 % --- Mathématiques ---
 \usepackage{amsmath,amssymb,amsfonts}
 
@@ -149,6 +160,9 @@
 
 % --- Annexes ---
 \usepackage[title,titletoc]{appendix}
+
+% --- Césure des URL longues ---
+\usepackage{xurl}
 
 % --- Notes de bas de page ---
 \usepackage[bottom]{footmisc}

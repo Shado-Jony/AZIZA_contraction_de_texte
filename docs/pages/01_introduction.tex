@@ -79,26 +79,22 @@ Ce mémoire apporte les contributions suivantes :
 
 \section*{Organisation du mémoire}
 
-Ce mémoire s'articule autour de cinq chapitres, auxquels s'ajoutent une introduction générale, une conclusion et des annexes :
+Ce mémoire s'articule autour de trois chapitres, auxquels s'ajoutent une introduction générale et une conclusion :
 
 \medskip
 \begin{center}
 \begin{tikzpicture}[node distance=2.5cm]
     \node (intro) [draw, rounded corners, fill=blue!5, minimum width=10cm, minimum height=0.7cm] {\textbf{Introduction générale} — Contexte, problématique, objectifs et contributions};
     \node (ch1) [draw, rounded corners, fill=green!5, minimum width=10cm, minimum height=0.7cm, below=0.4cm of intro] {\textbf{Chapitre 1} — État de l'art sur l'AES, les STI et le TALN francophone};
-    \node (ch2) [draw, rounded corners, fill=green!5, minimum width=10cm, minimum height=0.7cm, below=0.4cm of ch1] {\textbf{Chapitre 2} — Méthodologie, architecture du pipeline hybride et conception du corpus};
-    \node (ch3) [draw, rounded corners, fill=green!5, minimum width=10cm, minimum height=0.7cm, below=0.4cm of ch2] {\textbf{Chapitre 3} — Implémentation des modules et déploiement};
-    \node (ch4) [draw, rounded corners, fill=green!5, minimum width=10cm, minimum height=0.7cm, below=0.4cm of ch3] {\textbf{Chapitre 4} — Expérimentations et résultats détaillés};
-    \node (ch5) [draw, rounded corners, fill=green!5, minimum width=10cm, minimum height=0.7cm, below=0.4cm of ch4] {\textbf{Chapitre 5} — Tests et validation};
-    \node (conc) [draw, rounded corners, fill=orange!5, minimum width=10cm, minimum height=0.7cm, below=0.4cm of ch5] {\textbf{Conclusion} — Synthèse, limites et perspectives d'évolution};
+    \node (ch2) [draw, rounded corners, fill=green!5, minimum width=10cm, minimum height=0.7cm, below=0.4cm of ch1] {\textbf{Chapitre 2} — Méthodes et Solutions : méthodologie, architecture et implémentation};
+    \node (ch3) [draw, rounded corners, fill=green!5, minimum width=10cm, minimum height=0.7cm, below=0.4cm of ch2] {\textbf{Chapitre 3} — Analyse des résultats : expérimentations, tests et validation};
+    \node (conc) [draw, rounded corners, fill=orange!5, minimum width=10cm, minimum height=0.7cm, below=0.4cm of ch3] {\textbf{Conclusion} — Synthèse, limites et perspectives d'évolution};
     \draw[->, thick] (intro.south) -- (ch1.north);
     \draw[->, thick] (ch1.south) -- (ch2.north);
     \draw[->, thick] (ch2.south) -- (ch3.north);
-    \draw[->, thick] (ch3.south) -- (ch4.north);
-    \draw[->, thick] (ch4.south) -- (ch5.north);
-    \draw[->, thick] (ch5.south) -- (conc.north);
+    \draw[->, thick] (ch3.south) -- (conc.north);
 \end{tikzpicture}
 \end{center}
 \medskip
 
-Le \textbf{Chapitre 1} dresse l'état de l'art sur l'évaluation automatique de textes, les systèmes de tutorat intelligent et le TALN francophone, et positionne \AZIZA\ face aux limites identifiées. Le \textbf{Chapitre 2} présente la méthodologie de constitution du corpus, l'architecture du pipeline hybride, la grille d'évaluation académique et les choix techniques. Le \textbf{Chapitre 3} détaille l'implémentation des modules logiciels, de l'arborescence du code au déploiement sur PythonAnywhere. Le \textbf{Chapitre 4} expose les 7 expériences menées et leurs résultats chiffrés. Le \textbf{Chapitre 5} décrit la stratégie de test et de validation. Une \textbf{conclusion} synthétise les résultats, discute les limites et ouvre sur les perspectives d'évolution.
+Le \textbf{Chapitre 1} dresse l'état de l'art sur l'évaluation automatique de textes, les systèmes de tutorat intelligent et le TALN francophone, et positionne \AZIZA\ face aux limites identifiées. Le \textbf{Chapitre 2} présente la méthodologie de constitution du corpus, l'architecture du pipeline hybride, la grille d'évaluation académique, les choix techniques, l'implémentation des modules logiciels et le déploiement sur PythonAnywhere. Le \textbf{Chapitre 3} expose les 7 expériences menées, leurs résultats chiffrés, la stratégie de test et de validation. Une \textbf{conclusion} synthétise les résultats, discute les limites et ouvre sur les perspectives d'évolution.
