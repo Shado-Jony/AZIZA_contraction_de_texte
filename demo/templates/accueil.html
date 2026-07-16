@@ -39,6 +39,8 @@
 {% endblock %}
 {% block extra_scripts %}
 <script>
+  showSpinner('Chargement d\'AZIZA…');
+  window.addEventListener('load', function() { hideSpinner(); });
   document.querySelectorAll('.card-icon').forEach(function(el) {
     el.addEventListener('click', function(e) {
       e.stopPropagation();
@@ -54,5 +56,7 @@
   document.addEventListener('click', function() {
     document.querySelectorAll('.tooltip').forEach(function(t) { t.remove(); });
   });
+  showSpinner('Bienvenue sur AZIZA');
+  setTimeout(hideSpinner, 1200);
 </script>
 {% endblock %}
