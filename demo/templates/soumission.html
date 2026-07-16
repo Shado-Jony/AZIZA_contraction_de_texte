@@ -89,7 +89,7 @@
     .btn-evaluer:hover { background: var(--primary-dark); }
   </style>
 
-  <form method="POST" action="/evaluer" id="evalForm">
+  <form method="POST" action="/evaluer" id="evalForm" onsubmit="showSpinner()">
     <div class="form-grid">
       <div>
         <label style="font-weight:600;font-size:.9rem;display:block;margin-bottom:.5rem;">Texte source</label>
