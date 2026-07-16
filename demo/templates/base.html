@@ -72,7 +72,9 @@
       document.getElementById('aziza-spinner').classList.remove('show');
     }
     window.addEventListener('pageshow', function() { hideSpinner(); });
+    window.addEventListener('load', function() { hideSpinner(); });
     hideSpinner();
+    showSpinner();
     function toggleTheme() {
       var html = document.documentElement;
       var btn = document.getElementById('themeBtn');

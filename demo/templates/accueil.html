@@ -39,8 +39,6 @@
 {% endblock %}
 {% block extra_scripts %}
 <script>
-  showSpinner('Chargement d\'AZIZA…');
-  window.addEventListener('load', function() { hideSpinner(); });
   document.querySelectorAll('.card-icon').forEach(function(el) {
     el.addEventListener('click', function(e) {
       e.stopPropagation();
