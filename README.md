@@ -134,48 +134,69 @@ curl -X POST URL_BASE/admin/tokens \
 curl URL_BASE/admin/tokens -H "X-API-Key: votre-cle-maitre"
 ```
 
-**PowerShell (Windows) :**
+**PowerShell (Windows) — `aziza-test.ps1`** :
 ```powershell
-$url     = "URL_BASE/admin/tokens"
-$headers = @{ "X-API-Key" = "votre-cle-maitre"; "Content-Type" = "application/json" }
+$URL    = "URL_BASE"
+$MASTER = "votre-cle-maitre"
 
-# Créer un token
-$body = @{ client_name = "Ecole ABC"; plan = "pro" } | ConvertTo-Json
-Invoke-RestMethod -Uri $url -Method Post -Headers $headers -Body $body
+# 1. Créer un token client
+$headers = @{ "X-API-Key" = $MASTER }
+$body    = '{"client_name": "Ecole ABC", "plan": "pro"}'
+$result  = Invoke-RestMethod -Uri "$URL/admin/tokens" -Method Post -Headers $headers -Body $body -ContentType "application/json"
+$CLIENT_TOKEN = $result.token.token
+Write-Host "Token client : $CLIENT_TOKEN"
 
-# Lister les tokens
-Invoke-RestMethod -Uri $url -Method Get -Headers $headers
+# 2. Lister les tokens
+Write-Host "--- Liste des tokens ---"
+Invoke-RestMethod -Uri "$URL/admin/tokens" -Method Get -Headers $headers
+
+# 3. Tester l'évaluation
+Write-Host "--- Évaluation ---"
+$bodyEval = '{"texte_source": "Le Bénin est un pays d Afrique.", "contraction": "Bénin pays Afrique."}'
+$headersEval = @{ "X-API-Key" = $CLIENT_TOKEN }
+Invoke-RestMethod -Uri "$URL/api/v1/evaluer" -Method Post -Headers $headersEval -Body $bodyEval -ContentType "application/json"
 ```
 
-**Python (tous OS) :**
+**Python (tous OS) — `aziza-test.py`** :
 ```python
 import requests
-URL_BASE = "URL_BASE"  # localhost:5100 ou l'URL PythonAnywhere
-h = {"X-API-Key": "votre-cle-maitre"}
-r = requests.post(f"{URL_BASE}/admin/tokens", headers=h,
+
+URL = "URL_BASE"
+MASTER_KEY = "votre-cle-maitre"
+
+# 1. Créer un token client
+h = {"X-API-Key": MASTER_KEY}
+r = requests.post(f"{URL}/admin/tokens", headers=h,
                   json={"client_name": "Ecole ABC", "plan": "pro"})
-print(r.json())
+CLIENT_TOKEN = r.json()["token"]["token"]
+print("Token client :", CLIENT_TOKEN)
+
+# 2. Lister les tokens
+r = requests.get(f"{URL}/admin/tokens", headers=h)
+print("Tokens:", r.json())
+
+# 3. Tester l'évaluation
+r = requests.post(f"{URL}/api/v1/evaluer",
+    headers={"X-API-Key": CLIENT_TOKEN},
+    json={"texte_source": "Le Bénin est un pays d Afrique.", "contraction": "Bénin pays Afrique."})
+print("Résultat:", r.json())
 ```
 
 ### POST /api/v1/evaluer
 
 Évalue une contraction via JSON — nécessite un **token client** dans le header `X-API-Key`.
 
-**Terminal (curl) :**
+**curl :**
 ```bash
 curl -X POST URL_BASE/api/v1/evaluer \
   -H "X-API-Key: token-du-client" \
   -H "Content-Type: application/json" \
-  -d '{"texte_source": "Texte à contracter.", "contraction": "Texte produit."}'
+  -d '{"texte_source": "Le Bénin est un pays.", "contraction": "Bénin pays."}'
 ```
 
-**Python (tous OS) :**
-```python
-import requests
-r = requests.post("URL_BASE/api/v1/evaluer",
-    headers={"X-API-Key": "token-du-client"},
-    json={"texte_source": "Texte à contracter.", "contraction": "Texte produit."})
-print(r.json())
+**Python (une ligne) :**
+```bash
+python -c "import requests; r = requests.post('URL_BASE/api/v1/evaluer', headers={'X-API-Key': 'token-du-client'}, json={'texte_source': 'Le Bénin est un pays.', 'contraction': 'Bénin pays.'}); print(r.json())"
 ```
 
 **Réponse (200) :**
@@ -193,6 +214,35 @@ print(r.json())
     "restant": 4999
   }
 }
+```
+
+### Test rapide en production
+
+Depuis n'importe quel terminal, avec l'URL PythonAnywhere :
+
+```python
+python -c "
+import requests
+URL = 'https://Jiovany11.pythonanywhere.com'
+KEY = 'aziza-api-key-2026'
+
+# 1. Healthcheck
+print('Health:', requests.get(URL + '/api/v1/health').json())
+
+# 2. Créer un token client
+r = requests.post(URL + '/admin/tokens',
+    headers={'X-API-Key': KEY},
+    json={'client_name': 'Test', 'plan': 'free'})
+token = r.json()['token']['token']
+print('Token:', token)
+
+# 3. Évaluer une contraction
+r = requests.post(URL + '/api/v1/evaluer',
+    headers={'X-API-Key': token},
+    json={'texte_source': 'Le Bénin est un pays.', 'contraction': 'Bénin pays.'})
+print('Note finale:', r.json().get('note_finale'))
+print('Quota restant:', r.json().get('quota_plan'))
+"
 ```
 
 **Réponses d'erreur :**
